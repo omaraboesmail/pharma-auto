@@ -1,0 +1,45 @@
+# Sensitive local assets
+Genius.bak
+*.bak
+*.mdf
+*.ldf
+*.cer
+*.pfx
+*.key
+*.pem
+.env
+.env.*
+local.properties
+
+# Explicitly excluded legacy project
+Order-Automating/
+
+# Android / Gradle
+.gradle/
+**/build/
+captures/
+*.iml
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# Node
+node_modules/
+.next/
+coverage/
+
+# IDE / OS
+.idea/
+.vs/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Runtime data
+data/
+temp/
+diagnostics/
+*.log

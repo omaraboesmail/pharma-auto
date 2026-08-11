@@ -1,0 +1,1326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Pharma Invoice Bridge</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Pharma Invoice Bridge" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Pharma Invoice Bridge&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: var(--border-radius-lg, 12.5px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+    [aria-pressed=&quot;true&quot;],
+    [aria-selected=&quot;true&quot;],
+    .is-selected
+  ) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: 16px !important;
+  height: 16px !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;pharmabridge-explainer&quot; dir=&quot;rtl&quot;&gt;
+  &lt;style&gt;
+    #pharmabridge-explainer { color: var(--foreground); width: 100%; }
+    #pharmabridge-explainer .pb-head { display: flex; gap: 12px; align-items: end; justify-content: space-between; flex-wrap: wrap; margin-bottom: 12px; }
+    #pharmabridge-explainer .pb-head h2 { margin: 0; }
+    #pharmabridge-explainer .pb-stage { width: 100%; }
+    #pharmabridge-explainer .pb-svg { display: block; width: 100%; height: auto; }
+    #pharmabridge-explainer .pb-edge { stroke: var(--border); stroke-width: 2; fill: none; marker-end: url(#pb-arrow); }
+    #pharmabridge-explainer .pb-edge-critical { stroke: var(--viz-series-2); }
+    #pharmabridge-explainer .pb-node rect { fill: color-mix(in srgb, var(--viz-series-1) 11%, transparent); stroke: var(--border); stroke-width: 1.5; rx: 12; }
+    #pharmabridge-explainer .pb-node-local rect { fill: color-mix(in srgb, var(--viz-series-2) 13%, transparent); }
+    #pharmabridge-explainer .pb-node-data rect { fill: color-mix(in srgb, var(--viz-series-3) 12%, transparent); }
+    #pharmabridge-explainer .pb-node text { fill: var(--foreground); font-size: 12px; font-weight: 500; text-anchor: middle; dominant-baseline: middle; }
+    #pharmabridge-explainer .pb-label { fill: var(--muted-foreground); font-size: 11px; text-anchor: middle; }
+    #pharmabridge-explainer .pb-flow-line { stroke: var(--border); stroke-width: 4; stroke-linecap: round; }
+    #pharmabridge-explainer .pb-flow-dot { fill: var(--muted); stroke: var(--border); stroke-width: 2; }
+    #pharmabridge-explainer .pb-flow-dot-active { fill: var(--viz-series-1); stroke: var(--viz-series-1); }
+    #pharmabridge-explainer .pb-flow-text { fill: var(--foreground); font-size: 11px; text-anchor: middle; }
+    #pharmabridge-explainer .pb-detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    #pharmabridge-explainer .pb-detail-grid strong { display: block; margin-bottom: 4px; font-weight: 500; }
+    #pharmabridge-explainer .pb-decision-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    #pharmabridge-explainer .pb-space { margin-top: 12px; }
+    #pharmabridge-explainer .pb-mobile-only { display: none; }
+    @media (max-width: 620px) {
+      #pharmabridge-explainer .pb-detail-grid { grid-template-columns: 1fr; }
+      #pharmabridge-explainer .pb-decision-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #pharmabridge-explainer .pb-desktop-only { display: none; }
+      #pharmabridge-explainer .pb-mobile-only { display: block; }
+    }
+    @media (max-width: 380px) {
+      #pharmabridge-explainer .pb-decision-grid { grid-template-columns: 1fr; }
+    }
+  &lt;/style&gt;
+
+  &lt;div class=&quot;pb-head&quot;&gt;
+    &lt;div&gt;
+      &lt;h2&gt;Pharma Invoice Bridge&lt;/h2&gt;
+      &lt;div class=&quot;text-muted text-small&quot;&gt;OCR → Human Verification → Certified Direct DB Commit → Reconciliation&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;pb-view&quot;&gt;العرض
+      &lt;select class=&quot;form-select&quot; id=&quot;pb-view&quot;&gt;
+        &lt;option value=&quot;architecture&quot;&gt;المعمارية&lt;/option&gt;
+        &lt;option value=&quot;flow&quot;&gt;مسار الفاتورة&lt;/option&gt;
+        &lt;option value=&quot;decisions&quot;&gt;القرارات&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/label&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;pb-stage&quot; id=&quot;pb-stage&quot; aria-live=&quot;polite&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+(() =&gt; {
+  const root = document.getElementById(&#x27;pharmabridge-explainer&#x27;);
+  const stage = root.querySelector(&#x27;#pb-stage&#x27;);
+  const view = root.querySelector(&#x27;#pb-view&#x27;);
+
+  const components = {
+    android: { title: &#x27;Android Client&#x27;, decision: &#x27;Capture وhuman review فقط.&#x27;, why: &#x27;منع secrets وERP logic من الوصول إلى APK.&#x27;, guard: &#x27;لا Gemini token ولا SQL credentials.&#x27; },
+    connector: { title: &#x27;Local Connector&#x27;, decision: &#x27;هو local authority للـ matching والـ Commit.&#x27;, why: &#x27;يمتلك سياق Genius DB والـ locks والـ reconciliation.&#x27;, guard: &#x27;كل write يمر عبر fingerprint وdurable job state.&#x27; },
+    genius: { title: &#x27;Genius DB&#x27;, decision: &#x27;Source of truth للـ Items وstock والـ purchases.&#x27;, why: &#x27;لا يوجد Beconnect API أوtransaction contract رسمي.&#x27;, guard: &#x27;Certified profile فقط؛ لا schema changes.&#x27; },
+    sidecar: { title: &#x27;Local Sidecar&#x27;, decision: &#x27;يحفظ jobs،mappings،audit وcommit journal خارج Genius.&#x27;, why: &#x27;عدم تلويث legacy schema ببيانات المنصة.&#x27;, guard: &#x27;Encrypted sensitive fields وbackup/restore.&#x27; },
+    saas: { title: &#x27;SaaS Platform&#x27;, decision: &#x27;يدير tenants،quota،OCR وCanonical Catalog.&#x27;, why: &#x27;فصل cloud control plane عن local ERP writes.&#x27;, guard: &#x27;لا full Genius sync ولا local SQL identity.&#x27; },
+    vector: { title: &#x27;PostgreSQL + pgvector&#x27;, decision: &#x27;Hybrid candidate generation فقط.&#x27;, why: &#x27;semantic recall للأسماء العربية/الإنجليزية مع SQL filters.&#x27;, guard: &#x27;strength/form/pack hard constraints تسبق vector search.&#x27; },
+    gemini: { title: &#x27;Gemini&#x27;, decision: &#x27;Structured extraction مع evidence.&#x27;, why: &#x27;تحويل invoice image إلى fields قابلة للمراجعة.&#x27;, guard: &#x27;لا يختار itm_id ولا ينفذ Commit.&#x27; },
+    admin: { title: &#x27;Admin Portal&#x27;, decision: &#x27;إدارة subscription والصحة التشغيلية.&#x27;, why: &#x27;فصل billing/support عن بيانات الصيدلية.&#x27;, guard: &#x27;Supabase MFA/AAL2 وbreak-glass مدقق.&#x27; }
+  };
+
+  const flow = [
+    { title: &#x27;Capture&#x27;, decision: &#x27;ترتيب الصفحات وحساب hashes.&#x27;, why: &#x27;تثبيت document identity قبل أي retry.&#x27;, guard: &#x27;جودة الصورة وMIME validation.&#x27; },
+    { title: &#x27;Sanitize&#x27;, decision: &#x27;Temporary encrypted file sandbox.&#x27;, why: &#x27;PDF والصور input غير موثوق.&#x27;, guard: &#x27;limits،malware scan وTTL.&#x27; },
+    { title: &#x27;OCR&#x27;, decision: &#x27;Gemini Structured Output.&#x27;, why: &#x27;استخراج fields وbounding boxes.&#x27;, guard: &#x27;SaaS schema validation بعد model response.&#x27; },
+    { title: &#x27;Hybrid Match&#x27;, decision: &#x27;Exact + structured + lexical + pgvector.&#x27;, why: &#x27;رفع recall دون خلط Pharma identities.&#x27;, guard: &#x27;vector result candidate وليس قرارًا.&#x27; },
+    { title: &#x27;Review&#x27;, decision: &#x27;المستخدم يؤكد Vendor وItems والحقول.&#x27;, why: &#x27;OCR confidence غير calibrated.&#x27;, guard: &#x27;immutable revision بعد confirmation.&#x27; },
+    { title: &#x27;Split / Create&#x27;, decision: &#x27;Expiry splits وNew Item command عند الحاجة.&#x27;, why: &#x27;نفس Item قد يأتي بعدة lots،والفاتورة قد تحتوي Item جديدة.&#x27;, guard: &#x27;permission،duplicate check وexplicit units.&#x27; },
+    { title: &#x27;Number&#x27;, decision: &#x27;رقم Vendor إن كان صالحًا؛ وإلا generated pth_id.&#x27;, why: &#x27;missing/reused numbers مع identity gaps.&#x27;, guard: &#x27;actual duplicate تُمنع ولا يعاد ترقيمها.&#x27; },
+    { title: &#x27;Preflight&#x27;, decision: &#x27;Fingerprint،totals،locks وfinal duplicate check.&#x27;, why: &#x27;منع write على schema أوrevision غير معتمدة.&#x27;, guard: &#x27;lock failure يعيد job إلى queue قبل write.&#x27; },
+    { title: &#x27;Commit&#x27;, decision: &#x27;Transaction واحدة وPosting Lines 1..N.&#x27;, why: &#x27;حماية header/details/stock/financial side effects.&#x27;, guard: &#x27;row-at-a-time للجداول ذات triggers غير set-safe.&#x27; },
+    { title: &#x27;Reconcile&#x27;, decision: &#x27;فحص مستقل للـ stock والـ financial state.&#x27;, why: &#x27;SQL success لا يثبت business success.&#x27;, guard: &#x27;mismatch لا ينتج automatic retry.&#x27; },
+    { title: &#x27;Final&#x27;, decision: &#x27;CommittedAndReconciled أوreview state.&#x27;, why: &#x27;حالة صريحة قابلة للتدقيق.&#x27;, guard: &#x27;CommitUnknown يمنع blind retry.&#x27; }
+  ];
+
+  const decisions = [
+    { id: &#x27;ADR-001&#x27;, title: &#x27;Local Authority&#x27;, decision: &#x27;Connector يملك local ERP decision.&#x27;, why: &#x27;SaaS لا يملك transaction context.&#x27;, guard: &#x27;Local IDs لا تصبح global cloud IDs.&#x27; },
+    { id: &#x27;ADR-002&#x27;, title: &#x27;Direct DB&#x27;, decision: &#x27;Certified Direct DB profile.&#x27;, why: &#x27;أقل هشاشة تشغيليًا من UI Automation.&#x27;, guard: &#x27;Golden scenarios قبل Production.&#x27; },
+    { id: &#x27;ADR-003&#x27;, title: &#x27;pgvector&#x27;, decision: &#x27;Hybrid search داخل SaaS PostgreSQL.&#x27;, why: &#x27;semantic candidates دون Vector DB مستقلة.&#x27;, guard: &#x27;Hard Pharma constraints أولًا.&#x27; },
+    { id: &#x27;ADR-004&#x27;, title: &#x27;Expiry Splits&#x27;, decision: &#x27;كل lot هو Posting Line.&#x27;, why: &#x27;الـ DB الفعلية تدعم تكرار itm_id.&#x27;, guard: &#x27;final order 1..N وno_of_items=N.&#x27; },
+    { id: &#x27;ADR-005&#x27;, title: &#x27;New Item&#x27;, decision: &#x27;Master Data command مستقلة.&#x27;, why: &#x27;فصل units/duplicates عن invoice transaction.&#x27;, guard: &#x27;لا automatic creation من OCR.&#x27; },
+    { id: &#x27;ADR-006&#x27;, title: &#x27;Number Fallback&#x27;, decision: &#x27;generated pth_id عند missing/reused number.&#x27;, why: &#x27;COUNT/MAX لا يساوي next identity.&#x27;, guard: &#x27;Actual duplicate تبقى blocked.&#x27; },
+    { id: &#x27;ADR-007&#x27;, title: &#x27;OCR Secrets&#x27;, decision: &#x27;Gemini credentials مركزية.&#x27;, why: &#x27;token-per-pharmacy يخلط security بالـ billing.&#x27;, guard: &#x27;لا secret داخل Android.&#x27; },
+    { id: &#x27;ADR-008&#x27;, title: &#x27;No Full Sync&#x27;, decision: &#x27;Genius catalog/stock يبقيان محليين.&#x27;, why: &#x27;تقليل leakage وstaleness.&#x27;, guard: &#x27;SaaS يخزن Canonical data فقط.&#x27; },
+    { id: &#x27;ADR-009&#x27;, title: &#x27;File TTL&#x27;, decision: &#x27;Encrypted temporary retention.&#x27;, why: &#x27;Cache هي storage وتحتاج policy.&#x27;, guard: &#x27;Verified deletion وno raw logs.&#x27; }
+  ];
+
+  function detail(item) {
+    return `&lt;div class=&quot;card pb-space&quot;&gt;&lt;h3&gt;${item.title}&lt;/h3&gt;&lt;div class=&quot;pb-detail-grid&quot;&gt;&lt;div&gt;&lt;strong&gt;القرار&lt;/strong&gt;&lt;span&gt;${item.decision}&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;strong&gt;لماذا&lt;/strong&gt;&lt;span&gt;${item.why}&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;strong&gt;الضمان&lt;/strong&gt;&lt;span&gt;${item.guard}&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;`;
+  }
+
+  function architecture() {
+    stage.innerHTML = `
+      &lt;svg class=&quot;pb-svg pb-desktop-only&quot; viewBox=&quot;0 0 920 390&quot; role=&quot;img&quot; aria-labelledby=&quot;pb-arch-title pb-arch-desc&quot;&gt;
+        &lt;title id=&quot;pb-arch-title&quot;&gt;معمارية Pharma Invoice Bridge&lt;/title&gt;
+        &lt;desc id=&quot;pb-arch-desc&quot;&gt;Android يتصل بالـ Local Connector،والـ Connector يتصل بـ Genius وSidecar وSaaS،بينما SaaS يستخدم PostgreSQL pgvector وGemini ويخدم Admin Portal.&lt;/desc&gt;
+        &lt;defs&gt;&lt;marker id=&quot;pb-arrow&quot; viewBox=&quot;0 0 10 10&quot; refX=&quot;9&quot; refY=&quot;5&quot; markerWidth=&quot;6&quot; markerHeight=&quot;6&quot; orient=&quot;auto-start-reverse&quot;&gt;&lt;path d=&quot;M 0 0 L 10 5 L 0 10 z&quot; fill=&quot;var(--border)&quot;&gt;&lt;/path&gt;&lt;/marker&gt;&lt;/defs&gt;
+        &lt;path class=&quot;pb-edge&quot; d=&quot;M170 195 H275&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge pb-edge-critical&quot; d=&quot;M455 170 H570&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge pb-edge-critical&quot; d=&quot;M365 225 V295 H250&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge&quot; d=&quot;M365 225 V295 H465&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge&quot; d=&quot;M655 160 V90 H760&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge&quot; d=&quot;M655 225 V305 H760&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge&quot; d=&quot;M830 265 V135&quot;&gt;&lt;/path&gt;
+        &lt;g class=&quot;pb-node&quot; transform=&quot;translate(30 155)&quot;&gt;&lt;rect width=&quot;140&quot; height=&quot;80&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;70&quot; y=&quot;32&quot;&gt;Android&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;70&quot; y=&quot;54&quot;&gt;Capture + Review&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node pb-node-local&quot; transform=&quot;translate(275 145)&quot;&gt;&lt;rect width=&quot;180&quot; height=&quot;100&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;90&quot; y=&quot;37&quot;&gt;Local Connector&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;90&quot; y=&quot;62&quot;&gt;Match • Commit • Reconcile&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node pb-node-data&quot; transform=&quot;translate(100 295)&quot;&gt;&lt;rect width=&quot;150&quot; height=&quot;65&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;75&quot; y=&quot;25&quot;&gt;Genius DB&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;75&quot; y=&quot;45&quot;&gt;Source of Truth&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node pb-node-data&quot; transform=&quot;translate(390 295)&quot;&gt;&lt;rect width=&quot;150&quot; height=&quot;65&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;75&quot; y=&quot;25&quot;&gt;Sidecar&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;75&quot; y=&quot;45&quot;&gt;Jobs + Audit&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node&quot; transform=&quot;translate(570 145)&quot;&gt;&lt;rect width=&quot;170&quot; height=&quot;100&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;85&quot; y=&quot;37&quot;&gt;SaaS&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;85&quot; y=&quot;62&quot;&gt;OCR + Quota + Catalog&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node pb-node-data&quot; transform=&quot;translate(760 55)&quot;&gt;&lt;rect width=&quot;140&quot; height=&quot;70&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;70&quot; y=&quot;25&quot;&gt;PostgreSQL&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;70&quot; y=&quot;47&quot;&gt;pgvector Hybrid Search&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node&quot; transform=&quot;translate(760 175)&quot;&gt;&lt;rect width=&quot;140&quot; height=&quot;70&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;70&quot; y=&quot;27&quot;&gt;Gemini&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;70&quot; y=&quot;49&quot;&gt;Structured OCR&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node&quot; transform=&quot;translate(760 295)&quot;&gt;&lt;rect width=&quot;140&quot; height=&quot;65&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;70&quot; y=&quot;25&quot;&gt;Admin Portal&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;70&quot; y=&quot;45&quot;&gt;MFA + RBAC&lt;/text&gt;&lt;/g&gt;
+      &lt;/svg&gt;
+      &lt;svg class=&quot;pb-svg pb-mobile-only&quot; viewBox=&quot;0 0 320 610&quot; role=&quot;img&quot; aria-labelledby=&quot;pb-arch-mobile-title pb-arch-mobile-desc&quot;&gt;
+        &lt;title id=&quot;pb-arch-mobile-title&quot;&gt;معمارية Pharma Invoice Bridge للموبايل&lt;/title&gt;
+        &lt;desc id=&quot;pb-arch-mobile-desc&quot;&gt;تخطيط رأسي يوضح اتصال Android بالـ Connector ثم Genius وSidecar وSaaS وخدماته.&lt;/desc&gt;
+        &lt;defs&gt;&lt;marker id=&quot;pb-arrow-mobile&quot; viewBox=&quot;0 0 10 10&quot; refX=&quot;9&quot; refY=&quot;5&quot; markerWidth=&quot;6&quot; markerHeight=&quot;6&quot; orient=&quot;auto-start-reverse&quot;&gt;&lt;path d=&quot;M 0 0 L 10 5 L 0 10 z&quot; fill=&quot;var(--border)&quot;&gt;&lt;/path&gt;&lt;/marker&gt;&lt;/defs&gt;
+        &lt;path class=&quot;pb-edge&quot; style=&quot;marker-end:url(#pb-arrow-mobile)&quot; d=&quot;M160 74 V110&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge pb-edge-critical&quot; style=&quot;marker-end:url(#pb-arrow-mobile)&quot; d=&quot;M160 190 V245 H80 V280&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge&quot; style=&quot;marker-end:url(#pb-arrow-mobile)&quot; d=&quot;M160 190 V245 H240 V280&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge pb-edge-critical&quot; style=&quot;marker-end:url(#pb-arrow-mobile)&quot; d=&quot;M160 190 V390&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge&quot; style=&quot;marker-end:url(#pb-arrow-mobile)&quot; d=&quot;M160 470 V505 H55 V540&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge&quot; style=&quot;marker-end:url(#pb-arrow-mobile)&quot; d=&quot;M160 470 V540&quot;&gt;&lt;/path&gt;
+        &lt;path class=&quot;pb-edge&quot; style=&quot;marker-end:url(#pb-arrow-mobile)&quot; d=&quot;M160 470 V505 H265 V540&quot;&gt;&lt;/path&gt;
+        &lt;g class=&quot;pb-node&quot; transform=&quot;translate(90 10)&quot;&gt;&lt;rect width=&quot;140&quot; height=&quot;64&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;70&quot; y=&quot;24&quot;&gt;Android&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;70&quot; y=&quot;45&quot;&gt;Capture + Review&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node pb-node-local&quot; transform=&quot;translate(70 110)&quot;&gt;&lt;rect width=&quot;180&quot; height=&quot;80&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;90&quot; y=&quot;29&quot;&gt;Local Connector&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;90&quot; y=&quot;53&quot;&gt;Match • Commit • Reconcile&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node pb-node-data&quot; transform=&quot;translate(10 280)&quot;&gt;&lt;rect width=&quot;140&quot; height=&quot;64&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;70&quot; y=&quot;24&quot;&gt;Genius DB&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;70&quot; y=&quot;45&quot;&gt;Source of Truth&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node pb-node-data&quot; transform=&quot;translate(170 280)&quot;&gt;&lt;rect width=&quot;140&quot; height=&quot;64&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;70&quot; y=&quot;24&quot;&gt;Sidecar&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;70&quot; y=&quot;45&quot;&gt;Jobs + Audit&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node&quot; transform=&quot;translate(75 390)&quot;&gt;&lt;rect width=&quot;170&quot; height=&quot;80&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;85&quot; y=&quot;29&quot;&gt;SaaS&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;85&quot; y=&quot;53&quot;&gt;OCR + Quota + Catalog&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node pb-node-data&quot; transform=&quot;translate(0 540)&quot;&gt;&lt;rect width=&quot;105&quot; height=&quot;60&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;52&quot; y=&quot;22&quot;&gt;PostgreSQL&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;52&quot; y=&quot;42&quot;&gt;pgvector&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node&quot; transform=&quot;translate(108 540)&quot;&gt;&lt;rect width=&quot;104&quot; height=&quot;60&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;52&quot; y=&quot;22&quot;&gt;Gemini&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;52&quot; y=&quot;42&quot;&gt;OCR&lt;/text&gt;&lt;/g&gt;
+        &lt;g class=&quot;pb-node&quot; transform=&quot;translate(215 540)&quot;&gt;&lt;rect width=&quot;105&quot; height=&quot;60&quot;&gt;&lt;/rect&gt;&lt;text x=&quot;52&quot; y=&quot;22&quot;&gt;Admin&lt;/text&gt;&lt;text class=&quot;pb-label&quot; x=&quot;52&quot; y=&quot;42&quot;&gt;MFA + RBAC&lt;/text&gt;&lt;/g&gt;
+      &lt;/svg&gt;
+      &lt;div class=&quot;viz-controls&quot;&gt;&lt;label class=&quot;form-label&quot; for=&quot;pb-component&quot;&gt;تفاصيل المكون&lt;select class=&quot;form-select&quot; id=&quot;pb-component&quot;&gt;${Object.entries(components).map(([key, item]) =&gt; `&lt;option value=&quot;${key}&quot;${key === &#x27;connector&#x27; ? &#x27; selected&#x27; : &#x27;&#x27;}&gt;${item.title}&lt;/option&gt;`).join(&#x27;&#x27;)}&lt;/select&gt;&lt;/label&gt;&lt;/div&gt;
+      &lt;div id=&quot;pb-detail&quot;&gt;${detail(components.connector)}&lt;/div&gt;`;
+    const select = stage.querySelector(&#x27;#pb-component&#x27;);
+    select.addEventListener(&#x27;change&#x27;, () =&gt; { stage.querySelector(&#x27;#pb-detail&#x27;).innerHTML = detail(components[select.value]); });
+  }
+
+  function flowView() {
+    const xs = flow.map((_, index) =&gt; 48 + index * 79);
+    stage.innerHTML = `
+      &lt;svg class=&quot;pb-svg pb-desktop-only&quot; viewBox=&quot;0 0 920 190&quot; role=&quot;img&quot; aria-labelledby=&quot;pb-flow-title pb-flow-desc&quot;&gt;
+        &lt;title id=&quot;pb-flow-title&quot;&gt;مسار الفاتورة&lt;/title&gt;
+        &lt;desc id=&quot;pb-flow-desc&quot;&gt;أحد عشر خطوة من Capture حتى final reconciled state.&lt;/desc&gt;
+        &lt;line class=&quot;pb-flow-line&quot; x1=&quot;48&quot; y1=&quot;82&quot; x2=&quot;838&quot; y2=&quot;82&quot;&gt;&lt;/line&gt;
+        ${flow.map((item, index) =&gt; `&lt;circle class=&quot;pb-flow-dot${index === 0 ? &#x27; pb-flow-dot-active&#x27; : &#x27;&#x27;}&quot; data-flow-dot=&quot;${index}&quot; cx=&quot;${xs[index]}&quot; cy=&quot;82&quot; r=&quot;11&quot;&gt;&lt;/circle&gt;&lt;text class=&quot;pb-flow-text&quot; x=&quot;${xs[index]}&quot; y=&quot;118&quot;&gt;&lt;tspan x=&quot;${xs[index]}&quot; dy=&quot;0&quot;&gt;${index + 1}&lt;/tspan&gt;&lt;tspan x=&quot;${xs[index]}&quot; dy=&quot;16&quot;&gt;${item.title}&lt;/tspan&gt;&lt;/text&gt;`).join(&#x27;&#x27;)}
+      &lt;/svg&gt;
+      &lt;svg class=&quot;pb-svg pb-mobile-only&quot; viewBox=&quot;0 0 320 560&quot; role=&quot;img&quot; aria-labelledby=&quot;pb-flow-mobile-title pb-flow-mobile-desc&quot;&gt;
+        &lt;title id=&quot;pb-flow-mobile-title&quot;&gt;مسار الفاتورة للموبايل&lt;/title&gt;
+        &lt;desc id=&quot;pb-flow-mobile-desc&quot;&gt;تخطيط رأسي لإحدى عشرة مرحلة من Capture إلى Final.&lt;/desc&gt;
+        &lt;line class=&quot;pb-flow-line&quot; x1=&quot;40&quot; y1=&quot;32&quot; x2=&quot;40&quot; y2=&quot;528&quot;&gt;&lt;/line&gt;
+        ${flow.map((item, index) =&gt; `&lt;circle class=&quot;pb-flow-dot${index === 0 ? &#x27; pb-flow-dot-active&#x27; : &#x27;&#x27;}&quot; data-flow-dot=&quot;${index}&quot; cx=&quot;40&quot; cy=&quot;${32 + index * 49.6}&quot; r=&quot;9&quot;&gt;&lt;/circle&gt;&lt;text class=&quot;pb-flow-text&quot; style=&quot;text-anchor:start&quot; x=&quot;65&quot; y=&quot;${36 + index * 49.6}&quot;&gt;${index + 1}. ${item.title}&lt;/text&gt;`).join(&#x27;&#x27;)}
+      &lt;/svg&gt;
+      &lt;div class=&quot;viz-controls&quot;&gt;&lt;label class=&quot;form-label&quot; for=&quot;pb-flow-select&quot;&gt;المرحلة&lt;select class=&quot;form-select&quot; id=&quot;pb-flow-select&quot;&gt;${flow.map((item, index) =&gt; `&lt;option value=&quot;${index}&quot;&gt;${index + 1}. ${item.title}&lt;/option&gt;`).join(&#x27;&#x27;)}&lt;/select&gt;&lt;/label&gt;&lt;/div&gt;
+      &lt;div id=&quot;pb-detail&quot;&gt;${detail(flow[0])}&lt;/div&gt;`;
+    const select = stage.querySelector(&#x27;#pb-flow-select&#x27;);
+    select.addEventListener(&#x27;change&#x27;, () =&gt; {
+      const index = Number(select.value);
+      stage.querySelectorAll(&#x27;[data-flow-dot]&#x27;).forEach(dot =&gt; dot.classList.toggle(&#x27;pb-flow-dot-active&#x27;, Number(dot.dataset.flowDot) === index));
+      stage.querySelector(&#x27;#pb-detail&#x27;).innerHTML = detail(flow[index]);
+    });
+  }
+
+  function decisionView() {
+    stage.innerHTML = `&lt;div class=&quot;viz-grid pb-decision-grid&quot;&gt;${decisions.map((item, index) =&gt; `&lt;button type=&quot;button&quot; class=&quot;btn viz-tile&quot; aria-pressed=&quot;${index === 0 ? &#x27;true&#x27; : &#x27;false&#x27;}&quot; data-decision=&quot;${index}&quot;&gt;${item.id}&lt;/button&gt;`).join(&#x27;&#x27;)}&lt;/div&gt;&lt;div id=&quot;pb-detail&quot;&gt;${detail(decisions[0])}&lt;/div&gt;`;
+    stage.querySelectorAll(&#x27;[data-decision]&#x27;).forEach(button =&gt; {
+      button.addEventListener(&#x27;click&#x27;, () =&gt; {
+        stage.querySelectorAll(&#x27;[data-decision]&#x27;).forEach(other =&gt; other.setAttribute(&#x27;aria-pressed&#x27;, String(other === button)));
+        stage.querySelector(&#x27;#pb-detail&#x27;).innerHTML = detail(decisions[Number(button.dataset.decision)]);
+      });
+    });
+  }
+
+  function render() {
+    if (view.value === &#x27;flow&#x27;) flowView();
+    else if (view.value === &#x27;decisions&#x27;) decisionView();
+    else architecture();
+  }
+
+  view.addEventListener(&#x27;change&#x27;, render);
+  render();
+})();
+&lt;/script&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handleLeave = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>
