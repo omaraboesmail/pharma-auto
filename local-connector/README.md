@@ -23,3 +23,5 @@ Windows component المسؤول عن local authority،catalog projection،match
 - fault injection وpower-loss tests.
 
 لا implementation قبل تعريف Golden scenarios وDB fingerprint.
+
+Catalog Projection تحفظ raw name bytes/hash وquality flags. byte reversal ليس canonicalization،وأي manual/Canonical correction تبقى Sidecar overlay بدل silent Genius rewrite.

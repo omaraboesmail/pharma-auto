@@ -27,6 +27,14 @@ Baseline date: 2026-08-11. كل major version تُثبت في lockfiles ولا �
 
 Android implementation يبدأ Greenfield بهذه الحدود. Gemini SDK/API key ممنوعان داخل Android؛ Gemini call يوجد في SaaS فقط.
 
+### Mixed Arabic/English Text
+
+- Android يستخدم Unicode-aware BiDi formatting وcontent-derived direction للـ dynamic product labels.
+- English fragments المهيكلة مثل brand/code/strength تُعزل بدل تغيير ترتيب النص المخزن.
+- Web/Admin يستخدم `dir="auto"` أو`bdi`/`unicode-bidi: plaintext` للـ untrusted mixed labels.
+- RTL marks لا تدخل database values أوmatching normalization.
+- UI تعرض warning عند `RAW_NAME_UNTRUSTED` وتقدم Canonical/manual label إن وجدت.
+
 Android official architecture recommendations تضع Compose كـ modern UI toolkit وتوصي بـ WorkManager للأعمال الدائمة: [Android Architecture Recommendations](https://developer.android.com/topic/architecture/recommendations).
 
 ## 3. Local Connector

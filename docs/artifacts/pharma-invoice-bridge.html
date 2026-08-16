@@ -333,7 +333,7 @@ code:not(pre code) {
   background: var(--card);
 }
 
-#widget &gt; :not(.card) {
+#widget &gt; :not(.card, .progress) {
   width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
@@ -397,6 +397,22 @@ code:not(pre code) {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
+}
+
+.progress {
+  display: flex;
+  height: 6px;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
 }
 
 .viz-badge {
@@ -841,10 +857,10 @@ textarea.form-control {
 }
 
 .btn:not(.btn-primary, .viz-tile):is(
-    [aria-pressed=&quot;true&quot;],
-    [aria-selected=&quot;true&quot;],
-    .is-selected
-  ) {
+  [aria-pressed=&quot;true&quot;],
+  [aria-selected=&quot;true&quot;],
+  .is-selected
+) {
   border-color: var(--primary);
   color: var(--primary-foreground);
   background: var(--primary);
@@ -908,6 +924,8 @@ html&gt;body{padding:0}&lt;/style&gt;
     #pharmabridge-explainer .pb-flow-text { fill: var(--foreground); font-size: 11px; text-anchor: middle; }
     #pharmabridge-explainer .pb-detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     #pharmabridge-explainer .pb-detail-grid strong { display: block; margin-bottom: 4px; font-weight: 500; }
+    #pharmabridge-explainer .pb-detail-grid &gt; div { min-width: 0; }
+    #pharmabridge-explainer .pb-detail-grid span { display: block; unicode-bidi: plaintext; overflow-wrap: anywhere; }
     #pharmabridge-explainer .pb-decision-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     #pharmabridge-explainer .pb-space { margin-top: 12px; }
     #pharmabridge-explainer .pb-mobile-only { display: none; }
@@ -925,7 +943,7 @@ html&gt;body{padding:0}&lt;/style&gt;
   &lt;div class=&quot;pb-head&quot;&gt;
     &lt;div&gt;
       &lt;h2&gt;Pharma Invoice Bridge&lt;/h2&gt;
-      &lt;div class=&quot;text-muted text-small&quot;&gt;OCR → Human Verification → Certified Direct DB Commit → Reconciliation&lt;/div&gt;
+      &lt;div class=&quot;text-muted text-small&quot; dir=&quot;ltr&quot;&gt;OCR → Human Verification → Certified Direct DB Commit → Reconciliation&lt;/div&gt;
     &lt;/div&gt;
     &lt;label class=&quot;form-label&quot; for=&quot;pb-view&quot;&gt;العرض
       &lt;select class=&quot;form-select&quot; id=&quot;pb-view&quot;&gt;
@@ -960,7 +978,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     { title: &#x27;Capture&#x27;, decision: &#x27;ترتيب الصفحات وحساب hashes.&#x27;, why: &#x27;تثبيت document identity قبل أي retry.&#x27;, guard: &#x27;جودة الصورة وMIME validation.&#x27; },
     { title: &#x27;Sanitize&#x27;, decision: &#x27;Temporary encrypted file sandbox.&#x27;, why: &#x27;PDF والصور input غير موثوق.&#x27;, guard: &#x27;limits،malware scan وTTL.&#x27; },
     { title: &#x27;OCR&#x27;, decision: &#x27;Gemini Structured Output.&#x27;, why: &#x27;استخراج fields وbounding boxes.&#x27;, guard: &#x27;SaaS schema validation بعد model response.&#x27; },
-    { title: &#x27;Hybrid Match&#x27;, decision: &#x27;Exact + structured + lexical + pgvector.&#x27;, why: &#x27;رفع recall دون خلط Pharma identities.&#x27;, guard: &#x27;vector result candidate وليس قرارًا.&#x27; },
+    { title: &#x27;Hybrid Match&#x27;, decision: &#x27;نبدأ بـ &lt;bdi dir=&quot;ltr&quot;&gt;identifiers&lt;/bdi&gt; ثم &lt;bdi dir=&quot;ltr&quot;&gt;structured / lexical / pgvector&lt;/bdi&gt;.&#x27;, why: &#x27;قد تكون &lt;bdi dir=&quot;ltr&quot;&gt;raw Genius names&lt;/bdi&gt; تالفة حتى بعد &lt;bdi dir=&quot;ltr&quot;&gt;byte reversal&lt;/bdi&gt;.&#x27;, guard: &#x27;لا نطبق &lt;bdi dir=&quot;ltr&quot;&gt;heuristic repair&lt;/bdi&gt;؛ويظل الاسم الخام دليلًا ضعيفًا.&#x27; },
     { title: &#x27;Review&#x27;, decision: &#x27;المستخدم يؤكد Vendor وItems والحقول.&#x27;, why: &#x27;OCR confidence غير calibrated.&#x27;, guard: &#x27;immutable revision بعد confirmation.&#x27; },
     { title: &#x27;Split / Create&#x27;, decision: &#x27;Expiry splits وNew Item command عند الحاجة.&#x27;, why: &#x27;نفس Item قد يأتي بعدة lots،والفاتورة قد تحتوي Item جديدة.&#x27;, guard: &#x27;permission،duplicate check وexplicit units.&#x27; },
     { title: &#x27;Number&#x27;, decision: &#x27;رقم Vendor إن كان صالحًا؛ وإلا generated pth_id.&#x27;, why: &#x27;missing/reused numbers مع identity gaps.&#x27;, guard: &#x27;actual duplicate تُمنع ولا يعاد ترقيمها.&#x27; },
@@ -979,11 +997,12 @@ html&gt;body{padding:0}&lt;/style&gt;
     { id: &#x27;ADR-006&#x27;, title: &#x27;Number Fallback&#x27;, decision: &#x27;generated pth_id عند missing/reused number.&#x27;, why: &#x27;COUNT/MAX لا يساوي next identity.&#x27;, guard: &#x27;Actual duplicate تبقى blocked.&#x27; },
     { id: &#x27;ADR-007&#x27;, title: &#x27;OCR Secrets&#x27;, decision: &#x27;Gemini credentials مركزية.&#x27;, why: &#x27;token-per-pharmacy يخلط security بالـ billing.&#x27;, guard: &#x27;لا secret داخل Android.&#x27; },
     { id: &#x27;ADR-008&#x27;, title: &#x27;No Full Sync&#x27;, decision: &#x27;Genius catalog/stock يبقيان محليين.&#x27;, why: &#x27;تقليل leakage وstaleness.&#x27;, guard: &#x27;SaaS يخزن Canonical data فقط.&#x27; },
-    { id: &#x27;ADR-009&#x27;, title: &#x27;File TTL&#x27;, decision: &#x27;Encrypted temporary retention.&#x27;, why: &#x27;Cache هي storage وتحتاج policy.&#x27;, guard: &#x27;Verified deletion وno raw logs.&#x27; }
+    { id: &#x27;ADR-009&#x27;, title: &#x27;File TTL&#x27;, decision: &#x27;Encrypted temporary retention.&#x27;, why: &#x27;Cache هي storage وتحتاج policy.&#x27;, guard: &#x27;Verified deletion وno raw logs.&#x27; },
+    { id: &#x27;ADR-010&#x27;, title: &#x27;Raw Names + BiDi&#x27;, decision: &#x27;نفصل &lt;bdi dir=&quot;ltr&quot;&gt;raw label&lt;/bdi&gt; عن &lt;bdi dir=&quot;ltr&quot;&gt;canonical identity&lt;/bdi&gt;.&#x27;, why: &#x27;لأن &lt;bdi dir=&quot;ltr&quot;&gt;REVERSE&lt;/bdi&gt; لا يسترجع &lt;bdi dir=&quot;ltr&quot;&gt;bytes&lt;/bdi&gt; مفقودة ولا يصلح &lt;bdi dir=&quot;ltr&quot;&gt;corruption&lt;/bdi&gt;.&#x27;, guard: &#x27;نستخدم &lt;bdi dir=&quot;ltr&quot;&gt;identifiers&lt;/bdi&gt; أولًا،و&lt;bdi dir=&quot;ltr&quot;&gt;BiDi isolation&lt;/bdi&gt; للعرض،ولا نطبق &lt;bdi dir=&quot;ltr&quot;&gt;character movement&lt;/bdi&gt;.&#x27; }
   ];
 
   function detail(item) {
-    return `&lt;div class=&quot;card pb-space&quot;&gt;&lt;h3&gt;${item.title}&lt;/h3&gt;&lt;div class=&quot;pb-detail-grid&quot;&gt;&lt;div&gt;&lt;strong&gt;القرار&lt;/strong&gt;&lt;span&gt;${item.decision}&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;strong&gt;لماذا&lt;/strong&gt;&lt;span&gt;${item.why}&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;strong&gt;الضمان&lt;/strong&gt;&lt;span&gt;${item.guard}&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;`;
+    return `&lt;div class=&quot;card pb-space&quot;&gt;&lt;h3 dir=&quot;auto&quot;&gt;${item.title}&lt;/h3&gt;&lt;div class=&quot;pb-detail-grid&quot;&gt;&lt;div&gt;&lt;strong&gt;القرار&lt;/strong&gt;&lt;span dir=&quot;auto&quot;&gt;${item.decision}&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;strong&gt;لماذا&lt;/strong&gt;&lt;span dir=&quot;auto&quot;&gt;${item.why}&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;strong&gt;الضمان&lt;/strong&gt;&lt;span dir=&quot;auto&quot;&gt;${item.guard}&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;`;
   }
 
   function architecture() {

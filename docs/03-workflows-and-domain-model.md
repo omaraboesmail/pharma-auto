@@ -58,6 +58,7 @@
 - selected `itm_id`.
 - rejected candidates.
 - evidence،actor وmapping version.
+- raw Genius label + raw bytes hash + name-quality flags عند استخدام الاسم كدليل.
 
 ### Catalog Creation Command
 
@@ -161,9 +162,10 @@
 3. `itm_code` / `itm_code2` / `itm_int_code` exact.
 4. prior confirmed tenant+Vendor mapping.
 5. exact normalized local name.
-6. active ingredient + strength +form +pack constraints.
-7. manufacturer/price compatibility.
-8. vector similarity shortlist.
+6. raw reversed-byte label كـ weak evidence فقط إذا لم يحمل corruption flags مانعة.
+7. active ingredient + strength +form +pack constraints.
+8. manufacturer/price compatibility.
+9. vector similarity shortlist.
 
 الـ score يعرض reason categories مثل `EXACT_IDENTIFIER` أو`PREVIOUS_CONFIRMED_MAPPING`، ولا يعرض percentage مزيفة كأنها calibrated probability.
 
@@ -188,3 +190,15 @@ Embedding لا يستبدل هذه الحقول. يتم توليده من canoni
 - deterministic reranking وhard mismatch removal.
 
 Confirmed cross-pharmacy mappings يمكن أن ترفع candidate rank بعد anonymization وminimum-support threshold، لكنها لا تنتج auto-confirm خارج tenant.
+
+## 10. Raw Name Integrity
+
+Catalog Projection تفصل بين:
+
+- raw stored bytes.
+- raw label بعد byte reversal وفك code page.
+- display direction metadata.
+- name-quality flags.
+- user-confirmed أوCanonical display name.
+
+Byte reversal لا يعيد الحروف المفقودة ولا يصلح ترتيبًا فاسدًا داخل البيانات. لا تُطبّق قواعد من نوع “انقل آخر حرفين إلى البداية”. إذا كان الاسم مقطوعًا أوmixed بصورة غير قابلة للتحقق،يرجع matching إلى identifiers وCanonical Catalog أوmanual confirmation.

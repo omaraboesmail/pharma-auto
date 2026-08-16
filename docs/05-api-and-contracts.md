@@ -94,6 +94,8 @@ Local API لا يقبل caller-provided `pth_id`, `c_id` أوfinal SQL values.
 
 - opaque local Item reference.
 - display name/codes.
+- raw local label منفصلة عنcanonical/user-confirmed display label.
+- name source،quality flags وlanguage-field equality indicator.
 - structured Pharma attributes.
 - reason codes.
 - hard mismatch list.
@@ -101,6 +103,15 @@ Local API لا يقبل caller-provided `pth_id`, `c_id` أوfinal SQL values.
 - canonical product reference عند وجوده،دون اعتباره local Item ID.
 
 لا يوجد single confidence percentage مطلوب للعرض.
+
+### Product Label Contract
+
+- `rawLabel`: نتيجة byte reversal/code-page decode دون heuristic repair.
+- `rawLabelHash`: hash للـ source bytes لأغراض audit/cache invalidation.
+- `labelSource`: Genius raw،Canonical Catalog أوmanual confirmation.
+- `qualityFlags`: مثل `LANGUAGE_FIELDS_IDENTICAL`, `MALFORMED_BIDI`, `TRUNCATED_OR_CORRUPT`, `UNVERIFIED`.
+- `displayDirection`: hint للعرض فقط،ولا يغيّر النص.
+- `canonicalLabel`: optional؛لا يُشتق تلقائيًا من raw label التالف.
 
 ### Canonical Retrieval Request/Result
 

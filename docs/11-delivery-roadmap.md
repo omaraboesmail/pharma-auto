@@ -17,7 +17,7 @@ Exit gate: لا توجد write assumptions غير مسجلة،وكل critical ta
 
 - Connector installer/service/control UI.
 - Android pairing/upload.
-- local catalog extraction وفك reversed names.
+- local catalog extraction،byte reversal إلى raw labels،integrity flags وBiDi-safe display.
 - SaaS tenant/subscription/quota.
 - Gemini OCR structured result.
 - Vendor/Product matching.

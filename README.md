@@ -44,7 +44,8 @@
 11. [Deployment and Operations](docs/10-deployment-and-operations.md)
 12. [Delivery Roadmap](docs/11-delivery-roadmap.md)
 13. [Risk Register](docs/12-risk-register.md)
-14. [Architecture Decision Records](docs/decisions/README.md)
+14. [Text Integrity and BiDi Policy](docs/13-text-integrity-and-bidi.md)
+15. [Architecture Decision Records](docs/decisions/README.md)
 
 ## System Explainer
 
