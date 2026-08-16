@@ -34,7 +34,8 @@
 - `pth_id` و`itm_id` هما `decimal(18,0) IDENTITY`.
 - `ptd_id` ليس identity ويُستخدم كتسلسل 1..N داخل الفاتورة.
 - `no_of_items` يطابق detail row count في الحالات المختبرة، لا distinct Items.
-- أسماء Items ليست encrypted؛ هي text معكوس byte-by-byte داخل `varbinary`.
+- حقول أسماء Items ليست encrypted؛ byte reversal يكشف raw text فقط،وقد يكون النص نفسه تالفًا أوtruncated أوmixed بصورة غير قابلة للاستعادة.
+- العينة `itm_id = 60495` تحتوي 23 byte في كل حقل،والـ Arabic/English varbinary values متطابقة byte-for-byte؛ الحرف المفقود غير موجود في الـ bytes أصلًا.
 
 هذه facts تصف الـ backup فقط. Production Connector يعيد التحقق من fingerprint وcritical invariants.
 
@@ -58,13 +59,14 @@
 
 - `itm_id`
 - `itm_code`, `itm_code2`, `itm_int_code`
-- decoded Arabic/English names من reversed `varbinary`
+- raw Arabic/English labels recovered من reversed `varbinary`
+- raw bytes hash،field equality indicator وname-quality flags
 - medicine/expiry/active/stop flags
 - unit IDs وconversion factors
 - default pharmacy/sell/tax prices
 - company،scientific attributes،tax codes عند توفرها
 
-Plaintext name columns لا تستخدم كمصدر رئيسي لأن البيانات الحالية تتركها فارغة.
+Plaintext name columns لا تستخدم كمصدر رئيسي لأن البيانات الحالية تتركها فارغة. والـ reversed labels لا تصبح مصدر identity بديلًا؛ هي untrusted display/search evidence.
 
 ### Vendor Projection
 
@@ -89,13 +91,23 @@ Master Item command منفصلة عن invoice transaction:
 2. insert `Item_Catalog` والحصول على `itm_id` الفعلي.
 3. إذا لم يوجد user code، ضبط `itm_code` إلى identity المولدة طبقًا للنمط الحالي.
 4. كتابة Arabic/English names بصيغة reversed bytes في الحقول المستخدمة فعليًا.
-5. كتابة units/conversions وexpiry/medicine/active flags والأسعار المعتمدة.
-6. إنشاء `Item_Vendor` للـ current Vendor إذا لم توجد علاقة مكافئة.
-7. commit.
-8. read-back verification من Genius.
-9. refresh local projection.
+5. عدم ملء language field مفقود بنسخة من field آخر.
+6. كتابة units/conversions وexpiry/medicine/active flags والأسعار المعتمدة.
+7. إنشاء `Item_Vendor` للـ current Vendor إذا لم توجد علاقة مكافئة.
+8. commit.
+9. read-back verification من Genius.
+10. refresh local projection.
 
 لا يتم إنشاء `Item_Class` لمجرد وجود Master Item. أول purchased lot ينشئ class عند الحاجة.
+
+### Name Recovery Contract
+
+- `REVERSE(CONVERT(varchar(...), field))` يفك byte reversal فقط.
+- أي RTL mark مثل `NCHAR(8207)` presentation hint،وليس data repair ولا يُحفظ كجزء من الاسم.
+- Adapter لا يخمن الحروف المفقودة ولا يعيد ترتيب fragments.
+- field equality بين Arabic/English تُسجل كـ `LANGUAGE_FIELDS_IDENTICAL`.
+- malformed أوtruncated result تُسجل كـ `RAW_NAME_UNTRUSTED` وتمنع name-only auto-match.
+- manual/Canonical correction تحفظ في Sidecar كـ overlay؛ لا تغيّر Genius master تلقائيًا.
 
 ## 6. Purchase Header Rules
 

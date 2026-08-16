@@ -37,6 +37,9 @@
 ### FR-06 — Product Resolution
 
 - exact identifiers تسبق name/vector similarity.
+- النص الناتج من byte reversal يُعامل كـ raw untrusted label،وليس decoded canonical name.
+- `itm_name_ar_encrypt = itm_name_en_encrypt` ينتج quality flag ولا يُفترض أنه translation صالح.
+- يمنع أي heuristic تعيد ترتيب الحروف أوتنقل suffix/prefix لمحاولة إصلاح Arabic/English BiDi.
 - hard mismatches في strength،form،pack أوactive ingredient تمنع suggestion عالية الثقة.
 - vector retrieval ينتج shortlist فقط.
 - المستخدم يستطيع البحث في Local Catalog كاملًا.
@@ -55,6 +58,7 @@
 - يعرض duplicate candidates قبل الإنشاء.
 - يتطلب units وconversion factors صريحة.
 - يخزن الأسماء في reversed `varbinary` fields طبقًا للـ schema الحالية.
+- لا ينسخ Arabic name تلقائيًا إلى English field أوالعكس؛ missing language تبقى missing.
 - ينشئ `Item_Vendor` للـ Vendor الحالي عند وجود العلاقة.
 - item master creation تسبق invoice commit وتُدقق كعملية منفصلة.
 
@@ -120,6 +124,7 @@
 - كل تعديل field،mapping،item creation،number fallback وcommit attempt له actor وtimestamp وrevision.
 - logs لا تحتوي raw invoice أوcredentials.
 - audit records لا يمكن تعديلها من Android.
+- manual name confirmation يحتفظ بالـ raw bytes hash،raw label،canonical selection وactor دون الكتابة العكسية إلى Genius تلقائيًا.
 
 ## 3. Job States
 

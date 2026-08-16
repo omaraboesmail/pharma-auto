@@ -4,11 +4,11 @@
 
 ## Context
 
-Pharma names noisy ومتعددة اللغات،لكن semantic similarity وحدها قد تخلط strength،form أوpack. يوجد أيضًا احتياج للاستفادة من Canonical Catalog وhistorical cross-pharmacy evidence دون رفع Genius DB كاملة.
+Pharma names noisy ومتعددة اللغات،وقد تكون Genius raw labels نفسها تالفة بعد byte reversal. semantic similarity وحدها قد تخلط strength،form أوpack. يوجد أيضًا احتياج للاستفادة من Canonical Catalog وhistorical cross-pharmacy evidence دون رفع Genius DB كاملة.
 
 ## Decision
 
-SaaS PostgreSQL يستخدم `pgvector` مع lexical search وstructured Pharma filters لتوليد Canonical candidates. Exact identifiers وhard constraints تسبق vector retrieval. Connector يربط candidate بـ local `itm_id` ويظل المستخدم صاحب القرار النهائي.
+SaaS PostgreSQL يستخدم `pgvector` مع lexical search وstructured Pharma filters لتوليد Canonical candidates. Exact identifiers وhard constraints تسبق vector retrieval. Corrupted raw-name flags تمنع name-only auto-match. Connector يربط candidate بـ local `itm_id` ويظل المستخدم صاحب القرار النهائي.
 
 ## Why
 

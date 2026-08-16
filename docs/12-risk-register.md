@@ -25,12 +25,13 @@
 | R-13 | Embedding model change يغير candidate behavior | Medium | offline recall benchmark | versioned embeddings،parallel reindex وrollback |
 | R-14 | DB fingerprint يفشل بعد local customization | High | startup/preflight mismatch | writes disabled؛new profile review،لا bypass flag |
 | R-15 | Local workstation compromise | High | endpoint/security telemetry | least privilege،device cert،encrypted storage،incident revocation |
+| R-16 | Corrupted Genius name يتحول إلى false product match | Critical | raw-name flags،identifier mismatch،manual corrections | identifiers أولًا،name-only auto-match ممنوع،Canonical/manual overlay وBiDi-safe display |
 
 ## Release-Blocking Risks
 
 لا يمكن قبول Production إذا بقي أي من الآتي بلا evidence:
 
-- R-01،R-02،R-03،R-04،R-05،R-07 أوR-08.
+- R-01،R-02،R-03،R-04،R-05،R-07،R-08 أوR-16.
 - SQL account يستخدم `sa` أو`db_owner`.
 - reconciliation غير مفعلة لكل Commit.
 - actual duplicate scenario غير مختبر.

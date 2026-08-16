@@ -49,6 +49,7 @@ Pharma Auto is not a generic OCR importer. Its distinguishing mechanism combines
 - Capture JPEG, PNG, and PDF invoices while preserving page order and checking image and file quality.
 - Extract structured invoice fields with source text, page location, and evidence bounds.
 - Resolve vendors and products locally using exact identifiers, confirmed mappings, structured pharmaceutical constraints, lexical retrieval, and vector candidates in that order.
+- Treat names recovered from Genius reversed `varbinary` fields as raw untrusted labels; never repair missing or displaced Arabic/English characters heuristically.
 - Let authorized users search the full local catalog and create new items only after explicit confirmation and duplicate checks.
 - Split a source line into independently posted expiry or batch lines while preserving invoice order.
 - Detect true duplicate invoices and never change an invoice number merely to bypass duplicate detection.
@@ -85,4 +86,5 @@ Pharma Auto is not a generic OCR importer. Its distinguishing mechanism combines
 
 - Android and administrative interfaces must use accessible interaction primitives and be tested on low-end devices.
 - Product interfaces must support Arabic, English, and mixed-language invoice content, including correct right-to-left and left-to-right layout behavior.
+- Mixed-script labels must use Unicode BiDi isolation and content-derived display direction without mutating stored or matched text.
 - Safety-critical warnings, evidence, review states, and recovery actions must remain understandable without relying on color alone.

@@ -47,7 +47,7 @@ Android مسؤول عن presentation وhuman decisions فقط:
 - **Windows Service Host:** durable background execution.
 - **Control UI:** visible health،pairing،queue،diagnostics وsupervised recovery.
 - **Local API:** Android pairing،upload،review commands وstatus stream.
-- **Catalog Projection:** decoded Item/Vendor search index.
+- **Catalog Projection:** identifiers + raw labels recovered from reversed bytes + explicit name-quality flags.
 - **Matching Engine:** deterministic identifiers ثم structured constraints ثم vector shortlist.
 - **Job Engine:** state machine وidempotency.
 - **File Sandbox:** validation،malware scanning وencrypted TTL storage.
@@ -82,6 +82,8 @@ SaaS لا يخزن full Genius catalog أوcurrent stock. يحتفظ بـ Canoni
 4. SaaS يعيد candidates مع reason/evidence،لا local IDs.
 5. Connector يربط Canonical candidate بـ confirmed local mapping أوLocal Catalog search.
 6. المستخدم يؤكد `itm_id` النهائي.
+
+Raw Genius names لا تُرسل كـ verified translations. يمكن استخدامها كـ weak lexical evidence فقط بعد exact identifiers وconfirmed mappings،مع الاحتفاظ بمؤشر integrity يوضح duplicate language fields أوmalformed/truncated content.
 
 هذا يمنع vector similarity من تجاوز Pharma identity constraints ويُبقي Genius identity داخل الصيدلية.
 

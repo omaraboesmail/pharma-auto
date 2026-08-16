@@ -24,6 +24,7 @@
 - totals recalculate after every split/edit.
 - immutable confirmed revision؛ edit requires reconfirmation.
 - accessibility،Arabic/English layout وlow-end device testing.
+- screen reader يقرأ canonical/manual label بوضوح ويُعرّف raw corrupted label كـ unverified عند عرضه.
 
 ## 3. OCR and Matching
 
@@ -34,6 +35,10 @@
 - strength/form/pack hard mismatches.
 - barcode/vendor code exact priority.
 - duplicate names لا تنتج auto-match.
+- regression fixture لـ `itm_id = 60495`: Arabic/English raw fields متطابقة،والحرف المفقود لا يُخترع.
+- لا heuristic تنقل fragments أوتغير raw label bytes.
+- `dir="auto"`/BiDi isolation تعرض Arabic،English وmixed labels دون تغيير copyable text.
+- long mixed-script labels،numbers،parentheses وdosage units تُختبر عند 200% text scaling.
 - OCR schema rejects extra/unexpected fields.
 - field evidence points إلى الصفحة والمنطقة الصحيحة.
 - provider retry لا يستهلك quota ثانية.

@@ -11,5 +11,6 @@
 | [ADR-007](ADR-007-central-ocr-credentials.md) | Gemini credentials مركزية في SaaS | Accepted |
 | [ADR-008](ADR-008-no-full-genius-cloud-sync.md) | لا full Genius replication إلى SaaS | Accepted |
 | [ADR-009](ADR-009-temporary-encrypted-document-retention.md) | documents تخزن مؤقتًا بتشفير وTTL صريح | Accepted |
+| [ADR-010](ADR-010-raw-names-and-bidi.md) | reversed names raw untrusted؛BiDi display بلا heuristic repair | Accepted |
 
 تعديل قرار Accepted يحتاج ADR بديلة تشير إلى القرار السابق،ولا يتم حذف historical rationale.
