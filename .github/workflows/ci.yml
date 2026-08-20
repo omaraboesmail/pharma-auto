@@ -91,7 +91,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-provider: basic
-
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
       - name: Test, lint and assemble
         working-directory: android-client
         run: ./gradlew testDebugUnitTest lintDebug assembleDebug --stacktrace
