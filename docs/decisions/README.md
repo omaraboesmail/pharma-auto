@@ -12,5 +12,6 @@
 | [ADR-008](ADR-008-no-full-genius-cloud-sync.md) | لا full Genius replication إلى SaaS | Accepted |
 | [ADR-009](ADR-009-temporary-encrypted-document-retention.md) | documents تخزن مؤقتًا بتشفير وTTL صريح | Accepted |
 | [ADR-010](ADR-010-raw-names-and-bidi.md) | reversed names raw untrusted؛BiDi display بلا heuristic repair | Accepted |
+| [ADR-011](ADR-011-commercial-edits-and-stock-class-pricing.md) | Commercial edits remain line-native؛new selling prices require isolated stock classes | Accepted with certified-write gate |
 
 تعديل قرار Accepted يحتاج ADR بديلة تشير إلى القرار السابق،ولا يتم حذف historical rationale.

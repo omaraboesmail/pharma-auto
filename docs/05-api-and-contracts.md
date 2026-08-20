@@ -35,6 +35,7 @@
 - get processing state.
 - fetch OCR/matching revision.
 - submit field corrections.
+- submit per-Posting-Line purchase unit price،Discount 1%،Discount 2% وselling unit price corrections مع original-value references.
 - add/remove/reorder expiry splits within Source Line rules.
 - confirm revision.
 - request commit.
@@ -131,7 +132,13 @@ Local API لا يقبل caller-provided `pth_id`, `c_id` أوfinal SQL values.
 - final posting sequence.
 - local Item reference.
 - expiry/batch/serial.
-- quantities،units،prices،discounts،tax.
+- quantities،units وconversion factors.
+- purchase unit price مع currency،unit basis وtax treatment.
+- exactly two ordered percentage-discount objects: first targets purchase unit price،second targets remaining line subtotal.
+- selling unit price: `EGP` per `BOX`،tax-inclusive.
+- selling-price policy snapshot: `NEW_STOCK_ONLY` + `PRESERVE_EXISTING_STOCK` + `BLOCK_COMMIT` when isolation is unsupported.
+- original OCR values وcorrection actor/reason metadata.
+- selling-price impact intent،affected scope وauthorization state عندما ينتج master-data side effect.
 - validation flags.
 
 ### Commit Result

@@ -44,10 +44,19 @@
 - vector retrieval ينتج shortlist فقط.
 - المستخدم يستطيع البحث في Local Catalog كاملًا.
 
-### FR-07 — Expiry Splitting
+### FR-07 — Posting-Line Editing and Expiry Splitting
 
 - كل Source Line يمكن أن يحتوي على عدد غير محدود عمليًا من Posting Lines ضمن invoice limit.
-- كل split يحتوي quantity،bonus،expiry،batch،price،discount،tax وunit conversion مستقلة.
+- كل split يحتوي quantity،bonus،expiry،batch،purchase unit price،نسبتي discount متتاليتين،selling unit price،tax وunit conversion مستقلة.
+- Android يتيح للمستخدم المخول تعديل purchase unit price وDiscount 1% وDiscount 2% وselling unit price لكل Posting Line قبل confirmation.
+- Discount 1% يطبق على purchase unit price. Discount 2% يطبق على remaining line subtotal بعد Discount 1 ولا يعيد كتابة purchase-unit-price snapshot.
+- currency هي `EGP`،والـ selling unit هي `BOX`،والـ selling price tax-inclusive.
+- selling price الجديد يطبق على new stock الناتج عن Posting Line فقط؛existing stock يحتفظ بسعره السابق.
+- إذا لم تستطع Genius profile المعتمدة عزل new-stock price عن existing stock،يُمنع Commit بدل global price fallback.
+- كل commercial edit يحتفظ بالقيمة المستخرجة من OCR،القيمة المؤكدة،actor،timestamp وrevision reason.
+- أي apply-to-all من Source Line إلى splits يجب أن يكون صريحًا ويعرض عدد Posting Lines المتأثرة؛كل split يبقى قابلًا للـ override بصورة مستقلة.
+- الأسعار والخصومات تستخدم decimal contract محدد الـ currency،unit basis،discount kind وtax treatment؛لا تستخدم binary floating point ولا numeric field مبهم.
+- selling-price edit لا يغيّر Genius Item/Class master بصمت. Connector يعرض old/new value والـ affected scope،ويتحقق من permission والسياسة المعتمدة قبل confirmation والـ Commit.
 - إضافة split تدفع البنود التالية إلى أسفل.
 - النظام يولد `posting_sequence` نهائية 1..N؛ وهي التي تصبح `ptd_id`.
 - `no_of_items` يساوي N، وليس عدد `itm_id` المميزة.
@@ -146,6 +155,8 @@ Failure/review states:
 | Action | Operator | Catalog Manager | Supervisor | SaaS Admin |
 |---|:---:|:---:|:---:|:---:|
 | Capture/Review | Yes | Yes | Yes | No |
+| Edit line purchase price/Discount 1%/Discount 2% | Yes | Yes | Yes | No |
+| Edit new-stock selling price | Yes | Yes | Yes | No |
 | Add expiry split | Yes | Yes | Yes | No |
 | Create New Item | No | Yes | Yes | No |
 | Override missing expiry | No | No | Yes | No |

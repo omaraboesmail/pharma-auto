@@ -31,6 +31,7 @@
 - `Vendor`: 209 row.
 - `pur_trans_h`: 18,438 row، بينما أعلى `pth_id` هو 18,453.
 - `pur_trans_d`: 163,729 row.
+- `Item_Class`: 75,276 row؛6,133 Items have multiple positive-quantity classes and 4,734 have multiple class selling prices.
 - `pth_id` و`itm_id` هما `decimal(18,0) IDENTITY`.
 - `ptd_id` ليس identity ويُستخدم كتسلسل 1..N داخل الفاتورة.
 - `no_of_items` يطابق detail row count في الحالات المختبرة، لا distinct Items.
@@ -133,7 +134,11 @@ Master Item command منفصلة عن invoice transaction:
 - `c_id` = resolved/created lot class.
 - `exp_date`, `qnty`, `bonus`, `ptd_batch` من confirmed split.
 - unit snapshots وconversion factors تُحفظ كما فعل e-plus reference scenario.
-- purchase/sell/cost/tax/discount fields تُشتق بالـ formulas المثبتة، لا بالـ OCR raw total وحده.
+- purchase/sell/cost/tax/discount fields تُشتق من confirmed commercial values بالـ formulas المثبتة، لا بالـ OCR raw total وحده.
+- read-only evidence يثبت أن `pur_trans_d.itm_sell` detail snapshot وأن `Item_Class.sell_price` class-specific value؛لكن exact write-set وstore/catalog side effects تحتاج Golden certification.
+- لا يغيّر Adapter selling price عالميًا كـ side effect غير معلن؛أي master impact يحتاج permission وconfirmed intent وread-back reconciliation.
+- profile يجب أن تطبق selling price tax-inclusive per `BOX` على new stock فقط وتحافظ على existing stock price؛عدم القدرة على هذا العزل ينتج `CommitRejected`.
+- Discount 1% يطبق في legacy Vendor formula عبر `pur_trans_d.itm_extra_dis` على purchase price path،ثم توجد مرحلة header discount ثانية. Pharma Auto يحتفظ بالخصمين كنسب على كل Posting Line؛translation وrounding للمرحلة الثانية تحتاج Golden Scenario مطابقًا لـ e-plus.
 
 Invoice `18452` تثبت أن نفس `itm_id` يمكن أن يظهر عدة مرات، ونفس expiry يمكن أن يظهر بسعر مختلف مع نفس `c_id`.
 
@@ -143,11 +148,12 @@ Invoice `18452` تثبت أن نفس `itm_id` يمكن أن يظهر عدة مر
 
 1. normalize expiry إلى policy e-plus الفعلية، غالبًا month-level للبيانات الحالية لكن يجب إثباتها.
 2. match existing class باستخدام item،expiry،batch/serial وstock context.
-3. إذا لم يوجد class، lock item/class key ثم allocate `c_id` بطريقة concurrency-safe.
-4. create `Item_Class` و`Item_Class_Store` rows المطلوبة.
-5. apply quantity delta row-at-a-time.
+3. إذا تغيّر selling price،لا يعاد استخدام class يحتوي existing quantity إلا إذا أثبت scenario أن القديم لن يتغير؛الـ profile تعزل receipt الجديدة في class مستقل.
+4. إذا لم يوجد class صالح، lock item/class key ثم allocate `c_id` بطريقة concurrency-safe.
+5. create `Item_Class` و`Item_Class_Store` rows المطلوبة.
+6. apply quantity delta row-at-a-time.
 
-لا يستخدم `MAX(c_id)+1` دون lock. ولا يعتبر price جزءًا من class identity إلا إذا أثبت Golden Scenario ذلك.
+لا يستخدم `MAX(c_id)+1` دون lock. Live data يثبت أن نفس class قد يعاد استخدامه عبر selling prices مختلفة،كما يثبت وجود multiple non-expiry classes بأسعار مختلفة؛لذلك class-split write-set يحتاج Golden certification ولا يستنتج من schema فقط.
 
 ## 9. Stock and Trigger Constraints
 
@@ -198,7 +204,8 @@ Mandatory postconditions:
 - `ven_bill_no` يطابق numbering decision.
 - detail count يساوي `no_of_items`.
 - `ptd_id` متصل 1..N.
-- كل detail يطابق confirmed `itm_id`, quantity, bonus, expiry, batch, units وprices.
+- كل detail يطابق confirmed `itm_id`, quantity, bonus, expiry, batch, units،purchase price،discount وselling price snapshots.
+- أي selling-price master/class/store impact يطابق old/new value والـ scope المؤكدين.
 - `Item_Class` و`Item_Class_Store` موجودان وتأثير الكمية متسق.
 - required financial auto-doc موجود وخطوطه متطابقة.
 - Vendor balance delta مطابق للسيناريو.

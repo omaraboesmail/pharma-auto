@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Connector.Application/">
+    <Project Path="src/Connector.Application/PharmaAuto.Connector.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Connector.Domain/">
+    <Project Path="src/Connector.Domain/PharmaAuto.Connector.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Connector.LocalApi/">
+    <Project Path="src/Connector.LocalApi/PharmaAuto.Connector.LocalApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Integration/" />
+  <Folder Name="/tests/Integration/Connector.LocalApi.Tests/">
+    <Project Path="tests/Integration/Connector.LocalApi.Tests/PharmaAuto.Connector.LocalApi.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Unit/" />
+  <Folder Name="/tests/Unit/Connector.Domain.Tests/">
+    <Project Path="tests/Unit/Connector.Domain.Tests/PharmaAuto.Connector.Domain.Tests.csproj" />
+  </Folder>
+</Solution>

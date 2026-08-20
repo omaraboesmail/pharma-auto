@@ -1,27 +1,37 @@
 # Local Connector
 
-Windows component المسؤول عن local authority،catalog projection،matching،durable jobs،Genius Direct DB Adapter وreconciliation.
+The Local Connector is the Windows-side authority for local identity, catalog projection, matching, durable jobs, certified Genius writes and reconciliation.
 
-## Projects
+## Initialized Projects
 
-- `src/Connector.Service`: Windows background host.
-- `src/Connector.ControlUi`: visible pairing/health/queue/recovery UI.
-- `src/Connector.LocalApi`: Android LAN API.
-- `src/Connector.Application`: job orchestration and use cases.
-- `src/Connector.Domain`: ERP-neutral invoice domain.
-- `src/Connector.Sidecar`: local durable store.
-- `src/Connector.FileSandbox`: validation/normalization/temp retention.
-- `src/Connector.Matching`: exact/local/canonical candidate resolution.
-- `src/Genius.Profile.Db539`: certified legacy read/write profile.
-- `src/Genius.Reconciliation`: independent postconditions.
+- `src/Connector.Domain`: ERP-neutral commercial rules.
+- `src/Connector.Application`: contract mapping and commercial-edit preview use case.
+- `src/Connector.LocalApi`: Android LAN API and OpenAPI endpoint.
+- `tests/Unit/Connector.Domain.Tests`: commercial formula and safety-policy tests.
+- `tests/Integration/Connector.LocalApi.Tests`: liveness and preview endpoint tests.
 
-## Tests
+The initialized endpoint validates and previews edits only. It returns `geniusWritePerformed: false`; no Genius adapter write project exists yet.
 
-- unit domain tests.
-- component integration tests.
-- Golden DB tests على restored Clone.
-- fault injection وpower-loss tests.
+## Build and Test
 
-لا implementation قبل تعريف Golden scenarios وDB fingerprint.
+The repository pins .NET SDK `10.0.302` in `global.json` and commits package lock files.
 
-Catalog Projection تحفظ raw name bytes/hash وquality flags. byte reversal ليس canonicalization،وأي manual/Canonical correction تبقى Sidecar overlay بدل silent Genius rewrite.
+```powershell
+dotnet restore PharmaAuto.Connector.slnx --locked-mode
+dotnet build PharmaAuto.Connector.slnx --no-restore
+dotnet format PharmaAuto.Connector.slnx --verify-no-changes --no-restore
+dotnet test PharmaAuto.Connector.slnx --no-build --no-restore
+dotnet list PharmaAuto.Connector.slnx package --vulnerable --include-transitive
+```
+
+## Certified-Write Gate
+
+No commercial write may be added until Golden scenarios and the DB fingerprint prove:
+
+- stock-class isolation for new-price receipts.
+- preservation of old class quantities and prices.
+- both sequential discount translations and rounding.
+- tax-inclusive selling-price storage and read-back.
+- rollback, connection-loss and reconciliation behavior.
+
+Catalog projection preserves raw name bytes, hashes and quality flags. Byte reversal is not canonicalization; manual labels remain Sidecar overlays rather than silent Genius rewrites.

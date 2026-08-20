@@ -1,0 +1,43 @@
+{
+  "title": "Choose the simplified expiry editor",
+  "question": "All three keep Material 3, OCR source-versus-confirmed values, quantity per expiry, and an expandable totals/save footer. Choose one or steer a final combination.",
+  "options": [
+    {
+      "id": "inline-splits",
+      "label": "Invoice context + inline splits",
+      "kicker": "OPTION A",
+      "lineage": "B header and line list + C evidence table",
+      "thesis": "Keep three invoice lines visible, then edit the selected line's commercial values and all expiry quantities together.",
+      "palette": ["#FFFFFF", "#F2F4F2", "#075D35", "#E8F5EB", "#B46A00"],
+      "materials": ["compact line list", "source-confirmed table", "inline expiry rows", "expandable footer"],
+      "viewport": "The operator sees neighboring items, four confirmed values, and every expiry split in one continuous page.",
+      "risk": "It is the longest and densest of the three choices.",
+      "sketch": ".impeccable/mocks/hybrid-inline-splits.webp"
+    },
+    {
+      "id": "split-tabs",
+      "label": "One expiry at a time",
+      "kicker": "OPTION B",
+      "lineage": "B header + expiry tabs + C evidence table",
+      "thesis": "Keep invoice context while editing one clearly selected expiry row at a time, with an explicit apply-to-all choice.",
+      "palette": ["#FFFFFF", "#F2F4F2", "#075D35", "#E8F5EB", "#B46A00"],
+      "materials": ["compact line list", "large expiry tabs", "source-confirmed table", "expandable footer"],
+      "viewport": "The selected expiry's quantity, date, and four commercial values remain together.",
+      "risk": "Users must understand the expiry tabs and the apply-to-all checkbox.",
+      "sketch": ".impeccable/mocks/hybrid-split-tabs.webp"
+    },
+    {
+      "id": "progressive",
+      "label": "Simple previous / next",
+      "kicker": "OPTION C",
+      "lineage": "B review header + C evidence editor with progressive disclosure",
+      "thesis": "Show one item at a time with plain previous/next navigation, then prices and expiry rows in two simple sections.",
+      "palette": ["#FFFFFF", "#F2F4F2", "#075D35", "#E8F5EB", "#B46A00"],
+      "materials": ["previous-next strip", "source-confirmed table", "stacked expiry rows", "expandable footer"],
+      "viewport": "The operator follows one linear task without a competing invoice-line list.",
+      "risk": "Neighboring invoice items are no longer visible by name while editing.",
+      "sketch": ".impeccable/mocks/hybrid-progressive.webp"
+    }
+  ],
+  "steer": true
+}

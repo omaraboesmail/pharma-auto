@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">Pharma Auto</string>
+  <string name="invoice_review">Invoice review</string>
+  <plurals name="lines_checked">
+    <item quantity="one">%1$d of %2$d line checked</item>
+    <item quantity="other">%1$d of %2$d lines checked</item>
+  </plurals>
+  <plurals name="review_progress_description">
+    <item quantity="one">%1$d of %2$d invoice line checked</item>
+    <item quantity="other">%1$d of %2$d invoice lines checked</item>
+  </plurals>
+  <string name="percent_value">%1$d%%</string>
+  <string name="previous">Previous</string>
+  <string name="next">Next</string>
+  <string name="line_number">Line %1$d</string>
+  <string name="item_reference">Item %1$s</string>
+  <string name="synthetic_example">Synthetic example</string>
+  <string name="view_ocr">View OCR</string>
+  <string name="hide_ocr">Hide OCR</string>
+  <string name="synthetic_ocr_evidence">Synthetic OCR evidence</string>
+  <string name="ocr_evidence_description">Source values are shown exactly as detected for comparison.</string>
+  <string name="prices_and_discounts">Prices and discounts</string>
+  <string name="ocr_source">OCR source</string>
+  <string name="confirmed">Confirmed</string>
+  <string name="purchase_unit_price">Purchase unit price</string>
+  <string name="discount_one">Discount 1</string>
+  <string name="discount_two">Discount 2</string>
+  <string name="selling_price_per_box">Selling price per box</string>
+  <string name="confirmed_value_description">%1$s, confirmed value</string>
+  <string name="quantity_and_expiry">Quantity and expiry</string>
+  <string name="expiry_number">Expiry %1$d</string>
+  <string name="quantity">Quantity</string>
+  <string name="expiry_date">Expiry date</string>
+  <string name="expiry_quantity_description">Expiry %1$s quantity</string>
+  <string name="expiry_date_description">Expiry %1$s date, %2$s</string>
+  <string name="date_not_set">Choose date</string>
+  <string name="split">Split</string>
+  <string name="remove">Remove</string>
+  <string name="add_another_expiry">Add another expiry</string>
+  <string name="split_expiry_description">Split expiry %1$s into another quantity</string>
+  <string name="remove_expiry_description">Remove expiry %1$s</string>
+  <string name="assigned_quantity">Assigned %1$s of %2$s %3$s</string>
+  <string name="quantity_mismatch">Expiry quantities must total %1$s %2$s</string>
+  <string name="expiry_date_missing">Choose a date for every expiry</string>
+  <string name="invoice_net_total">Invoice net total</string>
+  <string name="total_not_ready">Complete required fields</string>
+  <string name="not_available">Not available</string>
+  <string name="finish_review">Finish review</string>
+  <string name="prototype_review_note">Prototype check only. Nothing is saved or sent.</string>
+  <string name="expand_totals">Show invoice total details</string>
+  <string name="collapse_totals">Hide invoice total details</string>
+  <string name="invoice_details">Invoice details</string>
+  <string name="gross_purchase">Gross purchase</string>
+  <string name="discount_savings">Discount savings</string>
+  <string name="expected_selling_total">Expected selling total</string>
+  <string name="currency_egp">EGP</string>
+  <plurals name="unit_box">
+    <item quantity="one">box</item>
+    <item quantity="other">boxes</item>
+  </plurals>
+  <string name="choose_expiry_date">Choose expiry date</string>
+  <string name="confirm">Confirm</string>
+  <string name="dismiss">Cancel</string>
+  <string name="review_complete_prototype">Review complete in this prototype. Nothing was saved or sent.</string>
+  <string name="review_remaining_line">Review this line before finishing</string>
+  <string name="invalid_commercial">Check the highlighted prices and discounts, then try again</string>
+  <string name="invalid_expiry">Complete every expiry date and make the quantities match the item total</string>
+</resources>

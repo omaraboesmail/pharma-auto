@@ -46,7 +46,11 @@
 - local `itm_id`.
 - `split_index`.
 - final `posting_sequence`.
-- quantity،bonus،expiry،batch،unit،price،discount وtax.
+- quantity،bonus،expiry،batch وunit/conversion.
+- confirmed `purchase_unit_price` و`selling_unit_price` مع currency،unit basis وtax treatment صريحة.
+- `discount_1_percentage` يطبق على purchase unit price و`discount_2_percentage` يطبق بعده على remaining line subtotal.
+- selling price policy snapshot: `EGP`،per `BOX`،tax-inclusive،`NEW_STOCK_ONLY` مع `PRESERVE_EXISTING_STOCK`.
+- original OCR commercial values وmanual-edit metadata.
 - resolved `c_id` بعد preflight/commit.
 
 ### Local Item Mapping
@@ -82,8 +86,9 @@
 6.1 SaaS يمكنه إرجاع Canonical candidates عبر hybrid PostgreSQL + pgvector search بعد hard filtering.
 7. Android يعرض كل field مع source crop.
 8. المستخدم يحل ambiguous mappings ويضيف expiry splits.
-9. النظام يعيد حساب totals وposting order.
-10. confirmation تقفل revision؛ أي تعديل لاحق يحتاج confirmation جديدة.
+9. المستخدم يراجع أو يعدل purchase unit price وDiscount 1% وDiscount 2% وselling unit price لكل Posting Line؛أي bulk apply إلى splits يكون explicit.
+10. النظام يعيد حساب totals وposting order ويعرض selling-price impact الذي أعاده Connector.
+11. confirmation تقفل revision؛ أي تعديل لاحق يحتاج confirmation جديدة.
 
 ## 3. Expiry Split Rules
 
@@ -94,6 +99,18 @@
 - duplicate identical splits ينتجان warning مع خيار merge.
 - مجموع split quantities/bonus يجب أن يطابق invoice evidence أوexplicit correction.
 - expirable Item دون expiry يُمنع إلا بتصريح Supervisor وسياسة موثقة.
+
+## 3.1 Commercial Edit Rules
+
+- OCR values تظل evidence immutable؛التعديل ينشئ Invoice Revision جديدة ولا يمحو القيمة الأصلية.
+- Discount 1% يخفض purchase unit price،ثم Discount 2% يخفض remaining line subtotal؛كلاهما percentage فقط.
+- selling unit price قيمة مستقلة ولا تدخل purchase total لمجرد وجودها.
+- selling unit price مقومة بـ `EGP` لكل `BOX` وتشمل tax.
+- confirmed selling price يخص new stock فقط. Existing stock يحتفظ بسعره،وأي profile لا تستطيع تحقيق العزل تمنع Commit.
+- كل price يحمل unit basis صريحة؛تغيير unit يعيد validation ولا يحوّل السعر ضمنيًا دون conversion rule مثبتة.
+- Source Line يمكنه توفير default جديد لكل splits عبر action صريحة،لكن كل Posting Line يحتفظ بقيمته النهائية المستقلة.
+- إذا كان selling-price edit يغيّر existing Item/Class/Store state،فهو side effect معلن يحتاج permission وimpact confirmation وreconciliation،وليس field UI محليًا فقط.
+- mapping من confirmed values إلى Genius purchase/sell/cost columns لا يعتمد إلا بعد Golden Scenario يثبت formulas والـ scope.
 
 ## 4. New Item Workflow
 
