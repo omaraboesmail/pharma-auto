@@ -1,0 +1,73 @@
+{
+  "title": "Choose the Material 3 composition",
+  "question": "Choose the layout to build, or use the steer box to request a combination or revision.",
+  "options": [
+    {
+      "id": "focused",
+      "label": "Focused line editor",
+      "kicker": "COMPOSITION A",
+      "lineage": "single-task Material 3 editor",
+      "thesis": "One Posting Line owns the screen, with OCR evidence, four large fields, live math, and a fixed save action.",
+      "palette": [
+        "#FFFFFF",
+        "#F5F7F5",
+        "#075D35",
+        "#E5F2E9",
+        "#B46A00"
+      ],
+      "materials": [
+        "Material 3 surfaces",
+        "tonal calculation strip",
+        "outlined edit fields"
+      ],
+      "viewport": "Evidence and the four values remain readable at once, optimized for one-handed correction.",
+      "risk": "The operator sees less neighboring-line context while editing.",
+      "sketch": ".impeccable/mocks/material-focused.webp"
+    },
+    {
+      "id": "context",
+      "label": "Invoice-context editor",
+      "kicker": "COMPOSITION B",
+      "lineage": "Material 3 list-detail workflow",
+      "thesis": "Neighboring invoice lines stay visible while the current line expands into an attached four-field editor.",
+      "palette": [
+        "#FFFFFF",
+        "#F2F4F2",
+        "#075D35",
+        "#E5F2E9",
+        "#B46A00"
+      ],
+      "materials": [
+        "selected list row",
+        "attached editor surface",
+        "sticky total"
+      ],
+      "viewport": "Three line states and the full commercial editor share one screen.",
+      "risk": "Source evidence is less prominent and the screen carries more simultaneous information.",
+      "sketch": ".impeccable/mocks/material-context.webp"
+    },
+    {
+      "id": "evidence",
+      "label": "Evidence comparison",
+      "kicker": "COMPOSITION C",
+      "lineage": "Material 3 source-versus-confirmed review",
+      "thesis": "Every OCR value stays beside its editable confirmed value, making correction provenance explicit.",
+      "palette": [
+        "#FFFFFF",
+        "#F1F2F1",
+        "#075D35",
+        "#E8F5EB",
+        "#B46A00"
+      ],
+      "materials": [
+        "read-only source column",
+        "confirmed-value column",
+        "policy summary"
+      ],
+      "viewport": "Four source and confirmed rows lead directly into live calculations and the stock policy.",
+      "risk": "The comparison layout is the densest option on the smallest supported phones.",
+      "sketch": ".impeccable/mocks/material-evidence.webp"
+    }
+  ],
+  "steer": true
+}

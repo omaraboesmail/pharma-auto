@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pharma-auto.invalid/v1/invoice-revision.schema.json",
+  "title": "Invoice Revision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "jobId",
+    "invoiceId",
+    "revisionId",
+    "revisionNumber",
+    "sourceRevisionId",
+    "status",
+    "currency",
+    "sellingPricePolicy",
+    "postingLines",
+    "confirmedAt"
+  ],
+  "properties": {
+    "jobId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "invoiceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "revisionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "revisionNumber": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sourceRevisionId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "status": {
+      "enum": [
+        "DRAFT",
+        "AWAITING_USER_REVIEW",
+        "CONFIRMED"
+      ]
+    },
+    "currency": {
+      "const": "EGP"
+    },
+    "sellingPricePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "taxTreatment",
+        "scope",
+        "existingStockPriceBehavior",
+        "unsupportedScopeBehavior"
+      ],
+      "properties": {
+        "unit": {
+          "const": "BOX"
+        },
+        "taxTreatment": {
+          "const": "INCLUSIVE"
+        },
+        "scope": {
+          "const": "NEW_STOCK_ONLY"
+        },
+        "existingStockPriceBehavior": {
+          "const": "PRESERVE"
+        },
+        "unsupportedScopeBehavior": {
+          "const": "BLOCK_COMMIT"
+        }
+      }
+    },
+    "postingLines": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "https://schemas.pharma-auto.invalid/v1/posting-line.schema.json"
+      }
+    },
+    "confirmedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    }
+  }
+}

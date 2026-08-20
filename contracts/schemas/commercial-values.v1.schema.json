@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pharma-auto.invalid/v1/commercial-values.schema.json",
+  "title": "Posting Line Commercial Values v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "currency",
+    "purchaseUnit",
+    "purchaseUnitPrice",
+    "purchasePriceTaxTreatment",
+    "discounts",
+    "sellingUnit",
+    "sellingUnitPrice",
+    "sellingPriceTaxTreatment",
+    "sellingPriceScope",
+    "existingStockPriceBehavior",
+    "unsupportedScopeBehavior"
+  ],
+  "properties": {
+    "currency": {
+      "const": "EGP"
+    },
+    "purchaseUnit": {
+      "$ref": "#/$defs/purchaseUnit"
+    },
+    "purchaseUnitPrice": {
+      "$ref": "#/$defs/decimalString"
+    },
+    "purchasePriceTaxTreatment": {
+      "enum": [
+        "INCLUSIVE",
+        "EXCLUSIVE"
+      ]
+    },
+    "discounts": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sequence",
+            "kind",
+            "percentage",
+            "applicationBasis",
+            "affectsPurchaseUnitPrice"
+          ],
+          "properties": {
+            "sequence": {
+              "const": 1
+            },
+            "kind": {
+              "const": "PERCENTAGE"
+            },
+            "percentage": {
+              "$ref": "#/$defs/percentageString"
+            },
+            "applicationBasis": {
+              "const": "PURCHASE_UNIT_PRICE"
+            },
+            "affectsPurchaseUnitPrice": {
+              "const": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sequence",
+            "kind",
+            "percentage",
+            "applicationBasis",
+            "affectsPurchaseUnitPrice"
+          ],
+          "properties": {
+            "sequence": {
+              "const": 2
+            },
+            "kind": {
+              "const": "PERCENTAGE"
+            },
+            "percentage": {
+              "$ref": "#/$defs/percentageString"
+            },
+            "applicationBasis": {
+              "const": "REMAINING_LINE_SUBTOTAL"
+            },
+            "affectsPurchaseUnitPrice": {
+              "const": false
+            }
+          }
+        }
+      ],
+      "items": false
+    },
+    "sellingUnit": {
+      "const": "BOX"
+    },
+    "sellingUnitPrice": {
+      "$ref": "#/$defs/decimalString"
+    },
+    "sellingPriceTaxTreatment": {
+      "const": "INCLUSIVE"
+    },
+    "sellingPriceScope": {
+      "const": "NEW_STOCK_ONLY"
+    },
+    "existingStockPriceBehavior": {
+      "const": "PRESERVE"
+    },
+    "unsupportedScopeBehavior": {
+      "const": "BLOCK_COMMIT"
+    }
+  },
+  "$defs": {
+    "decimalString": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+    },
+    "percentageString": {
+      "type": "string",
+      "pattern": "^(?:100(?:\\.0{1,4})?|(?:[0-9]|[1-9][0-9])(?:\\.[0-9]{1,4})?)$"
+    },
+    "purchaseUnit": {
+      "enum": [
+        "BOX",
+        "STRIP",
+        "TABLET",
+        "BOTTLE",
+        "VIAL",
+        "AMPOULE",
+        "EACH"
+      ]
+    }
+  }
+}

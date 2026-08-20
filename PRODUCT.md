@@ -51,7 +51,9 @@ Pharma Auto is not a generic OCR importer. Its distinguishing mechanism combines
 - Resolve vendors and products locally using exact identifiers, confirmed mappings, structured pharmaceutical constraints, lexical retrieval, and vector candidates in that order.
 - Treat names recovered from Genius reversed `varbinary` fields as raw untrusted labels; never repair missing or displaced Arabic/English characters heuristically.
 - Let authorized users search the full local catalog and create new items only after explicit confirmation and duplicate checks.
-- Split a source line into independently posted expiry or batch lines while preserving invoice order.
+- Split a source line into independently posted expiry or batch lines while preserving invoice order; every expiry row owns an editable quantity and expiry date.
+- Let authorized Android users edit every Posting Line's purchase unit price, line discount, and selling unit price before confirmation, while preserving the OCR value and an audit trail of each correction.
+- Never turn a selling-price edit into a silent global catalog change; the certified Genius profile must expose the affected scope, validate authorization, and reconcile the resulting price state.
 - Detect true duplicate invoices and never change an invoice number merely to bypass duplicate detection.
 - Commit only through a certified Genius database profile and an approved database fingerprint.
 - Reconcile header, details, line order, stock, store, class, vendor, and financial side effects before reporting success.
@@ -63,6 +65,8 @@ Pharma Auto is not a generic OCR importer. Its distinguishing mechanism combines
 
 - The product name is **Pharma Auto**.
 - The name remains “Pharma Auto” in every language and must not be translated.
+- The Android client uses conventional Material 3 with restrained light surfaces, forest-green primary actions, Android system typography, familiar controls, and plain operational labels.
+- The primary operator may be non-technical; editing flows use progressive disclosure and visible source evidence instead of policy prose or implementation terminology.
 - Future work may generate the product assets it needs; there are no existing visual assets that must be preserved.
 - Public-internet marketing, customer claims, and testimonials are not required and must not be invented.
 

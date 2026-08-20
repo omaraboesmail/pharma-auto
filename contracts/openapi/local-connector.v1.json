@@ -1,0 +1,238 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Pharma Auto Local Connector API",
+    "version": "1.0.0",
+    "description": "Read-only initialization contract for Android-to-Connector commercial edit previews. It performs no Genius writes."
+  },
+  "servers": [
+    {
+      "url": "https://connector.pharmacy.lan",
+      "description": "Paired pharmacy Local Connector"
+    }
+  ],
+  "paths": {
+    "/health/live": {
+      "get": {
+        "operationId": "getLiveness",
+        "summary": "Check whether the Local API process is alive",
+        "responses": {
+          "200": {
+            "description": "Connector Local API is alive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/invoice-revisions/{revisionId}/posting-lines/{postingLineId}/commercial-edit-preview": {
+      "post": {
+        "operationId": "previewPostingLineCommercialEdit",
+        "summary": "Validate and preview a Posting Line commercial edit",
+        "description": "Calculates the two sequential percentage discounts and returns the new-stock-only selling-price policy. It does not persist a revision or write to Genius.",
+        "parameters": [
+          {
+            "name": "revisionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "postingLineId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommercialEditPreviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validated calculation preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialEditPreviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid commercial values",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "service",
+          "geniusWritesEnabled"
+        ],
+        "properties": {
+          "status": {
+            "const": "ok"
+          },
+          "service": {
+            "const": "PharmaAuto.Connector.LocalApi"
+          },
+          "geniusWritesEnabled": {
+            "const": false
+          }
+        }
+      },
+      "CommercialValues": {
+        "$ref": "../schemas/commercial-values.v1.schema.json"
+      },
+      "CommercialEditPreviewRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expectedRevisionId",
+          "quantity",
+          "commercialValues"
+        ],
+        "properties": {
+          "expectedRevisionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+          },
+          "commercialValues": {
+            "$ref": "#/components/schemas/CommercialValues"
+          }
+        }
+      },
+      "CommercialEditPreviewResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "revisionId",
+          "postingLineId",
+          "currency",
+          "grossPurchaseUnitPrice",
+          "purchaseUnitPriceAfterDiscount1",
+          "lineSubtotalAfterDiscount1",
+          "netLineSubtotalAfterDiscount2",
+          "sellingUnit",
+          "sellingUnitPrice",
+          "sellingPriceTaxTreatment",
+          "sellingPriceScope",
+          "existingStockPriceBehavior",
+          "unsupportedScopeBehavior",
+          "geniusWritePerformed"
+        ],
+        "properties": {
+          "revisionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "postingLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "currency": {
+            "const": "EGP"
+          },
+          "grossPurchaseUnitPrice": {
+            "$ref": "#/components/schemas/DecimalString"
+          },
+          "purchaseUnitPriceAfterDiscount1": {
+            "$ref": "#/components/schemas/DecimalString"
+          },
+          "lineSubtotalAfterDiscount1": {
+            "$ref": "#/components/schemas/DecimalString"
+          },
+          "netLineSubtotalAfterDiscount2": {
+            "$ref": "#/components/schemas/DecimalString"
+          },
+          "sellingUnit": {
+            "const": "BOX"
+          },
+          "sellingUnitPrice": {
+            "$ref": "#/components/schemas/DecimalString"
+          },
+          "sellingPriceTaxTreatment": {
+            "const": "INCLUSIVE"
+          },
+          "sellingPriceScope": {
+            "const": "NEW_STOCK_ONLY"
+          },
+          "existingStockPriceBehavior": {
+            "const": "PRESERVE"
+          },
+          "unsupportedScopeBehavior": {
+            "const": "BLOCK_COMMIT"
+          },
+          "geniusWritePerformed": {
+            "const": false
+          }
+        }
+      },
+      "DecimalString": {
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

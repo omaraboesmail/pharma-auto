@@ -1,0 +1,74 @@
+{
+  "jobId": "018f47a0-7b6c-7c32-8d52-9b880b2d6321",
+  "invoiceId": "018f47a0-7b6c-7c32-8d52-9b880b2d6322",
+  "revisionId": "018f47a0-7b6c-7c32-8d52-9b880b2d6323",
+  "revisionNumber": 2,
+  "sourceRevisionId": "018f47a0-7b6c-7c32-8d52-9b880b2d6320",
+  "status": "AWAITING_USER_REVIEW",
+  "currency": "EGP",
+  "sellingPricePolicy": {
+    "unit": "BOX",
+    "taxTreatment": "INCLUSIVE",
+    "scope": "NEW_STOCK_ONLY",
+    "existingStockPriceBehavior": "PRESERVE",
+    "unsupportedScopeBehavior": "BLOCK_COMMIT"
+  },
+  "postingLines": [
+    {
+      "postingLineId": "018f47a0-7b6c-7c32-8d52-9b880b2d6331",
+      "sourceLineId": "018f47a0-7b6c-7c32-8d52-9b880b2d6330",
+      "splitIndex": 1,
+      "postingSequence": 1,
+      "itemReference": "local-item:60495",
+      "quantity": "2",
+      "bonusQuantity": "0",
+      "expiryDate": "2028-06-30",
+      "batch": "SYNTHETIC-BATCH-01",
+      "commercialValues": {
+        "currency": "EGP",
+        "purchaseUnit": "BOX",
+        "purchaseUnitPrice": "100.00",
+        "purchasePriceTaxTreatment": "EXCLUSIVE",
+        "discounts": [
+          {
+            "sequence": 1,
+            "kind": "PERCENTAGE",
+            "percentage": "10.00",
+            "applicationBasis": "PURCHASE_UNIT_PRICE",
+            "affectsPurchaseUnitPrice": true
+          },
+          {
+            "sequence": 2,
+            "kind": "PERCENTAGE",
+            "percentage": "5.00",
+            "applicationBasis": "REMAINING_LINE_SUBTOTAL",
+            "affectsPurchaseUnitPrice": false
+          }
+        ],
+        "sellingUnit": "BOX",
+        "sellingUnitPrice": "150.00",
+        "sellingPriceTaxTreatment": "INCLUSIVE",
+        "sellingPriceScope": "NEW_STOCK_ONLY",
+        "existingStockPriceBehavior": "PRESERVE",
+        "unsupportedScopeBehavior": "BLOCK_COMMIT"
+      },
+      "ocrCommercialEvidence": {
+        "rawPurchaseUnitPrice": "100",
+        "rawDiscount1Percentage": "10%",
+        "rawDiscount2Percentage": "5%",
+        "rawSellingUnitPrice": "150"
+      },
+      "reviewCorrection": {
+        "actorId": "synthetic-operator-01",
+        "reason": "Corrected during source review",
+        "editedAt": "2026-08-19T09:30:00Z",
+        "changedFields": [
+          "quantity",
+          "expiryDate",
+          "sellingUnitPrice"
+        ]
+      }
+    }
+  ],
+  "confirmedAt": null
+}

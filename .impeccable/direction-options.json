@@ -1,0 +1,126 @@
+{
+  "title": "Choose the Android review world",
+  "question": "Keep the batch-release traveler, take an alternate, re-roll, or use the familiar Material 3 standard.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Batch Release Traveler",
+      "kicker": "THE DIRECTION",
+      "lineage": "pharmaceutical batch-release travelers and QA sign-off sheets",
+      "thesis": "Every commercial edit reads like a controlled release: evidence, calculation, and sign-off.",
+      "palette": [
+        "#F5F7F2",
+        "#17221C",
+        "#1F6A4A",
+        "#D89C2B",
+        "#DCE9E0"
+      ],
+      "materials": [
+        "ruled release sheet",
+        "lot label",
+        "inked approval stamp"
+      ],
+      "viewport": "One Posting Line fills the phone: identity and evidence above a ruled commercial matrix, live net calculation, then a fixed review action.",
+      "risk": "It becomes bureaucratic if stamps and labels compete with the editable numbers.",
+      "sketch": ".impeccable/sketches/assigned.webp"
+    },
+    {
+      "id": "challenger-density",
+      "label": "Dense Utility Mosaic",
+      "kicker": "ALTERNATE",
+      "lineage": "Japanese high-density utility interfaces",
+      "thesis": "Invoice lines become a tightly ruled mosaic with exceptional scan speed and almost no wasted space.",
+      "palette": [
+        "#FFFFFF",
+        "#121212",
+        "#C8252C",
+        "#E9ECEF",
+        "#F7F7F7"
+      ],
+      "materials": [
+        "hairline rules",
+        "utility tabs",
+        "compact badges"
+      ],
+      "viewport": "A persistent invoice rail frames a dense grid of editable price and discount modules with totals visible at once.",
+      "risk": "Tiny hierarchy can damage touch accuracy and Arabic legibility if density is pushed past the native floor.",
+      "case": "Wins on product clarity, but identifies less directly with a pharmacy operator than the assigned traveler.",
+      "sketch": ".impeccable/sketches/challenger-density.webp",
+      "hero": "https://impeccable.style/worlds/cards/japanese-high-density-web-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/japanese-high-density-web.webp"
+    },
+    {
+      "id": "challenger-fold",
+      "label": "Deployable Fold Ledger",
+      "kicker": "ALTERNATE",
+      "lineage": "Miura-fold deployable sheets",
+      "thesis": "Each line opens from a compact identity strip into linked commercial cells whose changes propagate visibly.",
+      "palette": [
+        "#FAFAF7",
+        "#202320",
+        "#C4A24A",
+        "#D9E7EC",
+        "#B8B8B1"
+      ],
+      "materials": [
+        "matte sheet",
+        "scored crease",
+        "gold packet label"
+      ],
+      "viewport": "The current line is deployed as a diagonal field while neighboring lines remain compact packets above and below.",
+      "risk": "The fold grammar can obscure ordinary form affordances and become tiring across long invoices.",
+      "case": "Fuses cleanly with split lines, but loses some immediate clarity when the operator only needs four numeric edits.",
+      "sketch": ".impeccable/sketches/challenger-fold.webp",
+      "hero": "https://impeccable.style/worlds/cards/paper-folds-pleats-deployable-miura-orbit-sheet-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/paper-folds-pleats-deployable-miura-orbit-sheet.webp"
+    },
+    {
+      "id": "challenger-step",
+      "label": "Sequential Step Instrument",
+      "kicker": "ALTERNATE",
+      "lineage": "early-1980s rhythm-machine step rows",
+      "thesis": "Purchase price, Discount 1, Discount 2, and selling price form one unbroken sequence with a visible calculation chase.",
+      "palette": [
+        "#242624",
+        "#F4F0E8",
+        "#D54838",
+        "#E89A35",
+        "#E5C84B"
+      ],
+      "materials": [
+        "charcoal instrument panel",
+        "silkscreen labels",
+        "segmented readout"
+      ],
+      "viewport": "A four-step commercial row dominates the phone while a sober readout shows the resulting purchase subtotal and new-stock price scope.",
+      "risk": "Instrument language can feel gamified in a consequential financial workflow.",
+      "case": "Clarifies sequence, but fuses poorly with the product because playfulness weakens financial seriousness.",
+      "sketch": ".impeccable/sketches/challenger-step.webp",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-drum-machine-step-row-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-drum-machine-step-row.webp"
+    }
+  ],
+  "reroll": true,
+  "canon": true,
+  "canonCard": {
+    "label": "Material 3 Invoice Review",
+    "lineage": "the familiar Android enterprise form",
+    "thesis": "A conventional list-detail review flow, executed with excellent native hierarchy and accessibility.",
+    "palette": [
+      "#F8FAF8",
+      "#1A1C1A",
+      "#2F6550",
+      "#DCE5DF",
+      "#FFFFFF"
+    ],
+    "materials": [
+      "Material surfaces",
+      "outlined fields",
+      "tonal actions"
+    ],
+    "viewport": "A standard top app bar, item summary card, four editable fields, calculation summary, and bottom confirmation action.",
+    "risk": "It is immediately familiar but gives Pharma Auto little distinctive operational identity.",
+    "sketch": ".impeccable/sketches/canon.webp"
+  },
+  "steer": true
+}

@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    name: Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate contracts
+        run: pnpm contracts:validate
+
+  connector:
+    name: Local Connector
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore locked dependencies
+        working-directory: local-connector
+        run: dotnet restore PharmaAuto.Connector.slnx --locked-mode
+
+      - name: Build
+        working-directory: local-connector
+        run: dotnet build PharmaAuto.Connector.slnx --no-restore
+
+      - name: Verify formatting
+        working-directory: local-connector
+        run: dotnet format PharmaAuto.Connector.slnx --verify-no-changes --no-restore
+
+      - name: Test
+        working-directory: local-connector
+        run: dotnet test PharmaAuto.Connector.slnx --no-build --no-restore
+
+      - name: Audit NuGet packages
+        working-directory: local-connector
+        run: dotnet list PharmaAuto.Connector.slnx package --vulnerable --include-transitive
+
+  android:
+    name: Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android API 37
+        run: sdkmanager "platforms;android-37.0" "build-tools;36.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+
+      - name: Test, lint and assemble
+        working-directory: android-client
+        run: ./gradlew testDebugUnitTest lintDebug assembleDebug --stacktrace

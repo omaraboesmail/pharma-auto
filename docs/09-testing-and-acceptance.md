@@ -19,6 +19,14 @@
 - add/remove multiple expiry splits.
 - same expiry with different price remains separate.
 - next Source Line shifts correctly while source identity remains unchanged.
+- edit purchase unit price،Discount 1%،Discount 2% وselling unit price لكل Posting Line،بما في ذلك splits لنفس Source Line.
+- Discount 1 يخفض purchase unit price،وDiscount 2 يخفض remaining line subtotal دون تغيير stored purchase-price snapshot مرة ثانية.
+- selling price يعرض `EGP / box / tax included` ويطبق على new stock فقط؛existing stock price لا يتغير.
+- profile لا تستطيع عزل new-stock selling price تمنع Commit وتعرض سببًا قابلًا للتصرف.
+- apply-to-all يعرض عدد splits المتأثرة،ثم يسمح بـ per-split override دون تغيير Source Line identity.
+- original OCR commercial values تظل قابلة للعرض بعد edits/restart،وكل edit يظهر في revision audit.
+- totals تتغير مع purchase price/discount فقط طبقًا للعقد؛selling price لا يغير purchase total.
+- unauthorized selling-price master impact يُمنع،والـ authorized change يعرض old/new value والـ scope قبل confirmation.
 - create New Item only with permission.
 - duplicate candidates displayed before creation.
 - totals recalculate after every split/edit.
@@ -54,6 +62,8 @@
 | Credit invoice،Item واحد بلا expiry | Yes |
 | Item واحد بخمس expiries | Yes |
 | نفس expiry بسعرين | Yes |
+| نفس Source Line بقيم purchase/discount/selling مختلفة بين splits | Yes |
+| Existing Item selling-price change والـ scope/read-back الخاص به | Yes |
 | Existing class وnew class | Yes |
 | New Item ثم أول purchase | Yes |
 | Box/Strip/Tablet conversions | Yes |

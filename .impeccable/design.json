@@ -1,0 +1,261 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-20T01:11:49.2796967+03:00",
+  "title": "Design System: Pharma Auto",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Counter Forest",
+        "canonical": "#075D35",
+        "tonalRamp": ["#001A0B", "#00391F", "#075D35", "#28764B", "#4C9368", "#78B58D", "#A9D9B8", "#E8F5EB"]
+      },
+      "primary-deep": {
+        "role": "primary",
+        "displayName": "Deep Forest",
+        "canonical": "#00391F",
+        "tonalRamp": ["#001208", "#002714", "#00391F", "#075D35", "#3A8259", "#6AA77E", "#A4D1B2", "#E8F5EB"]
+      },
+      "primary-container": {
+        "role": "primary",
+        "displayName": "Fresh Confirmation",
+        "canonical": "#C6F0D5",
+        "tonalRamp": ["#0A2A19", "#174329", "#2D6844", "#4F8A63", "#78AE89", "#A4D1B2", "#C6F0D5", "#F1FBF4"]
+      },
+      "confirmed": {
+        "role": "secondary",
+        "displayName": "Confirmed Wash",
+        "canonical": "#E8F5EB",
+        "tonalRamp": ["#0A2A19", "#214731", "#416950", "#688C73", "#91B39B", "#BCD9C3", "#E8F5EB", "#F8FCF9"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Counter Ink",
+        "canonical": "#171D19",
+        "tonalRamp": ["#0B0F0C", "#171D19", "#303733", "#4A524D", "#69716B", "#929A94", "#C5CCC6", "#F2F5F2"]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Quiet Canvas",
+        "canonical": "#F9FBF7",
+        "tonalRamp": ["#182019", "#303A32", "#4E5A50", "#727F74", "#9AA69C", "#C4CCC5", "#E5EAE5", "#F9FBF7"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Clean Surface",
+        "canonical": "#FFFFFF",
+        "tonalRamp": ["#191919", "#333333", "#555555", "#777777", "#A0A0A0", "#C8C8C8", "#ECECEC", "#FFFFFF"]
+      },
+      "cool-surface": {
+        "role": "neutral",
+        "displayName": "Cool Work Surface",
+        "canonical": "#F0F3EF",
+        "tonalRamp": ["#171B18", "#313633", "#505652", "#747B76", "#9DA39E", "#C5CAC6", "#E1E5E1", "#F0F3EF"]
+      },
+      "evidence-amber": {
+        "role": "tertiary",
+        "displayName": "Evidence Amber",
+        "canonical": "#8A5100",
+        "tonalRamp": ["#2C1600", "#482900", "#663B00", "#8A5100", "#B06C18", "#D9903D", "#F5BD78", "#FFDDB5"]
+      },
+      "evidence-amber-container": {
+        "role": "tertiary",
+        "displayName": "Evidence Amber Wash",
+        "canonical": "#FFDDB5",
+        "tonalRamp": ["#2C1600", "#553000", "#7E4A00", "#A96A20", "#D38D45", "#F1B777", "#FFDDB5", "#FFF4E7"]
+      },
+      "error": {
+        "role": "error",
+        "displayName": "Recovery Red",
+        "canonical": "#BA1A1A",
+        "tonalRamp": ["#410002", "#690005", "#93000A", "#BA1A1A", "#DE3730", "#FF5449", "#FFB4AB", "#FFDAD6"]
+      },
+      "outline": {
+        "role": "neutral",
+        "displayName": "Measured Outline",
+        "canonical": "#707972",
+        "tonalRamp": ["#151A16", "#2B312C", "#414943", "#59615B", "#707972", "#929B94", "#C0C9C1", "#E7EEE8"]
+      },
+      "outline-soft": {
+        "role": "neutral",
+        "displayName": "Soft Divider",
+        "canonical": "#C0C9C1",
+        "tonalRamp": ["#1A211B", "#333B35", "#4D5650", "#6B746D", "#8D968F", "#AEB7B0", "#C0C9C1", "#EDF2ED"]
+      },
+      "dark-primary": {
+        "role": "primary",
+        "displayName": "Night Forest",
+        "canonical": "#88D5A4",
+        "tonalRamp": ["#00391F", "#00522E", "#126C40", "#3A875D", "#62A77A", "#88D5A4", "#B7EBC8", "#E8F8ED"]
+      },
+      "dark-canvas": {
+        "role": "neutral",
+        "displayName": "Night Counter",
+        "canonical": "#101411",
+        "tonalRamp": ["#080A08", "#101411", "#252A26", "#414943", "#626A64", "#8E9690", "#C0C9C1", "#E0E4DE"]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Night Work Surface",
+        "canonical": "#252A26",
+        "tonalRamp": ["#0A0D0B", "#171B18", "#252A26", "#414943", "#626A64", "#8E9690", "#C0C9C1", "#EDF1EC"]
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Night Counter Ink",
+        "canonical": "#E0E4DE",
+        "tonalRamp": ["#171D19", "#303733", "#4A524D", "#69716B", "#929A94", "#BAC1BB", "#E0E4DE", "#F6F8F5"]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Operational Title",
+        "purpose": "Major section headings and definitive totals."
+      },
+      "body": {
+        "displayName": "Evidence Body",
+        "purpose": "Source values, confirmed values, explanations, and recovery copy."
+      },
+      "label": {
+        "displayName": "Action Label",
+        "purpose": "Buttons, field labels, progress, and concise metadata."
+      }
+    },
+    "shadows": [
+      {
+        "name": "footer-lift",
+        "value": "0 -4px 18px rgba(23, 29, 25, 0.16)",
+        "purpose": "CSS preview equivalent of the native totals footer's 8dp shadow elevation."
+      }
+    ],
+    "motion": [
+      {
+        "name": "content-size-standard",
+        "value": "220ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Expands and collapses invoice-total details without theatrical motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "commercial-stack",
+        "value": "400px"
+      },
+      {
+        "name": "expiry-stack",
+        "value": "420px"
+      },
+      {
+        "name": "content-cap",
+        "value": "840px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Finish Review Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single primary completion action; prototype boundary copy remains visible beside it.",
+      "html": "<button class=\"ds-finish-review\">Finish review <span aria-hidden=\"true\">→</span></button>",
+      "css": ".ds-finish-review { min-height: 56px; padding: 16px 24px; border: 0; border-radius: 8px; background: #075D35; color: #FFFFFF; font: 500 14px/1.43 system-ui, sans-serif; cursor: pointer; transition: background 160ms ease, transform 160ms ease; } .ds-finish-review:hover { background: #00391F; } .ds-finish-review:focus-visible { outline: 3px solid #C6F0D5; outline-offset: 2px; } .ds-finish-review:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Line Navigation",
+      "kind": "nav",
+      "description": "Simple previous/current/next context for one invoice line.",
+      "html": "<nav class=\"ds-line-nav\" aria-label=\"Invoice line\"><button>← Previous</button><div><strong>Line 1</strong><small>Item 60495</small></div><button>Next →</button></nav>",
+      "css": ".ds-line-nav { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; gap: 8px; min-height: 64px; padding: 8px; border-bottom: 1px solid #C0C9C1; color: #171D19; font-family: system-ui, sans-serif; } .ds-line-nav div { display: grid; gap: 2px; text-align: center; } .ds-line-nav small { color: #414943; } .ds-line-nav button { min-height: 48px; border: 0; border-radius: 8px; background: transparent; color: #075D35; font: 500 14px system-ui, sans-serif; } .ds-line-nav button:hover { background: #E8F5EB; } .ds-line-nav button:focus-visible { outline: 3px solid #C6F0D5; }"
+    },
+    {
+      "name": "OCR Source Value",
+      "kind": "card",
+      "description": "Read-only evidence stays visually neutral and byte-preserved.",
+      "html": "<div class=\"ds-source-value\"><strong>Purchase unit price</strong><span>EGP 100.00</span></div>",
+      "css": ".ds-source-value { display: grid; gap: 4px; min-height: 64px; padding: 14px 20px; border-bottom: 1px solid #C0C9C1; background: #FFFFFF; color: #171D19; font: 400 14px/1.43 system-ui, sans-serif; } .ds-source-value strong { font-weight: 500; } .ds-source-value span { color: #414943; }"
+    },
+    {
+      "name": "Confirmed Value Field",
+      "kind": "input",
+      "refersTo": "field-confirmed",
+      "description": "Editable confirmed value paired with, but never overwriting, OCR evidence.",
+      "html": "<label class=\"ds-confirmed-field\"><span>Confirmed purchase unit price</span><input inputmode=\"decimal\" value=\"100.00\"><b>EGP</b></label>",
+      "css": ".ds-confirmed-field { position: relative; display: grid; gap: 5px; min-height: 64px; padding: 10px 14px; background: #E8F5EB; color: #171D19; font: 400 14px/1.43 system-ui, sans-serif; } .ds-confirmed-field span { font-size: 12px; color: #414943; } .ds-confirmed-field input { min-height: 40px; padding: 8px 42px 8px 10px; border: 1px solid #707972; border-radius: 8px; background: #FFFFFF; color: #171D19; font: inherit; } .ds-confirmed-field b { position: absolute; right: 24px; bottom: 21px; color: #075D35; font-size: 12px; } .ds-confirmed-field input:hover { border-color: #075D35; } .ds-confirmed-field input:focus-visible { outline: 3px solid #C6F0D5; outline-offset: 1px; border-color: #075D35; }"
+    },
+    {
+      "name": "Expiry Row",
+      "kind": "card",
+      "refersTo": "expiry-container",
+      "description": "One expiry owns its quantity, date, and one explicit row action.",
+      "html": "<section class=\"ds-expiry-row\"><strong>Expiry 1</strong><label>Quantity<input value=\"2\"></label><button>30 Jun 2028</button><button class=\"ds-split\">Split</button></section>",
+      "css": ".ds-expiry-row { display: grid; grid-template-columns: auto 1fr 1.35fr auto; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; background: #F0F3EF; color: #171D19; font: 400 14px/1.43 system-ui, sans-serif; } .ds-expiry-row label { display: grid; gap: 4px; font-size: 12px; } .ds-expiry-row input, .ds-expiry-row button { min-height: 48px; border: 1px solid #707972; border-radius: 8px; background: #FFFFFF; color: #171D19; font: inherit; } .ds-expiry-row .ds-split { border-color: transparent; background: transparent; color: #075D35; font-weight: 500; } .ds-expiry-row button:hover { border-color: #075D35; } .ds-expiry-row input:focus-visible, .ds-expiry-row button:focus-visible { outline: 3px solid #C6F0D5; outline-offset: 1px; } @media (max-width: 420px) { .ds-expiry-row { grid-template-columns: 1fr 1fr; } .ds-expiry-row strong, .ds-expiry-row .ds-split { grid-column: 1 / -1; } }"
+    },
+    {
+      "name": "Add Expiry Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A labeled full-width secondary action beneath all expiry rows.",
+      "html": "<button class=\"ds-add-expiry\"><span aria-hidden=\"true\">＋</span> Add another expiry</button>",
+      "css": ".ds-add-expiry { width: 100%; min-height: 52px; padding: 12px 16px; border: 1px solid #707972; border-radius: 8px; background: #FFFFFF; color: #075D35; font: 500 14px/1.43 system-ui, sans-serif; cursor: pointer; } .ds-add-expiry:hover { background: #E8F5EB; } .ds-add-expiry:focus-visible { outline: 3px solid #C6F0D5; outline-offset: 2px; } .ds-add-expiry:active { background: #C6F0D5; }"
+    },
+    {
+      "name": "Expandable Totals Footer",
+      "kind": "custom",
+      "refersTo": "totals-footer",
+      "description": "Anchored truthful total, finish action, expansion control, and prototype disclosure.",
+      "html": "<aside class=\"ds-totals-footer\"><div><small>Invoice net total</small><strong>EGP 171.00</strong></div><button class=\"ds-footer-action\">Finish review →</button><button class=\"ds-expand\" aria-label=\"Show invoice total details\">⌃</button><p>Prototype check only. Nothing is saved or sent.</p></aside>",
+      "css": ".ds-totals-footer { display: grid; grid-template-columns: 1fr 1.2fr auto; align-items: center; gap: 14px; padding: 12px 16px; background: #FFFFFF; color: #171D19; box-shadow: 0 -4px 18px rgba(23,29,25,.16); font-family: system-ui, sans-serif; } .ds-totals-footer div { display: grid; gap: 3px; } .ds-totals-footer small { color: #414943; } .ds-totals-footer strong { font-size: 22px; } .ds-footer-action { min-height: 56px; border: 0; border-radius: 8px; background: #075D35; color: #FFFFFF; font-weight: 600; } .ds-expand { min-width: 48px; min-height: 48px; border: 0; border-radius: 50%; background: transparent; color: #075D35; } .ds-totals-footer button:hover { filter: brightness(.94); } .ds-totals-footer button:focus-visible { outline: 3px solid #C6F0D5; outline-offset: 2px; } .ds-totals-footer p { grid-column: 1 / -1; margin: 0; text-align: center; color: #414943; font-size: 11px; } @media (max-width: 400px) { .ds-totals-footer { grid-template-columns: 1fr auto; } .ds-footer-action { grid-column: 1 / -1; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Calm Review Counter",
+    "overview": "Pharma Auto should feel like a clear, well-lit pharmacy counter where one consequential task is handled at a time. The interface uses familiar Material 3 behavior, restrained color, explicit labels, and progressive disclosure so a nontechnical operator can compare evidence, correct a value, and recover from an error without learning system terminology.\n\nEvidence and confirmed data stay visually distinct, while consequential states remain truthful. The current Android surface is a non-persistent prototype check: its design must never imply that data was saved, sent, or committed to Genius when that action has not occurred.",
+    "keyCharacteristics": [
+      "Calm, linear review instead of dense all-lines editing.",
+      "OCR evidence remains visible and unchanged beside confirmed values.",
+      "Forest green carries primary action and progress; amber is reserved for uncertain evidence.",
+      "English and Arabic receive equal hierarchy, readable wrapping, and native RTL/LTR behavior.",
+      "Large controls and plain-language recovery support one-handed counter work."
+    ],
+    "rules": [
+      {
+        "name": "The One Amber Meaning Rule",
+        "body": "Amber communicates uncertain source evidence and must not become a decorative accent.",
+        "section": "colors"
+      },
+      {
+        "name": "The Plain Language Rule",
+        "body": "Labels name the operator's task or data directly; implementation terms and policy prose stay out of the working screen.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Linear Task Rule",
+        "body": "Progressive disclosure may shorten a screen, but it must not hide which invoice line or expiry row an edit belongs to.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat By Default Rule",
+        "body": "Elevation marks persistent action hierarchy, not decoration; ordinary evidence and expiry groups use tonal layering instead of shadows.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Honest State Rule",
+        "body": "A control may say save or show a definitive total only when the product has actually performed that operation or completed that calculation.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do preserve raw OCR evidence while showing confirmed values separately.",
+      "Do use explicit labels, row ownership, 48dp targets, and specific recovery messages.",
+      "Do keep financial totals unavailable until every required value is valid.",
+      "Do mirror layouts for Arabic while isolating mixed-direction display text only in the UI.",
+      "Do reserve the anchored footer for totals and the single completion action."
+    ],
+    "donts": [
+      "Don't imply persistence, Connector submission, or a Genius commit before it occurs.",
+      "Don't use amber, red, shadows, cards, or pills as decoration.",
+      "Don't hide expiry quantity ownership or place multiple unlabeled icon-only actions on a row.",
+      "Don't reprice old stock or surface policy prose as if it were an editable screen control.",
+      "Don't replace the linear review flow with a dense spreadsheet-style editor."
+    ]
+  }
+}

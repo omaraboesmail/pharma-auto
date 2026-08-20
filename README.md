@@ -46,6 +46,8 @@
 13. [Risk Register](docs/12-risk-register.md)
 14. [Text Integrity and BiDi Policy](docs/13-text-integrity-and-bidi.md)
 15. [Architecture Decision Records](docs/decisions/README.md)
+16. [Initialization Decision Gate](docs/14-initialization-decisions.md)
+17. [Genius Commercial Field Evidence](docs/15-genius-commercial-evidence.md)
 
 ## System Explainer
 
@@ -53,4 +55,4 @@
 
 ## حالة الـ repository
 
-هذه Greenfield architecture مستقلة في `C:\Projects\Pharmatech`. مجلد `Order-Automating` خارج حدود المشروع الجديد بالكامل: لا يُستخدم كـ root،ولا Android baseline،ولا مصدر runtime أوdependency. المجلدات الجديدة documentation-first scaffolding وليست implementation.
+هذه Greenfield architecture مستقلة في `C:\Projects\Pharmatech`. مجلد `Order-Automating` خارج حدود المشروع الجديد بالكامل: لا يُستخدم كـ root،ولا Android baseline،ولا مصدر runtime أوdependency. تم تهيئة read-only vertical slice للعقود وAndroid والـ Local Connector؛Genius writes ما زالت مغلقة خلف Golden certification.

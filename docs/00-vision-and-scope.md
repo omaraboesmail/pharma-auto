@@ -35,6 +35,7 @@
 - Vendor matching إلى `ven_id` محلي.
 - Product matching إلى `itm_id` محلي.
 - multiple expiry/batch splits لنفس source line.
+- تعديل purchase unit price وline discount وselling unit price لكل Posting Line من Android قبل confirmation،مع حفظ OCR evidence وedit audit.
 - إنشاء New Item من Android بعد user confirmation.
 - missing/reused Vendor invoice number policy.
 - Direct DB insertion عبر versioned Genius profile.

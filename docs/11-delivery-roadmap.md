@@ -21,7 +21,7 @@ Exit gate: لا توجد write assumptions غير مسجلة،وكل critical ta
 - SaaS tenant/subscription/quota.
 - Gemini OCR structured result.
 - Vendor/Product matching.
-- Android review وexpiry splitting.
+- Android review،expiry splitting وper-Posting-Line purchase/discount/selling-price editor.
 - لا DB writes.
 
 Exit gate: OCR/matching metrics معروفة وworkflow قابل للاستخدام دون data corruption risk.
@@ -41,6 +41,7 @@ Exit gate: Golden New Item scenarios وunit conversion tests كاملة.
 - e-plus before/after capture لكل scenario.
 - implement profile داخل Clone فقط.
 - stock/class/financial writes.
+- certified mapping وimpact rules للـ purchase،discount وselling-price edits.
 - reconciliation engine.
 - fault injection.
 
