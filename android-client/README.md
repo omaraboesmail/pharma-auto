@@ -55,6 +55,25 @@ $env:ANDROID_SDK_ROOT = "C:\path\to\android-sdk"
 ./gradlew.bat lintDebug assembleDebug
 ```
 
+## Build and Install on One Device
+
+From the repository root, use the execution-policy-safe launcher. It lists connected ADB devices with model, Android version and API level, then installs on exactly one selected API 28+ device:
+
+```powershell
+& .\tools\Build-Install-Android.cmd
+```
+
+Useful options:
+
+```powershell
+& .\tools\Build-Install-Android.cmd -ListDevices
+& .\tools\Build-Install-Android.cmd -DeviceSerial SERIAL
+& .\tools\Build-Install-Android.cmd -Clean
+& .\tools\Build-Install-Android.cmd -NoLaunch
+```
+
+The tool auto-detects the local Android SDK and JDK 17, builds `assembleDebug`, preserves existing app data with `adb install -r`, verifies `com.pharmaauto.android`, and launches `MainActivity` by default. Use `-NoLaunch` to leave the installed app closed. It blocks unauthorized/offline devices and any device below API 28. It does not run tests, upload to Firebase or use cloud devices.
+
 Compile the ERP-neutral commercial domain independently with Kotlin CLI:
 
 ```powershell
