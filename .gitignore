@@ -42,6 +42,8 @@ Thumbs.db
 
 # Runtime data
 data/
+!/android-client/app/src/main/java/com/pharmaauto/android/data/
+!/android-client/app/src/main/java/com/pharmaauto/android/data/**
 temp/
 diagnostics/
 *.log
