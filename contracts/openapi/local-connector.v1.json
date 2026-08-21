@@ -3,7 +3,7 @@
   "info": {
     "title": "Pharma Auto Local Connector API",
     "version": "1.0.0",
-    "description": "Read-only initialization contract for Android-to-Connector commercial edit previews. It performs no Genius writes."
+    "description": "Phase 1 Android and loopback Control UI contract for pairing, resumable capture, read-only catalog matching and confirmed review. It exposes no Genius commit operation."
   },
   "servers": [
     {
@@ -27,6 +27,260 @@
               }
             }
           }
+        }
+      }
+    },
+    "/control/v1/health": {
+      "get": {
+        "security": [{ "controlKey": [] }],
+        "operationId": "getControlHealth",
+        "description": "Loopback-only service, queue and catalog health for the elevated Control UI.",
+        "responses": {
+          "200": { "description": "Read-only Connector health" },
+          "403": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/control/v1/pairing-sessions": {
+      "post": {
+        "security": [{ "controlKey": [] }],
+        "operationId": "createPairingSession",
+        "description": "Creates a loopback-requested five-minute, single-use Android pairing code.",
+        "responses": {
+          "200": { "description": "One-time pairing bootstrap" },
+          "403": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/control/v1/devices": {
+      "get": {
+        "security": [{ "controlKey": [] }],
+        "operationId": "listPairedDevices",
+        "responses": {
+          "200": { "description": "Paired and revoked local devices" }
+        }
+      }
+    },
+    "/control/v1/devices/{deviceId}/revoke": {
+      "post": {
+        "security": [{ "controlKey": [] }],
+        "operationId": "revokePairedDevice",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Device revoked" },
+          "404": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/control/v1/catalog/rebuild": {
+      "post": {
+        "security": [{ "controlKey": [] }],
+        "operationId": "rebuildReadOnlyCatalog",
+        "description": "Replaces the Sidecar projection using SELECT-only Genius queries.",
+        "responses": {
+          "200": { "description": "Catalog counts, integrity flags and geniusWritePerformed=false" }
+        }
+      }
+    },
+    "/control/v1/jobs": {
+      "get": {
+        "security": [{ "controlKey": [] }],
+        "operationId": "listControlJobs",
+        "responses": {
+          "200": { "description": "Recent local read-only workflow jobs" }
+        }
+      }
+    },
+    "/api/v1/pairing/claim": {
+      "post": {
+        "operationId": "claimPairingSession",
+        "description": "Consumes a five-minute one-time pairing secret and pins an Android P-256 public key.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["sessionId", "oneTimeSecret", "deviceDisplayName", "publicKeySubjectPublicKeyInfoBase64"],
+                "properties": {
+                  "sessionId": { "type": "string", "format": "uuid" },
+                  "oneTimeSecret": { "type": "string", "minLength": 43, "maxLength": 64 },
+                  "deviceDisplayName": { "type": "string", "minLength": 1, "maxLength": 120 },
+                  "publicKeySubjectPublicKeyInfoBase64": { "type": "string", "contentEncoding": "base64" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Device key was paired" },
+          "409": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/api/v1/auth/challenges": {
+      "post": {
+        "operationId": "createDeviceChallenge",
+        "description": "Creates a short-lived, single-use challenge for a paired device.",
+        "responses": {
+          "200": { "description": "ECDSA device challenge" },
+          "401": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/api/v1/auth/tokens": {
+      "post": {
+        "operationId": "exchangeDeviceChallenge",
+        "description": "Verifies a P-256 P1363 signature and issues a 15-minute local access token.",
+        "responses": {
+          "200": { "description": "Short-lived device access token" },
+          "401": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/api/v1/catalog/items/search": {
+      "get": {
+        "security": [{ "deviceBearer": [] }],
+        "operationId": "searchLocalItems",
+        "description": "Returns manually confirmable candidates from the read-only Genius projection.",
+        "responses": {
+          "200": {
+            "description": "Local Item candidates; finalLocalIdentitySelected is always false",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "candidates": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/CatalogCandidate" }
+                    },
+                    "finalLocalIdentitySelected": { "const": false },
+                    "geniusWritePerformed": { "const": false }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/vendors/search": {
+      "get": {
+        "security": [{ "deviceBearer": [] }],
+        "operationId": "searchLocalVendors",
+        "description": "Returns manually confirmable local Vendor candidates.",
+        "responses": {
+          "200": { "description": "Local Vendor candidates; no final identity is auto-selected" }
+        }
+      }
+    },
+    "/api/v1/invoice-jobs": {
+      "post": {
+        "security": [{ "deviceBearer": [] }],
+        "operationId": "createInvoiceJob",
+        "description": "Creates a 1..100 page upload job owned by the authenticated device.",
+        "responses": {
+          "201": {
+            "description": "Created invoice job",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InvoiceJob" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/invoice-jobs/{jobId}/pages/{page}/chunks/{chunkIndex}": {
+      "put": {
+        "security": [{ "deviceBearer": [] }],
+        "operationId": "uploadInvoicePageChunk",
+        "description": "Idempotently stores a hash-bound chunk in encrypted local storage.",
+        "parameters": [
+          { "$ref": "#/components/parameters/JobId" },
+          { "name": "page", "in": "path", "required": true, "schema": { "type": "integer", "minimum": 1, "maximum": 100 } },
+          { "name": "chunkIndex", "in": "path", "required": true, "schema": { "type": "integer", "minimum": 0 } }
+        ],
+        "responses": {
+          "200": { "description": "Current resumable page state" }
+        }
+      }
+    },
+    "/api/v1/invoice-jobs/{jobId}/submit": {
+      "post": {
+        "security": [{ "deviceBearer": [] }],
+        "operationId": "submitInvoiceJob",
+        "parameters": [{ "$ref": "#/components/parameters/JobId" }],
+        "responses": {
+          "202": { "description": "Job queued after all pages passed local validation" },
+          "409": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/api/v1/invoice-jobs/{jobId}": {
+      "get": {
+        "security": [{ "deviceBearer": [] }],
+        "operationId": "getInvoiceJob",
+        "parameters": [{ "$ref": "#/components/parameters/JobId" }],
+        "responses": {
+          "200": {
+            "description": "Device-owned invoice job",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/InvoiceJob" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/invoice-revisions/{revisionId}": {
+      "get": {
+        "security": [{ "deviceBearer": [] }],
+        "operationId": "getInvoiceRevision",
+        "parameters": [{ "$ref": "#/components/parameters/RevisionId" }],
+        "responses": {
+          "200": {
+            "description": "Read-only review package",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReviewPackage" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/invoice-revisions/{revisionId}/edits": {
+      "post": {
+        "security": [{ "deviceBearer": [] }],
+        "operationId": "saveReviewedRevision",
+        "description": "Creates an immutable child revision after enforcing Phase 1 commercial and identity guards.",
+        "parameters": [{ "$ref": "#/components/parameters/RevisionId" }],
+        "responses": {
+          "201": { "description": "New unconfirmed review revision; no Genius write" },
+          "409": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/api/v1/invoice-revisions/{revisionId}/confirm": {
+      "post": {
+        "security": [{ "deviceBearer": [] }],
+        "operationId": "confirmReviewedRevision",
+        "description": "Records human confirmation. commitAvailable and geniusWritePerformed remain false.",
+        "parameters": [{ "$ref": "#/components/parameters/RevisionId" }],
+        "responses": {
+          "200": { "description": "Confirmed read-only revision" },
+          "409": { "$ref": "#/components/responses/Problem" }
         }
       }
     },
@@ -91,6 +345,43 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "deviceBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Connector-local HS256"
+      },
+      "controlKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Control-Key",
+        "description": "Machine-DPAPI control key accepted from loopback only."
+      }
+    },
+    "parameters": {
+      "JobId": {
+        "name": "jobId",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string", "format": "uuid" }
+      },
+      "RevisionId": {
+        "name": "revisionId",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string", "format": "uuid" }
+      }
+    },
+    "responses": {
+      "Problem": {
+        "description": "Problem details response",
+        "content": {
+          "application/problem+json": {
+            "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+          }
+        }
+      }
+    },
     "schemas": {
       "HealthResponse": {
         "type": "object",
@@ -114,6 +405,15 @@
       },
       "CommercialValues": {
         "$ref": "../schemas/commercial-values.v1.schema.json"
+      },
+      "CatalogCandidate": {
+        "$ref": "../schemas/catalog-candidate.v1.schema.json"
+      },
+      "InvoiceJob": {
+        "$ref": "../schemas/invoice-job.v1.schema.json"
+      },
+      "ReviewPackage": {
+        "$ref": "../schemas/review-package.v1.schema.json"
       },
       "CommercialEditPreviewRequest": {
         "type": "object",

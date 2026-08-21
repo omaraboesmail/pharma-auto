@@ -1,0 +1,360 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pharma-auto.invalid/v1/db-fingerprint-definition.schema.json",
+  "title": "Genius DB Fingerprint Definition v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "definitionId",
+    "profileId",
+    "status",
+    "hashAlgorithm",
+    "canonicalization",
+    "databaseRules",
+    "excludedObjects",
+    "criticalObjects",
+    "reconciliationModules",
+    "namedDataInvariants",
+    "comparisonPolicy",
+    "referenceObservation"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "definitionId": {
+      "const": "DBFP-1"
+    },
+    "profileId": {
+      "const": "EPLUS_GENIUS_DB539_PROFILE_1"
+    },
+    "status": {
+      "const": "DEFINITION_APPROVED_WRITES_DISABLED"
+    },
+    "hashAlgorithm": {
+      "const": "SHA-256"
+    },
+    "canonicalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "encoding",
+        "lineEndings",
+        "objectPropertyOrder",
+        "arrayOrder"
+      ],
+      "properties": {
+        "format": {
+          "const": "PHARMA_AUTO_DBFP_CANONICAL_JSON_V1"
+        },
+        "encoding": {
+          "const": "UTF-8_NO_BOM"
+        },
+        "lineEndings": {
+          "const": "LF"
+        },
+        "objectPropertyOrder": {
+          "const": "UNICODE_CODE_POINT_ASCENDING"
+        },
+        "arrayOrder": {
+          "const": "SCHEMA_KIND_NAME_ORDINAL_ASCENDING"
+        }
+      }
+    },
+    "databaseRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "databaseInternalVersion",
+        "compatibilityLevel",
+        "collation",
+        "metadataSurfaces"
+      ],
+      "properties": {
+        "engine": {
+          "const": "Microsoft SQL Server"
+        },
+        "databaseInternalVersion": {
+          "const": 539
+        },
+        "compatibilityLevel": {
+          "const": 80
+        },
+        "collation": {
+          "const": "SQL_Latin1_General_CP1256_CI_AS"
+        },
+        "metadataSurfaces": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "COLUMNS",
+              "IDENTITY",
+              "COMPUTED_COLUMNS",
+              "PRIMARY_KEYS",
+              "INDEXES",
+              "TRIGGERS",
+              "MODULE_DEFINITION_HASHES",
+              "NAMED_DATA_INVARIANTS"
+            ]
+          }
+        }
+      }
+    },
+    "excludedObjects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/excludedObject"
+      }
+    },
+    "criticalObjects": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "$ref": "#/$defs/criticalObject"
+      }
+    },
+    "reconciliationModules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/module"
+      }
+    },
+    "namedDataInvariants": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/$defs/namedDataInvariant"
+      }
+    },
+    "comparisonPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "writeCriticalMismatch",
+        "missingObject",
+        "unexpectedDependency",
+        "diagnosticsOnMismatch"
+      ],
+      "properties": {
+        "writeCriticalMismatch": {
+          "const": "BLOCK_WRITES"
+        },
+        "missingObject": {
+          "const": "BLOCK_WRITES"
+        },
+        "unexpectedDependency": {
+          "const": "BLOCK_WRITES_AND_REQUIRE_PROFILE_REVIEW"
+        },
+        "diagnosticsOnMismatch": {
+          "const": "READ_ONLY_ONLY"
+        }
+      }
+    },
+    "referenceObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observedOn",
+        "engineProductVersion",
+        "compatibilityLevel",
+        "collation",
+        "reportedUserTableCount",
+        "businessTableCountAfterExclusions",
+        "certificationStatus"
+      ],
+      "properties": {
+        "observedOn": {
+          "type": "string",
+          "format": "date"
+        },
+        "engineProductVersion": {
+          "const": "10.50.4000.0"
+        },
+        "compatibilityLevel": {
+          "const": 80
+        },
+        "collation": {
+          "const": "SQL_Latin1_General_CP1256_CI_AS"
+        },
+        "reportedUserTableCount": {
+          "const": 219
+        },
+        "businessTableCountAfterExclusions": {
+          "const": 218
+        },
+        "certificationStatus": {
+          "const": "OBSERVED_NOT_WRITE_CERTIFIED"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ownerRole": {
+      "enum": [
+        "DB Integration Owner",
+        "Pharmacy Accounting SME",
+        "Security Reviewer",
+        "Product Owner"
+      ]
+    },
+    "excludedObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "schema",
+        "name",
+        "reason"
+      ],
+      "properties": {
+        "kind": {
+          "const": "TABLE"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "criticalObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "schema",
+        "name",
+        "surfaces",
+        "mismatchAction",
+        "ownerRole"
+      ],
+      "properties": {
+        "kind": {
+          "const": "TABLE"
+        },
+        "schema": {
+          "const": "dbo"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "surfaces": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "COLUMNS",
+              "IDENTITY",
+              "COMPUTED_COLUMNS",
+              "PRIMARY_KEYS",
+              "INDEXES",
+              "TRIGGERS",
+              "NAMED_DATA_INVARIANTS"
+            ]
+          }
+        },
+        "mismatchAction": {
+          "const": "BLOCK_WRITES"
+        },
+        "ownerRole": {
+          "$ref": "#/$defs/ownerRole"
+        }
+      }
+    },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "schema",
+        "name",
+        "surface",
+        "mismatchAction",
+        "ownerRole"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "VIEW",
+            "FUNCTION"
+          ]
+        },
+        "schema": {
+          "const": "dbo"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "surface": {
+          "const": "MODULE_DEFINITION_HASH"
+        },
+        "mismatchAction": {
+          "const": "BLOCK_WRITES"
+        },
+        "ownerRole": {
+          "$ref": "#/$defs/ownerRole"
+        }
+      }
+    },
+    "namedDataInvariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "objectName",
+        "columnName",
+        "policy",
+        "certifiedValue",
+        "mismatchAction",
+        "ownerRole"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^DBI-[0-9]{3}$"
+        },
+        "objectName": {
+          "type": "string",
+          "pattern": "^dbo\\.[A-Za-z0-9_]+$"
+        },
+        "columnName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policy": {
+          "enum": [
+            "EQUALS_CERTIFIED_VALUE",
+            "BLOCK_WHEN_MONTH_DIFFERENCE_GT_ZERO",
+            "CAPTURE_REFERENCED_ROWS_AND_BLOCK_UNCLASSIFIED_VALUES"
+          ]
+        },
+        "certifiedValue": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mismatchAction": {
+          "const": "BLOCK_WRITES"
+        },
+        "ownerRole": {
+          "$ref": "#/$defs/ownerRole"
+        }
+      }
+    }
+  }
+}

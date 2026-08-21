@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "1.0",
+  "evidenceKind": "SYNTHETIC_TEMPLATE",
+  "scenarioId": "GS-CREDIT-SINGLE-ITEM",
+  "title": "Synthetic template for a credit purchase with one item",
+  "profileId": "EPLUS_GENIUS_DB539_PROFILE_1",
+  "safety": {
+    "environment": "DISPOSABLE_ISOLATED_CLONE",
+    "sourceBackupSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "databaseName": "SYNTHETIC_CLONE_NAME",
+    "resetConfirmed": true,
+    "manualEntryTool": "EPLUS_UI",
+    "evidenceClassification": "REDACTED_METADATA_AND_SYNTHETIC_VALUES_ONLY"
+  },
+  "fingerprint": {
+    "definitionId": "DBFP-1",
+    "observedSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "status": "MATCH",
+    "namedDataInvariants": [
+      {
+        "id": "DBI-001",
+        "observedValue": "1",
+        "status": "PASS"
+      },
+      {
+        "id": "DBI-002",
+        "observedValue": "2026-08-01T00:00:00",
+        "status": "PASS"
+      },
+      {
+        "id": "DBI-003",
+        "observedValue": "store:1=activated:1",
+        "status": "PASS"
+      }
+    ]
+  },
+  "owners": [
+    "DB Integration Owner",
+    "DB Integration Second Reviewer",
+    "Pharmacy Accounting SME"
+  ],
+  "assumptionIds": [
+    "WA-001",
+    "WA-004"
+  ],
+  "capture": {
+    "startedAt": "2026-08-21T08:00:00Z",
+    "manualActionStartedAt": "2026-08-21T08:05:00Z",
+    "manualActionCompletedAt": "2026-08-21T08:06:00Z",
+    "finishedAt": "2026-08-21T08:10:00Z",
+    "allBusinessTablesCompared": true
+  },
+  "changedObjects": [
+    {
+      "objectName": "dbo.pur_trans_h",
+      "beforeRowCount": 100,
+      "afterRowCount": 101,
+      "insertedRows": 1,
+      "updatedRows": 0,
+      "deletedRows": 0,
+      "diffSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "ownerRole": "DB Integration Owner"
+    }
+  ],
+  "unexpectedObjects": [],
+  "reconciliationChecks": [
+    {
+      "checkId": "RC-HEADER-IDENTITY",
+      "status": "PASS",
+      "evidenceSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    }
+  ],
+  "outcome": "INCONCLUSIVE",
+  "approvals": []
+}

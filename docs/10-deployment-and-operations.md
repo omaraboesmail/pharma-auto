@@ -24,6 +24,8 @@ Installer يقوم بـ:
 - Android pairing initialization.
 - backup/diagnostic path configuration.
 
+Phase 1 installer الحالي موجود في `local-connector/installer/` ويعمل من PowerShell 7.4 في نافذة elevated وبتأكيد مرئي. Production-style install يرفض binaries غير الموقعة،ويطلب Connector TLS certificate يغطي LAN host وSaaS mTLS client certificate،ويمنح virtual service account read access إلى private keys،ويفتح firewall للـ Private/Domain `LocalSubnet` فقط. Secrets تُكتب machine-DPAPI ولا تظهر في `connector-settings.json`. `-AllowUnsignedLabBuild` هو استثناء lab صريح ولا يخفف production startup gates.
+
 Control UI تكون visible لعرض health والـ queue، لكن service تستمر بعد إغلاقها.
 
 ## 3. Connector Upgrade

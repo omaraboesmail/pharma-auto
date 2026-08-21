@@ -1,0 +1,260 @@
+{
+  "schemaVersion": "1.0",
+  "resultId": "22222222-2222-4222-8222-222222222221",
+  "jobId": "22222222-2222-4222-8222-222222222222",
+  "provider": {
+    "name": "GEMINI",
+    "model": "synthetic-fixture-oracle-v1",
+    "processedAt": "2026-08-21T00:00:00Z"
+  },
+  "document": {
+    "sourceSha256": "ad56dc553d0ed24f5ef4bda56642634367bf2bb08cb67ab0835608d1682f0ecf",
+    "pageCount": 1,
+    "mimeTypes": [
+      "image/png"
+    ]
+  },
+  "supplier": {
+    "rawValue": "مورد الاختبار الاصطناعي",
+    "normalizedValue": "مورد الاختبار الاصطناعي",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.39,
+      "y": 0.08,
+      "width": 0.56,
+      "height": 0.07
+    },
+    "evidenceText": "مورد الاختبار الاصطناعي",
+    "warnings": []
+  },
+  "invoiceNumber": {
+    "rawValue": "SYN-AR-0001",
+    "normalizedValue": "SYN-AR-0001",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.05,
+      "y": 0.09,
+      "width": 0.38,
+      "height": 0.04
+    },
+    "evidenceText": "SYN-AR-0001",
+    "warnings": []
+  },
+  "invoiceDate": {
+    "rawValue": "20-02-2026",
+    "normalizedValue": "2026-02-20",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.05,
+      "y": 0.13,
+      "width": 0.38,
+      "height": 0.04
+    },
+    "evidenceText": "20-02-2026",
+    "warnings": []
+  },
+  "currency": {
+    "rawValue": "EGP",
+    "normalizedValue": "EGP",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.05,
+      "y": 0.17,
+      "width": 0.38,
+      "height": 0.04
+    },
+    "evidenceText": "EGP",
+    "warnings": []
+  },
+  "sourceLines": [
+    {
+      "sourceLineId": "22222222-2222-4222-8222-222222222231",
+      "sequence": 1,
+      "description": {
+        "rawValue": "دواء اختباري أ 500 مجم",
+        "normalizedValue": "دواء اختباري أ 500 مجم",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.24,
+          "y": 0.36,
+          "width": 0.32,
+          "height": 0.07
+        },
+        "evidenceText": "دواء اختباري أ 500 مجم",
+        "warnings": []
+      },
+      "vendorItemCode": {
+        "rawValue": "TST-AR-001",
+        "normalizedValue": "TST-AR-001",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.11,
+          "y": 0.36,
+          "width": 0.12,
+          "height": 0.07
+        },
+        "evidenceText": "TST-AR-001",
+        "warnings": []
+      },
+      "quantity": {
+        "rawValue": "3",
+        "normalizedValue": "3",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.57,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "3",
+        "warnings": []
+      },
+      "unit": {
+        "rawValue": "BOX",
+        "normalizedValue": "BOX",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.65,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "BOX",
+        "warnings": []
+      },
+      "purchaseUnitPrice": {
+        "rawValue": "75.00",
+        "normalizedValue": "75.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.73,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "75.00",
+        "warnings": []
+      },
+      "discount1Percentage": {
+        "rawValue": "5.00",
+        "normalizedValue": "5.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.81,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "5.00",
+        "warnings": []
+      },
+      "discount2Percentage": {
+        "rawValue": "0.00",
+        "normalizedValue": "0.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.81,
+          "y": 0.44,
+          "width": 0.07,
+          "height": 0.04
+        },
+        "evidenceText": "0.00",
+        "warnings": []
+      },
+      "sellingUnitPrice": {
+        "rawValue": "120.00",
+        "normalizedValue": "120.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.89,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "120.00",
+        "warnings": []
+      },
+      "expiryDate": {
+        "rawValue": "2028-09",
+        "normalizedValue": "2028-09-30",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.25,
+          "y": 0.36,
+          "width": 0.15,
+          "height": 0.07
+        },
+        "evidenceText": "2028-09",
+        "warnings": []
+      },
+      "batch": {
+        "rawValue": "SYN-AR-BATCH",
+        "normalizedValue": "SYN-AR-BATCH",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.4,
+          "y": 0.36,
+          "width": 0.14,
+          "height": 0.07
+        },
+        "evidenceText": "SYN-AR-BATCH",
+        "warnings": []
+      }
+    }
+  ],
+  "totals": {
+    "subtotal": {
+      "rawValue": "225.00",
+      "normalizedValue": "225.00",
+      "page": 1,
+      "boundingBox": {
+        "x": 0.48,
+        "y": 0.53,
+        "width": 0.47,
+        "height": 0.04
+      },
+      "evidenceText": "225.00",
+      "warnings": []
+    },
+    "discount": {
+      "rawValue": "11.25",
+      "normalizedValue": "11.25",
+      "page": 1,
+      "boundingBox": {
+        "x": 0.48,
+        "y": 0.58,
+        "width": 0.47,
+        "height": 0.04
+      },
+      "evidenceText": "11.25",
+      "warnings": []
+    },
+    "tax": {
+      "rawValue": "0.00",
+      "normalizedValue": "0.00",
+      "page": 1,
+      "boundingBox": {
+        "x": 0.48,
+        "y": 0.63,
+        "width": 0.47,
+        "height": 0.04
+      },
+      "evidenceText": "0.00",
+      "warnings": []
+    },
+    "total": {
+      "rawValue": "213.75",
+      "normalizedValue": "213.75",
+      "page": 1,
+      "boundingBox": {
+        "x": 0.48,
+        "y": 0.69,
+        "width": 0.47,
+        "height": 0.05
+      },
+      "evidenceText": "213.75",
+      "warnings": []
+    }
+  },
+  "qualityFlags": []
+}

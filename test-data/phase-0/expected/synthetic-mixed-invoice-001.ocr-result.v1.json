@@ -1,0 +1,392 @@
+{
+  "schemaVersion": "1.0",
+  "resultId": "33333333-3333-4333-8333-333333333331",
+  "jobId": "33333333-3333-4333-8333-333333333332",
+  "provider": {
+    "name": "GEMINI",
+    "model": "synthetic-fixture-oracle-v1",
+    "processedAt": "2026-08-21T00:00:00Z"
+  },
+  "document": {
+    "sourceSha256": "1deaef75c21ad1107692e9398f0091f7d6784bdfed231688a742e16a382a955b",
+    "pageCount": 2,
+    "mimeTypes": [
+      "image/png"
+    ]
+  },
+  "supplier": {
+    "rawValue": "Mixed Script Test Supplier / مورد اختبار مختلط",
+    "normalizedValue": "Mixed Script Test Supplier / مورد اختبار مختلط",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.05,
+      "y": 0.08,
+      "width": 0.9,
+      "height": 0.07
+    },
+    "evidenceText": "Mixed Script Test Supplier / مورد اختبار مختلط",
+    "warnings": []
+  },
+  "invoiceNumber": {
+    "rawValue": null,
+    "normalizedValue": null,
+    "page": null,
+    "boundingBox": null,
+    "evidenceText": null,
+    "warnings": [
+      "MISSING_INVOICE_NUMBER"
+    ]
+  },
+  "invoiceDate": {
+    "rawValue": "2026-03-10",
+    "normalizedValue": "2026-03-10",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.54,
+      "y": 0.17,
+      "width": 0.41,
+      "height": 0.04
+    },
+    "evidenceText": "2026-03-10",
+    "warnings": []
+  },
+  "currency": {
+    "rawValue": "EGP",
+    "normalizedValue": "EGP",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.05,
+      "y": 0.21,
+      "width": 0.41,
+      "height": 0.04
+    },
+    "evidenceText": "EGP",
+    "warnings": []
+  },
+  "sourceLines": [
+    {
+      "sourceLineId": "33333333-3333-4333-8333-333333333341",
+      "sequence": 1,
+      "description": {
+        "rawValue": "دواء TEST-C 250 mg",
+        "normalizedValue": "دواء TEST-C 250 mg",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.24,
+          "y": 0.36,
+          "width": 0.32,
+          "height": 0.07
+        },
+        "evidenceText": "دواء TEST-C 250 mg",
+        "warnings": []
+      },
+      "vendorItemCode": {
+        "rawValue": "TST-MIX-01",
+        "normalizedValue": "TST-MIX-01",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.11,
+          "y": 0.36,
+          "width": 0.12,
+          "height": 0.07
+        },
+        "evidenceText": "TST-MIX-01",
+        "warnings": []
+      },
+      "quantity": {
+        "rawValue": "4",
+        "normalizedValue": "4",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.57,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "4",
+        "warnings": []
+      },
+      "unit": {
+        "rawValue": "BOX",
+        "normalizedValue": "BOX",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.65,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "BOX",
+        "warnings": []
+      },
+      "purchaseUnitPrice": {
+        "rawValue": "60.00",
+        "normalizedValue": "60.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.73,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "60.00",
+        "warnings": []
+      },
+      "discount1Percentage": {
+        "rawValue": "0.00",
+        "normalizedValue": "0.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.81,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "0.00",
+        "warnings": []
+      },
+      "discount2Percentage": {
+        "rawValue": "2.00",
+        "normalizedValue": "2.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.81,
+          "y": 0.44,
+          "width": 0.07,
+          "height": 0.04
+        },
+        "evidenceText": "2.00",
+        "warnings": []
+      },
+      "sellingUnitPrice": {
+        "rawValue": "95.00",
+        "normalizedValue": "95.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.89,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "95.00",
+        "warnings": []
+      },
+      "expiryDate": {
+        "rawValue": "2029-03",
+        "normalizedValue": "2029-03-31",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.25,
+          "y": 0.36,
+          "width": 0.15,
+          "height": 0.07
+        },
+        "evidenceText": "2029-03",
+        "warnings": []
+      },
+      "batch": {
+        "rawValue": "MIX-A",
+        "normalizedValue": "MIX-A",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.4,
+          "y": 0.36,
+          "width": 0.14,
+          "height": 0.07
+        },
+        "evidenceText": "MIX-A",
+        "warnings": []
+      }
+    },
+    {
+      "sourceLineId": "33333333-3333-4333-8333-333333333342",
+      "sequence": 2,
+      "description": {
+        "rawValue": "TEST-D شراب 100 ml",
+        "normalizedValue": "TEST-D شراب 100 ml",
+        "page": 2,
+        "boundingBox": {
+          "x": 0.24,
+          "y": 0.29,
+          "width": 0.32,
+          "height": 0.07
+        },
+        "evidenceText": "TEST-D شراب 100 ml",
+        "warnings": []
+      },
+      "vendorItemCode": {
+        "rawValue": "TST-MIX-02",
+        "normalizedValue": "TST-MIX-02",
+        "page": 2,
+        "boundingBox": {
+          "x": 0.11,
+          "y": 0.29,
+          "width": 0.12,
+          "height": 0.07
+        },
+        "evidenceText": "TST-MIX-02",
+        "warnings": []
+      },
+      "quantity": {
+        "rawValue": "2",
+        "normalizedValue": "2",
+        "page": 2,
+        "boundingBox": {
+          "x": 0.57,
+          "y": 0.29,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "2",
+        "warnings": []
+      },
+      "unit": {
+        "rawValue": "BOX",
+        "normalizedValue": "BOX",
+        "page": 2,
+        "boundingBox": {
+          "x": 0.65,
+          "y": 0.29,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "BOX",
+        "warnings": []
+      },
+      "purchaseUnitPrice": {
+        "rawValue": "45.00",
+        "normalizedValue": "45.00",
+        "page": 2,
+        "boundingBox": {
+          "x": 0.73,
+          "y": 0.29,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "45.00",
+        "warnings": []
+      },
+      "discount1Percentage": {
+        "rawValue": "5.00",
+        "normalizedValue": "5.00",
+        "page": 2,
+        "boundingBox": {
+          "x": 0.81,
+          "y": 0.29,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "5.00",
+        "warnings": []
+      },
+      "discount2Percentage": {
+        "rawValue": "1.00",
+        "normalizedValue": "1.00",
+        "page": 2,
+        "boundingBox": {
+          "x": 0.81,
+          "y": 0.37,
+          "width": 0.07,
+          "height": 0.04
+        },
+        "evidenceText": "1.00",
+        "warnings": []
+      },
+      "sellingUnitPrice": {
+        "rawValue": "70.00",
+        "normalizedValue": "70.00",
+        "page": 2,
+        "boundingBox": {
+          "x": 0.89,
+          "y": 0.29,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "70.00",
+        "warnings": []
+      },
+      "expiryDate": {
+        "rawValue": null,
+        "normalizedValue": null,
+        "page": null,
+        "boundingBox": null,
+        "evidenceText": null,
+        "warnings": [
+          "MISSING_EXPIRY"
+        ]
+      },
+      "batch": {
+        "rawValue": "MIX-B",
+        "normalizedValue": "MIX-B",
+        "page": 2,
+        "boundingBox": {
+          "x": 0.4,
+          "y": 0.29,
+          "width": 0.14,
+          "height": 0.07
+        },
+        "evidenceText": "MIX-B",
+        "warnings": []
+      }
+    }
+  ],
+  "totals": {
+    "subtotal": {
+      "rawValue": "330.00",
+      "normalizedValue": "330.00",
+      "page": 2,
+      "boundingBox": {
+        "x": 0.56,
+        "y": 0.56,
+        "width": 0.38,
+        "height": 0.04
+      },
+      "evidenceText": "330.00",
+      "warnings": []
+    },
+    "discount": {
+      "rawValue": "10.155",
+      "normalizedValue": "10.155",
+      "page": 2,
+      "boundingBox": {
+        "x": 0.56,
+        "y": 0.61,
+        "width": 0.38,
+        "height": 0.04
+      },
+      "evidenceText": "10.155",
+      "warnings": []
+    },
+    "tax": {
+      "rawValue": "0.00",
+      "normalizedValue": "0.00",
+      "page": 2,
+      "boundingBox": {
+        "x": 0.56,
+        "y": 0.66,
+        "width": 0.38,
+        "height": 0.04
+      },
+      "evidenceText": "0.00",
+      "warnings": []
+    },
+    "total": {
+      "rawValue": "319.845",
+      "normalizedValue": "319.845",
+      "page": 2,
+      "boundingBox": {
+        "x": 0.56,
+        "y": 0.71,
+        "width": 0.38,
+        "height": 0.05
+      },
+      "evidenceText": "319.845",
+      "warnings": []
+    }
+  },
+  "qualityFlags": [
+    "MISSING_INVOICE_NUMBER",
+    "MIXED_LANGUAGE",
+    "MANUAL_REVIEW_REQUIRED"
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pharma-auto.invalid/v1/entitlement.schema.json",
+  "title": "Signed Connector Entitlement v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "entitlementId",
+    "tenantId",
+    "connectorId",
+    "subscriptionStatus",
+    "validFrom",
+    "validUntil",
+    "periodStart",
+    "periodEnd",
+    "pageLimit",
+    "pagesReserved",
+    "pagesSettled",
+    "offlineReviewAllowed",
+    "geniusWritesAllowed",
+    "algorithm",
+    "keyId",
+    "signature"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "entitlementId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "connectorId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "subscriptionStatus": {
+      "enum": [
+        "ACTIVE",
+        "SUSPENDED",
+        "EXPIRED"
+      ]
+    },
+    "validFrom": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "validUntil": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "periodStart": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "periodEnd": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "pageLimit": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pagesReserved": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pagesSettled": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "offlineReviewAllowed": {
+      "type": "boolean"
+    },
+    "geniusWritesAllowed": {
+      "const": false
+    },
+    "algorithm": {
+      "const": "ES256"
+    },
+    "keyId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "signature": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{64,256}$"
+    }
+  }
+}

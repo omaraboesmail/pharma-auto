@@ -4,7 +4,9 @@
   "private": true,
   "packageManager": "pnpm@11.19.0",
   "scripts": {
-    "contracts:validate": "node tools/validate-contracts.mjs"
+    "contracts:validate": "node tools/validate-contracts.mjs",
+    "phase0:validate": "node tools/validate-phase-0.mjs",
+    "phase1:validate": "node tools/validate-phase-1.mjs"
   },
   "devDependencies": {
     "ajv": "8.20.0",

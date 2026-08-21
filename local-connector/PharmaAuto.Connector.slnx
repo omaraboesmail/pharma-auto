@@ -9,6 +9,12 @@
   <Folder Name="/src/Connector.LocalApi/">
     <Project Path="src/Connector.LocalApi/PharmaAuto.Connector.LocalApi.csproj" />
   </Folder>
+  <Folder Name="/src/Connector.Infrastructure/">
+    <Project Path="src/Connector.Infrastructure/PharmaAuto.Connector.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Connector.ControlUi/">
+    <Project Path="src/Connector.ControlUi/PharmaAuto.Connector.ControlUi.csproj" />
+  </Folder>
   <Folder Name="/tests/" />
   <Folder Name="/tests/Integration/" />
   <Folder Name="/tests/Integration/Connector.LocalApi.Tests/">

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "jobId": "66666666-6666-4666-8666-666666666661",
+  "state": "AWAITING_USER_REVIEW",
+  "deviceId": "66666666-6666-4666-8666-666666666662",
+  "pageCount": 2,
+  "uploadedPageCount": 2,
+  "currentRevisionId": "66666666-6666-4666-8666-666666666663",
+  "createdAt": "2026-08-21T12:00:00Z",
+  "updatedAt": "2026-08-21T12:02:00Z",
+  "failureCode": null,
+  "geniusWritePerformed": false
+}

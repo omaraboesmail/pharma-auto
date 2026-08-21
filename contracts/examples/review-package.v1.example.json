@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "1.0",
+  "jobId": "11111111-1111-4111-8111-111111111112",
+  "revisionId": "11111111-1111-4111-8111-111111111113",
+  "revisionNumber": 1,
+  "sourceRevisionId": null,
+  "status": "AWAITING_USER_REVIEW",
+  "vendorEvidence": {
+    "rawValue": "Synthetic Pharmacy Supplier EN",
+    "normalizedValue": "Synthetic Pharmacy Supplier EN",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.05,
+      "y": 0.08,
+      "width": 0.58,
+      "height": 0.07
+    },
+    "evidenceText": "Synthetic Pharmacy Supplier EN",
+    "warnings": []
+  },
+  "selectedLocalVendorReference": null,
+  "requiresManualVendorConfirmation": true,
+  "vendorCandidates": [
+    {
+      "localVendorReference": "local-vendor:SYN-01",
+      "displayName": "Synthetic Pharmacy Supplier EN",
+      "code": "SYN-01",
+      "reasonCodes": ["EXACT_IDENTIFIER"],
+      "requiresManualConfirmation": true
+    }
+  ],
+  "sourceLines": [
+    {
+      "sourceLineId": "11111111-1111-4111-8111-111111111121",
+      "sequence": 1,
+      "descriptionEvidence": {
+        "rawValue": "TEST-MED-A 500 mg Capsules",
+        "normalizedValue": "TEST-MED-A 500 mg Capsules",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.24,
+          "y": 0.36,
+          "width": 0.32,
+          "height": 0.07
+        },
+        "evidenceText": "TEST-MED-A 500 mg Capsules",
+        "warnings": []
+      },
+      "vendorItemCodeEvidence": {
+        "rawValue": "TST-001",
+        "normalizedValue": "TST-001",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.11,
+          "y": 0.36,
+          "width": 0.12,
+          "height": 0.07
+        },
+        "evidenceText": "TST-001",
+        "warnings": []
+      },
+      "selectedLocalItemReference": null,
+      "requiresManualItemConfirmation": true,
+      "localCandidates": [
+        {
+          "schemaVersion": "1.0",
+          "localItemReference": "local-item:SYN-1001",
+          "displayLabel": "TEST-MED-A 500 mg Capsules",
+          "rawLabel": "TEST-MED-A 500 mg Capsules",
+          "rawLabelHash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "labelSource": "GENIUS_RAW",
+          "displayDirection": "LTR",
+          "qualityFlags": ["UNVERIFIED"],
+          "identifiers": {
+            "itemCode": "SYN-1001",
+            "secondaryCode": null,
+            "internationalCode": null,
+            "vendorItemCodes": ["TST-001"],
+            "barcodes": ["6221000001001"]
+          },
+          "attributes": {
+            "activeIngredient": "Synthetic active A",
+            "strength": "500 mg",
+            "dosageForm": "CAPSULE",
+            "pack": "20 CAPSULE"
+          },
+          "reasonCodes": ["VENDOR_ITEM_CODE", "STRUCTURED_ATTRIBUTES"],
+          "hardMismatches": [],
+          "requiresManualConfirmation": true
+        }
+      ],
+      "canonicalCandidates": [
+        {
+          "canonicalProductId": "11111111-1111-4111-8111-111111111131",
+          "displayName": "TEST-MED-A 500 mg Capsules",
+          "reasonCodes": ["VENDOR_ITEM_CODE"],
+          "hardMismatches": []
+        }
+      ],
+      "postingLines": [
+        {
+          "postingLineId": "11111111-1111-4111-8111-111111111141",
+          "splitIndex": 1,
+          "postingSequence": 1,
+          "quantity": "2",
+          "bonus": "0",
+          "expiryDate": "2028-06-30",
+          "batch": "SYNTHETIC-BATCH-01",
+          "commercialValues": {
+            "currency": "EGP",
+            "purchaseUnit": "BOX",
+            "purchaseUnitPrice": "100.00",
+            "purchasePriceTaxTreatment": "EXCLUSIVE",
+            "discounts": [
+              {
+                "sequence": 1,
+                "kind": "PERCENTAGE",
+                "percentage": "10.00",
+                "applicationBasis": "PURCHASE_UNIT_PRICE",
+                "affectsPurchaseUnitPrice": true
+              },
+              {
+                "sequence": 2,
+                "kind": "PERCENTAGE",
+                "percentage": "5.00",
+                "applicationBasis": "REMAINING_LINE_SUBTOTAL",
+                "affectsPurchaseUnitPrice": false
+              }
+            ],
+            "sellingUnit": "BOX",
+            "sellingUnitPrice": "150.00",
+            "sellingPriceTaxTreatment": "INCLUSIVE",
+            "sellingPriceScope": "NEW_STOCK_ONLY",
+            "existingStockPriceBehavior": "PRESERVE",
+            "unsupportedScopeBehavior": "BLOCK_COMMIT"
+          },
+          "originalOcrCommercialValues": {
+            "purchaseUnitPrice": {
+              "rawValue": "100.00",
+              "normalizedValue": "100.00",
+              "page": 1,
+              "boundingBox": null,
+              "evidenceText": "100.00",
+              "warnings": []
+            },
+            "discount1Percentage": {
+              "rawValue": "10%",
+              "normalizedValue": "10.00",
+              "page": 1,
+              "boundingBox": null,
+              "evidenceText": "10%",
+              "warnings": []
+            },
+            "discount2Percentage": {
+              "rawValue": "5%",
+              "normalizedValue": "5.00",
+              "page": 1,
+              "boundingBox": null,
+              "evidenceText": "5%",
+              "warnings": []
+            },
+            "sellingUnitPrice": {
+              "rawValue": "150.00",
+              "normalizedValue": "150.00",
+              "page": 1,
+              "boundingBox": null,
+              "evidenceText": "150.00",
+              "warnings": []
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "qualityFlags": ["MANUAL_REVIEW_REQUIRED"],
+  "createdByDeviceId": "11111111-1111-4111-8111-111111111151",
+  "createdAt": "2026-08-21T00:00:00Z",
+  "revisionReason": "OCR_AND_MATCHING_RESULT",
+  "geniusWritePerformed": false
+}

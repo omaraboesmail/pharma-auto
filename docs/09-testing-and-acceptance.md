@@ -55,6 +55,8 @@
 
 ## 4. Golden DB Scenario Matrix
 
+Every capture follows the versioned [Golden Scenario Capture Procedure](17-golden-scenario-capture-procedure.md); a row in this matrix is not complete without its validated evidence bundle and required approvals.
+
 كل scenario يُدخل يدويًا في e-plus على Clone نظيفة، ثم تؤخذ before/after snapshots. Adapter output يجب أن يطابق business-equivalent state.
 
 | Scenario | إلزامي قبل Live |
@@ -75,6 +77,9 @@
 | Missing Vendor number fallback | Yes |
 | Reused Vendor number لفاتورة مختلفة | Yes |
 | Actual duplicate block | Yes |
+| `Item_Class_Store` write with no pending month close،and with a pending month close safely blocked | Yes |
+| `F_Transaction_Header` legacy duplicate-delete trigger guard and archive-table invariant | Yes |
+| Stock/Vendor trigger audit rows and program/host attribution | Yes |
 | Return scenarios | No؛ profile لاحق قبل تفعيل feature |
 
 ## 5. DB Integrity Tests

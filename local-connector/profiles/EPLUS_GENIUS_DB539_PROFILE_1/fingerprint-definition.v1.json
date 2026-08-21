@@ -1,0 +1,351 @@
+{
+  "schemaVersion": "1.0",
+  "definitionId": "DBFP-1",
+  "profileId": "EPLUS_GENIUS_DB539_PROFILE_1",
+  "status": "DEFINITION_APPROVED_WRITES_DISABLED",
+  "hashAlgorithm": "SHA-256",
+  "canonicalization": {
+    "format": "PHARMA_AUTO_DBFP_CANONICAL_JSON_V1",
+    "encoding": "UTF-8_NO_BOM",
+    "lineEndings": "LF",
+    "objectPropertyOrder": "UNICODE_CODE_POINT_ASCENDING",
+    "arrayOrder": "SCHEMA_KIND_NAME_ORDINAL_ASCENDING"
+  },
+  "databaseRules": {
+    "engine": "Microsoft SQL Server",
+    "databaseInternalVersion": 539,
+    "compatibilityLevel": 80,
+    "collation": "SQL_Latin1_General_CP1256_CI_AS",
+    "metadataSurfaces": [
+      "COLUMNS",
+      "IDENTITY",
+      "COMPUTED_COLUMNS",
+      "PRIMARY_KEYS",
+      "INDEXES",
+      "TRIGGERS",
+      "MODULE_DEFINITION_HASHES",
+      "NAMED_DATA_INVARIANTS"
+    ]
+  },
+  "excludedObjects": [
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "sysdiagrams",
+      "reason": "SQL Server diagram-support table created by tooling; it is not a Genius business or write dependency."
+    }
+  ],
+  "criticalObjects": [
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "Item_Catalog",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "Item_Vendor",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "Vendor",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "Pharmacy Accounting SME"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "pur_trans_h",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "pur_trans_d",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "Item_Class",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "Item_Class_Store",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "F_Auto_Doc_h",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "Pharmacy Accounting SME"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "F_Auto_Doc_d",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "Pharmacy Accounting SME"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "F_Transaction_Header",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "Pharmacy Accounting SME"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "F_Transaction_Bills",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "Pharmacy Accounting SME"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "F_Transaction_Header_SaveDeleteRecords",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "Pharmacy Accounting SME"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "ICS_Month_Close",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "Store",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS",
+        "NAMED_DATA_INVARIANTS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "vendor_credit_chng",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "Pharmacy Accounting SME"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "watch_qty_chng",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    },
+    {
+      "kind": "TABLE",
+      "schema": "dbo",
+      "name": "Sys_setting",
+      "surfaces": [
+        "COLUMNS",
+        "IDENTITY",
+        "COMPUTED_COLUMNS",
+        "PRIMARY_KEYS",
+        "INDEXES",
+        "TRIGGERS",
+        "NAMED_DATA_INVARIANTS"
+      ],
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    }
+  ],
+  "reconciliationModules": [
+    {
+      "kind": "VIEW",
+      "schema": "dbo",
+      "name": "v_VenTrans",
+      "surface": "MODULE_DEFINITION_HASH",
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "Pharmacy Accounting SME"
+    }
+  ],
+  "namedDataInvariants": [
+    {
+      "id": "DBI-001",
+      "objectName": "dbo.Sys_setting",
+      "columnName": "pur_extra_disc_update_stock",
+      "policy": "EQUALS_CERTIFIED_VALUE",
+      "certifiedValue": "1",
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    },
+    {
+      "id": "DBI-002",
+      "objectName": "dbo.Sys_setting",
+      "columnName": "last_month_close_dt",
+      "policy": "BLOCK_WHEN_MONTH_DIFFERENCE_GT_ZERO",
+      "certifiedValue": null,
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    },
+    {
+      "id": "DBI-003",
+      "objectName": "dbo.Store",
+      "columnName": "activated",
+      "policy": "CAPTURE_REFERENCED_ROWS_AND_BLOCK_UNCLASSIFIED_VALUES",
+      "certifiedValue": null,
+      "mismatchAction": "BLOCK_WRITES",
+      "ownerRole": "DB Integration Owner"
+    }
+  ],
+  "comparisonPolicy": {
+    "writeCriticalMismatch": "BLOCK_WRITES",
+    "missingObject": "BLOCK_WRITES",
+    "unexpectedDependency": "BLOCK_WRITES_AND_REQUIRE_PROFILE_REVIEW",
+    "diagnosticsOnMismatch": "READ_ONLY_ONLY"
+  },
+  "referenceObservation": {
+    "observedOn": "2026-08-21",
+    "engineProductVersion": "10.50.4000.0",
+    "compatibilityLevel": 80,
+    "collation": "SQL_Latin1_General_CP1256_CI_AS",
+    "reportedUserTableCount": 219,
+    "businessTableCountAfterExclusions": 218,
+    "certificationStatus": "OBSERVED_NOT_WRITE_CERTIFIED"
+  }
+}

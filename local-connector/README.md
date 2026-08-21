@@ -2,26 +2,25 @@
 
 The Local Connector is the Windows-side authority for local identity, catalog projection, matching, durable jobs, certified Genius writes and reconciliation.
 
-## Initialized Projects
+## Phase 1 Projects
 
-- `src/Connector.Domain`: ERP-neutral commercial rules.
-- `src/Connector.Application`: contract mapping and commercial-edit preview use case.
-- `src/Connector.LocalApi`: Android LAN API and OpenAPI endpoint.
-- `tests/Unit/Connector.Domain.Tests`: commercial formula and safety-policy tests.
-- `tests/Integration/Connector.LocalApi.Tests`: liveness and preview endpoint tests.
+- `src/Connector.Domain`: job, pairing, catalog, revision and commercial models.
+- `src/Connector.Application`: pairing/authentication, catalog projection/search, durable invoice workflow and immutable review guard.
+- `src/Connector.Infrastructure`: DPAPI keys/secrets, AES-GCM document storage, SQLite Sidecar, Microsoft Defender inspection, SELECT-only Genius reader and signed/mTLS SaaS client.
+- `src/Connector.LocalApi`: HTTPS Android/control API and Windows Service host.
+- `src/Connector.ControlUi`: elevated WPF health, pairing, catalog, queue and revocation UI.
+- `installer/`: visible publish/install/uninstall workflow with signed manifests and fail-closed production configuration.
 
-The initialized endpoint validates and previews edits only. It returns `geniusWritePerformed: false`; no Genius adapter write project exists yet.
+The API supports capture through confirmed review only. It returns `commitAvailable: false` and `geniusWritePerformed: false`; no Genius adapter write project or commit endpoint exists.
 
-## Build and Test
+## Build and Verification
 
 The repository pins .NET SDK `10.0.302` in `global.json` and commits package lock files.
 
 ```powershell
-dotnet restore PharmaAuto.Connector.slnx --locked-mode
-dotnet build PharmaAuto.Connector.slnx --no-restore
-dotnet format PharmaAuto.Connector.slnx --verify-no-changes --no-restore
-dotnet test PharmaAuto.Connector.slnx --no-build --no-restore
-dotnet list PharmaAuto.Connector.slnx package --vulnerable --include-transitive
+dotnet restore src/Connector.LocalApi/PharmaAuto.Connector.LocalApi.csproj --locked-mode
+dotnet build src/Connector.LocalApi/PharmaAuto.Connector.LocalApi.csproj --no-restore
+dotnet build src/Connector.ControlUi/PharmaAuto.Connector.ControlUi.csproj --no-restore
 ```
 
 ## Certified-Write Gate
@@ -34,4 +33,8 @@ No commercial write may be added until Golden scenarios and the DB fingerprint p
 - tax-inclusive selling-price storage and read-back.
 - rollback, connection-loss and reconciliation behavior.
 
-Catalog projection preserves raw name bytes, hashes and quality flags. Byte reversal is not canonicalization; manual labels remain Sidecar overlays rather than silent Genius rewrites.
+Catalog projection preserves source-byte hashes, unmodified reversed/code-page decoded strings and quality flags. Byte reversal is not canonicalization; manual labels remain Sidecar overlays rather than silent Genius rewrites.
+
+## Installer
+
+Create a self-contained unsigned lab package with `installer/Publish-Phase1Connector.ps1`. Production-style installation rejects unsigned binaries and requires Connector TLS plus SaaS mTLS certificates. `Install-PharmaAutoConnector.ps1` is deliberately visible, elevated and confirmation-gated; it stores the SaaS HMAC secret and SELECT-only Genius connection with machine DPAPI, grants only the virtual service account access, and opens only the configured port to the Private/Domain local subnet.

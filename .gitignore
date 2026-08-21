@@ -1,5 +1,7 @@
 # Sensitive local assets
 Genius.bak
+/invoice_examp/
+/.local-runtime/
 *.bak
 *.mdf
 *.ldf

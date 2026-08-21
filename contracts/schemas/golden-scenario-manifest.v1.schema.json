@@ -1,0 +1,324 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pharma-auto.invalid/v1/golden-scenario-manifest.schema.json",
+  "title": "Golden Scenario Evidence Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceKind",
+    "scenarioId",
+    "title",
+    "profileId",
+    "safety",
+    "fingerprint",
+    "owners",
+    "assumptionIds",
+    "capture",
+    "changedObjects",
+    "unexpectedObjects",
+    "reconciliationChecks",
+    "outcome",
+    "approvals"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "evidenceKind": {
+      "enum": [
+        "ACTUAL_CAPTURE",
+        "SYNTHETIC_TEMPLATE"
+      ]
+    },
+    "scenarioId": {
+      "type": "string",
+      "pattern": "^GS-[A-Z0-9-]{3,80}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "profileId": {
+      "const": "EPLUS_GENIUS_DB539_PROFILE_1"
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "environment",
+        "sourceBackupSha256",
+        "databaseName",
+        "resetConfirmed",
+        "manualEntryTool",
+        "evidenceClassification"
+      ],
+      "properties": {
+        "environment": {
+          "const": "DISPOSABLE_ISOLATED_CLONE"
+        },
+        "sourceBackupSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "databaseName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "resetConfirmed": {
+          "const": true
+        },
+        "manualEntryTool": {
+          "const": "EPLUS_UI"
+        },
+        "evidenceClassification": {
+          "const": "REDACTED_METADATA_AND_SYNTHETIC_VALUES_ONLY"
+        }
+      }
+    },
+    "fingerprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "definitionId",
+        "observedSha256",
+        "status",
+        "namedDataInvariants"
+      ],
+      "properties": {
+        "definitionId": {
+          "const": "DBFP-1"
+        },
+        "observedSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "status": {
+          "enum": [
+            "MATCH",
+            "MISMATCH"
+          ]
+        },
+        "namedDataInvariants": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "observedValue",
+              "status"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^DBI-[0-9]{3}$"
+              },
+              "observedValue": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "status": {
+                "enum": [
+                  "PASS",
+                  "BLOCK"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "owners": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/ownerRole"
+      }
+    },
+    "assumptionIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^WA-[0-9]{3}$"
+      }
+    },
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "startedAt",
+        "manualActionStartedAt",
+        "manualActionCompletedAt",
+        "finishedAt",
+        "allBusinessTablesCompared"
+      ],
+      "properties": {
+        "startedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "manualActionStartedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "manualActionCompletedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finishedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "allBusinessTablesCompared": {
+          "const": true
+        }
+      }
+    },
+    "changedObjects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/changedObject"
+      }
+    },
+    "unexpectedObjects": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_]+\\.[A-Za-z0-9_]+$"
+      }
+    },
+    "reconciliationChecks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "checkId",
+          "status",
+          "evidenceSha256"
+        ],
+        "properties": {
+          "checkId": {
+            "type": "string",
+            "pattern": "^RC-[A-Z0-9-]{2,80}$"
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "FAIL",
+              "NOT_APPLICABLE"
+            ]
+          },
+          "evidenceSha256": {
+            "$ref": "#/$defs/sha256"
+          }
+        }
+      }
+    },
+    "outcome": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "INCONCLUSIVE"
+      ]
+    },
+    "approvals": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "decision",
+          "decidedAt"
+        ],
+        "properties": {
+          "role": {
+            "$ref": "#/$defs/ownerRole"
+          },
+          "decision": {
+            "enum": [
+              "APPROVED",
+              "REJECTED"
+            ]
+          },
+          "decidedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "ownerRole": {
+      "enum": [
+        "DB Integration Owner",
+        "DB Integration Second Reviewer",
+        "Pharmacy Accounting SME",
+        "Security Reviewer",
+        "Product Owner"
+      ]
+    },
+    "changedObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objectName",
+        "beforeRowCount",
+        "afterRowCount",
+        "insertedRows",
+        "updatedRows",
+        "deletedRows",
+        "diffSha256",
+        "ownerRole"
+      ],
+      "properties": {
+        "objectName": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_]+\\.[A-Za-z0-9_]+$"
+        },
+        "beforeRowCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "afterRowCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "insertedRows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "updatedRows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "deletedRows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "diffSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "ownerRole": {
+          "$ref": "#/$defs/ownerRole"
+        }
+      }
+    }
+  }
+}

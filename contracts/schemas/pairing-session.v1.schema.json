@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pharma-auto.invalid/v1/pairing-session.schema.json",
+  "title": "Connector Pairing Session v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sessionId",
+    "connectorId",
+    "pharmacyDisplayName",
+    "baseUrl",
+    "certificateSha256",
+    "oneTimeSecret",
+    "expiresAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "sessionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "connectorId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "pharmacyDisplayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "baseUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "certificateSha256": {
+      "type": "string",
+      "pattern": "^[A-F0-9]{64}$"
+    },
+    "oneTimeSecret": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{32,128}$"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

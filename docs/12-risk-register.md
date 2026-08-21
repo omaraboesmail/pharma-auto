@@ -26,12 +26,15 @@
 | R-14 | DB fingerprint يفشل بعد local customization | High | startup/preflight mismatch | writes disabled؛new profile review،لا bypass flag |
 | R-15 | Local workstation compromise | High | endpoint/security telemetry | least privilege،device cert،encrypted storage،incident revocation |
 | R-16 | Corrupted Genius name يتحول إلى false product match | Critical | raw-name flags،identifier mismatch،manual corrections | identifiers أولًا،name-only auto-match ممنوع،Canonical/manual overlay وBiDi-safe display |
+| R-17 | أول stock write بعد month boundary يشغّل `close_stock` ويغير snapshot/settings على نطاق واسع | Critical | named preflight + all-table Golden diff | block Connector writes عند pending month close؛e-plus/runbook أوprofile certified فقط |
+| R-18 | `delete_duplicate_records` يحذف financial rows أوينشئ archive table كـ trigger side effect | Critical | trigger hash،archive-table invariant وdeletion reconciliation | financial writes disabled حتى scenario يثبت type/notes guard والـ complete side effect |
+| R-19 | stock/Vendor audit triggers تفقد attribution أوrows بسبب permissions/row shape | High | audit row reconciliation | least-privilege read/write evidence،single-row statements وprogram/host verification |
 
 ## Release-Blocking Risks
 
 لا يمكن قبول Production إذا بقي أي من الآتي بلا evidence:
 
-- R-01،R-02،R-03،R-04،R-05،R-07،R-08 أوR-16.
+- R-01،R-02،R-03،R-04،R-05،R-07،R-08،R-16،R-17 أوR-18.
 - SQL account يستخدم `sa` أو`db_owner`.
 - reconciliation غير مفعلة لكل Commit.
 - actual duplicate scenario غير مختبر.

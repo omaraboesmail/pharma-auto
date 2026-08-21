@@ -48,6 +48,12 @@
 15. [Architecture Decision Records](docs/decisions/README.md)
 16. [Initialization Decision Gate](docs/14-initialization-decisions.md)
 17. [Genius Commercial Field Evidence](docs/15-genius-commercial-evidence.md)
+18. [DB Fingerprint Definition](docs/16-db-fingerprint-definition.md)
+19. [Golden Scenario Capture Procedure](docs/17-golden-scenario-capture-procedure.md)
+20. [Write Assumptions and Side-Effect Owners](docs/18-write-assumptions-and-side-effect-owners.md)
+21. [Threat Model](docs/19-threat-model.md)
+22. [Phase 0 Closure](docs/20-phase-0-closure.md)
+23. [Phase 1 Closure](docs/21-phase-1-closure.md)
 
 ## System Explainer
 
@@ -55,4 +61,4 @@
 
 ## حالة الـ repository
 
-هذه Greenfield architecture مستقلة في `C:\Projects\Pharmatech`. مجلد `Order-Automating` خارج حدود المشروع الجديد بالكامل: لا يُستخدم كـ root،ولا Android baseline،ولا مصدر runtime أوdependency. تم تهيئة read-only vertical slice للعقود وAndroid والـ Local Connector؛Genius writes ما زالت مغلقة خلف Golden certification.
+هذه Greenfield architecture مستقلة في `C:\Projects\Pharmatech`. مجلد `Order-Automating` خارج حدود المشروع الجديد بالكامل: لا يُستخدم كـ root،ولا Android baseline،ولا مصدر runtime أوdependency. Phase 0 مكتملة وفق [Phase 0 Closure](docs/20-phase-0-closure.md)،وPhase 1 read-only vertical slice مكتملة ضمن النطاق المحلي غير المدفوع وفق [Phase 1 Closure](docs/21-phase-1-closure.md). Genius writes ما زالت غير موجودة في surface التشغيل ومغلقة خلف Golden certification للمراحل اللاحقة.

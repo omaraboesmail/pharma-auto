@@ -2,6 +2,8 @@
 
 ## Phase 0 — Evidence and Contracts
 
+Status: **Complete (2026-08-21); closure audit recorded in [Phase 0 Closure](20-phase-0-closure.md).**
+
 Deliverables:
 
 - approved system docs وADRs.
@@ -14,6 +16,8 @@ Deliverables:
 Exit gate: لا توجد write assumptions غير مسجلة،وكل critical table side effect له investigation owner.
 
 ## Phase 1 — Read-Only Vertical Slice
+
+Status: **Complete (2026-08-21) for the local non-billable acceptance scope; evidence and limitations are recorded in [Phase 1 Closure](21-phase-1-closure.md).**
 
 - Connector installer/service/control UI.
 - Android pairing/upload.
