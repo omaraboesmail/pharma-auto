@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "1.0",
+  "datasetId": "PHARMA_AUTO_PHASE_0_SYNTHETIC",
+  "datasetVersion": "1.0.0",
+  "classification": "SYNTHETIC_NO_REAL_BUSINESS_DATA",
+  "approval": {
+    "fixturePolicy": "GENERATED_FROM_SCRATCH",
+    "approvedBy": "Repository owner",
+    "approvedOn": "2026-08-21"
+  },
+  "documents": [
+    {
+      "documentId": "SYN-EN-0001",
+      "languageProfile": "ENGLISH",
+      "documentSha256": "4af4b0987eacd6e4c8bba48e676f6a9ffe132161fe6cf9f517982921a30448bf",
+      "pages": [
+        {
+          "page": 1,
+          "path": "sources/synthetic-en-invoice-001.png",
+          "mimeType": "image/png",
+          "sha256": "da03c7ebe953572f10d6abce6739eb902b9c9a2284d7f3a7e5944db7c23a3f9e",
+          "widthPixels": 1600,
+          "heightPixels": 1200
+        }
+      ],
+      "expectedResult": {
+        "path": "expected/synthetic-en-invoice-001.ocr-result.v1.json",
+        "schemaId": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json"
+      },
+      "coverage": [
+        "ENGLISH_TEXT",
+        "EXPIRY_AND_BATCH",
+        "TWO_DISCOUNTS",
+        "SELLING_PRICE",
+        "MULTIPLE_LINES"
+      ],
+      "provenance": {
+        "kind": "SYNTHETIC",
+        "containsRealData": false,
+        "generator": "test-data/phase-0/generate-fixtures.ps1"
+      }
+    },
+    {
+      "documentId": "SYN-AR-0001",
+      "languageProfile": "ARABIC",
+      "documentSha256": "ad56dc553d0ed24f5ef4bda56642634367bf2bb08cb67ab0835608d1682f0ecf",
+      "pages": [
+        {
+          "page": 1,
+          "path": "sources/synthetic-ar-invoice-001.png",
+          "mimeType": "image/png",
+          "sha256": "8751378edd6b1110527ad3efd36a5288a630be5cd636817477553c4c5ed2da2c",
+          "widthPixels": 1600,
+          "heightPixels": 1200
+        }
+      ],
+      "expectedResult": {
+        "path": "expected/synthetic-ar-invoice-001.ocr-result.v1.json",
+        "schemaId": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json"
+      },
+      "coverage": [
+        "ARABIC_TEXT",
+        "EXPIRY_AND_BATCH",
+        "TWO_DISCOUNTS",
+        "SELLING_PRICE"
+      ],
+      "provenance": {
+        "kind": "SYNTHETIC",
+        "containsRealData": false,
+        "generator": "test-data/phase-0/generate-fixtures.ps1"
+      }
+    },
+    {
+      "documentId": "SYN-MIXED-0001",
+      "languageProfile": "MIXED",
+      "documentSha256": "1deaef75c21ad1107692e9398f0091f7d6784bdfed231688a742e16a382a955b",
+      "pages": [
+        {
+          "page": 1,
+          "path": "sources/synthetic-mixed-invoice-001-page-1.png",
+          "mimeType": "image/png",
+          "sha256": "b8bea00d3f91106b1b0d8c4bc5a4714fd92f4c96428823917cd216e9853e967d",
+          "widthPixels": 1600,
+          "heightPixels": 1200
+        },
+        {
+          "page": 2,
+          "path": "sources/synthetic-mixed-invoice-001-page-2.png",
+          "mimeType": "image/png",
+          "sha256": "b188d0d8d5e75e8b6931c85def0c67388fb16856b6bb323a71f38aa97dcbf87d",
+          "widthPixels": 1600,
+          "heightPixels": 1200
+        }
+      ],
+      "expectedResult": {
+        "path": "expected/synthetic-mixed-invoice-001.ocr-result.v1.json",
+        "schemaId": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json"
+      },
+      "coverage": [
+        "ARABIC_TEXT",
+        "ENGLISH_TEXT",
+        "MIXED_SCRIPT",
+        "MULTI_PAGE",
+        "EXPIRY_AND_BATCH",
+        "TWO_DISCOUNTS",
+        "SELLING_PRICE",
+        "MISSING_INVOICE_NUMBER",
+        "MULTIPLE_LINES"
+      ],
+      "provenance": {
+        "kind": "SYNTHETIC",
+        "containsRealData": false,
+        "generator": "test-data/phase-0/generate-fixtures.ps1"
+      }
+    }
+  ]
+}

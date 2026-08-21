@@ -1,0 +1,394 @@
+{
+  "schemaVersion": "1.0",
+  "resultId": "11111111-1111-4111-8111-111111111111",
+  "jobId": "11111111-1111-4111-8111-111111111112",
+  "provider": {
+    "name": "GEMINI",
+    "model": "synthetic-fixture-oracle-v1",
+    "processedAt": "2026-08-21T00:00:00Z"
+  },
+  "document": {
+    "sourceSha256": "4af4b0987eacd6e4c8bba48e676f6a9ffe132161fe6cf9f517982921a30448bf",
+    "pageCount": 1,
+    "mimeTypes": [
+      "image/png"
+    ]
+  },
+  "supplier": {
+    "rawValue": "Synthetic Pharmacy Supplier EN",
+    "normalizedValue": "Synthetic Pharmacy Supplier EN",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.05,
+      "y": 0.08,
+      "width": 0.58,
+      "height": 0.07
+    },
+    "evidenceText": "Synthetic Pharmacy Supplier EN",
+    "warnings": []
+  },
+  "invoiceNumber": {
+    "rawValue": "SYN-EN-0001",
+    "normalizedValue": "SYN-EN-0001",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.64,
+      "y": 0.09,
+      "width": 0.31,
+      "height": 0.04
+    },
+    "evidenceText": "SYN-EN-0001",
+    "warnings": []
+  },
+  "invoiceDate": {
+    "rawValue": "2026-01-15",
+    "normalizedValue": "2026-01-15",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.64,
+      "y": 0.13,
+      "width": 0.31,
+      "height": 0.04
+    },
+    "evidenceText": "2026-01-15",
+    "warnings": []
+  },
+  "currency": {
+    "rawValue": "EGP",
+    "normalizedValue": "EGP",
+    "page": 1,
+    "boundingBox": {
+      "x": 0.64,
+      "y": 0.17,
+      "width": 0.31,
+      "height": 0.04
+    },
+    "evidenceText": "EGP",
+    "warnings": []
+  },
+  "sourceLines": [
+    {
+      "sourceLineId": "11111111-1111-4111-8111-111111111121",
+      "sequence": 1,
+      "description": {
+        "rawValue": "TEST-MED-A 500 mg Capsules",
+        "normalizedValue": "TEST-MED-A 500 mg Capsules",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.24,
+          "y": 0.36,
+          "width": 0.32,
+          "height": 0.07
+        },
+        "evidenceText": "TEST-MED-A 500 mg Capsules",
+        "warnings": []
+      },
+      "vendorItemCode": {
+        "rawValue": "TST-001",
+        "normalizedValue": "TST-001",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.11,
+          "y": 0.36,
+          "width": 0.12,
+          "height": 0.07
+        },
+        "evidenceText": "TST-001",
+        "warnings": []
+      },
+      "quantity": {
+        "rawValue": "2",
+        "normalizedValue": "2",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.57,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "2",
+        "warnings": []
+      },
+      "unit": {
+        "rawValue": "BOX",
+        "normalizedValue": "BOX",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.65,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "BOX",
+        "warnings": []
+      },
+      "purchaseUnitPrice": {
+        "rawValue": "100.00",
+        "normalizedValue": "100.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.73,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "100.00",
+        "warnings": []
+      },
+      "discount1Percentage": {
+        "rawValue": "10.00",
+        "normalizedValue": "10.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.81,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "10.00",
+        "warnings": []
+      },
+      "discount2Percentage": {
+        "rawValue": "5.00",
+        "normalizedValue": "5.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.81,
+          "y": 0.44,
+          "width": 0.07,
+          "height": 0.04
+        },
+        "evidenceText": "5.00",
+        "warnings": []
+      },
+      "sellingUnitPrice": {
+        "rawValue": "150.00",
+        "normalizedValue": "150.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.89,
+          "y": 0.36,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "150.00",
+        "warnings": []
+      },
+      "expiryDate": {
+        "rawValue": "2028-06",
+        "normalizedValue": "2028-06-30",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.25,
+          "y": 0.36,
+          "width": 0.15,
+          "height": 0.07
+        },
+        "evidenceText": "2028-06",
+        "warnings": []
+      },
+      "batch": {
+        "rawValue": "SYN-BATCH-A",
+        "normalizedValue": "SYN-BATCH-A",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.4,
+          "y": 0.36,
+          "width": 0.14,
+          "height": 0.07
+        },
+        "evidenceText": "SYN-BATCH-A",
+        "warnings": []
+      }
+    },
+    {
+      "sourceLineId": "11111111-1111-4111-8111-111111111122",
+      "sequence": 2,
+      "description": {
+        "rawValue": "TEST-SYRUP-B 120 ml",
+        "normalizedValue": "TEST-SYRUP-B 120 ml",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.24,
+          "y": 0.44999999999999996,
+          "width": 0.32,
+          "height": 0.07
+        },
+        "evidenceText": "TEST-SYRUP-B 120 ml",
+        "warnings": []
+      },
+      "vendorItemCode": {
+        "rawValue": "TST-002",
+        "normalizedValue": "TST-002",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.11,
+          "y": 0.44999999999999996,
+          "width": 0.12,
+          "height": 0.07
+        },
+        "evidenceText": "TST-002",
+        "warnings": []
+      },
+      "quantity": {
+        "rawValue": "1",
+        "normalizedValue": "1",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.57,
+          "y": 0.44999999999999996,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "1",
+        "warnings": []
+      },
+      "unit": {
+        "rawValue": "BOX",
+        "normalizedValue": "BOX",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.65,
+          "y": 0.44999999999999996,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "BOX",
+        "warnings": []
+      },
+      "purchaseUnitPrice": {
+        "rawValue": "80.00",
+        "normalizedValue": "80.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.73,
+          "y": 0.44999999999999996,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "80.00",
+        "warnings": []
+      },
+      "discount1Percentage": {
+        "rawValue": "0.00",
+        "normalizedValue": "0.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.81,
+          "y": 0.44999999999999996,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "0.00",
+        "warnings": []
+      },
+      "discount2Percentage": {
+        "rawValue": "0.00",
+        "normalizedValue": "0.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.81,
+          "y": 0.5299999999999999,
+          "width": 0.07,
+          "height": 0.04
+        },
+        "evidenceText": "0.00",
+        "warnings": []
+      },
+      "sellingUnitPrice": {
+        "rawValue": "110.00",
+        "normalizedValue": "110.00",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.89,
+          "y": 0.44999999999999996,
+          "width": 0.07,
+          "height": 0.07
+        },
+        "evidenceText": "110.00",
+        "warnings": []
+      },
+      "expiryDate": {
+        "rawValue": "2027-12",
+        "normalizedValue": "2027-12-31",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.25,
+          "y": 0.44999999999999996,
+          "width": 0.15,
+          "height": 0.07
+        },
+        "evidenceText": "2027-12",
+        "warnings": []
+      },
+      "batch": {
+        "rawValue": "SYN-BATCH-B",
+        "normalizedValue": "SYN-BATCH-B",
+        "page": 1,
+        "boundingBox": {
+          "x": 0.4,
+          "y": 0.44999999999999996,
+          "width": 0.14,
+          "height": 0.07
+        },
+        "evidenceText": "SYN-BATCH-B",
+        "warnings": []
+      }
+    }
+  ],
+  "totals": {
+    "subtotal": {
+      "rawValue": "280.00",
+      "normalizedValue": "280.00",
+      "page": 1,
+      "boundingBox": {
+        "x": 0.62,
+        "y": 0.54,
+        "width": 0.32,
+        "height": 0.04
+      },
+      "evidenceText": "280.00",
+      "warnings": []
+    },
+    "discount": {
+      "rawValue": "29.00",
+      "normalizedValue": "29.00",
+      "page": 1,
+      "boundingBox": {
+        "x": 0.62,
+        "y": 0.59,
+        "width": 0.32,
+        "height": 0.04
+      },
+      "evidenceText": "29.00",
+      "warnings": []
+    },
+    "tax": {
+      "rawValue": "0.00",
+      "normalizedValue": "0.00",
+      "page": 1,
+      "boundingBox": {
+        "x": 0.62,
+        "y": 0.63,
+        "width": 0.32,
+        "height": 0.04
+      },
+      "evidenceText": "0.00",
+      "warnings": []
+    },
+    "total": {
+      "rawValue": "251.00",
+      "normalizedValue": "251.00",
+      "page": 1,
+      "boundingBox": {
+        "x": 0.62,
+        "y": 0.68,
+        "width": 0.32,
+        "height": 0.05
+      },
+      "evidenceText": "251.00",
+      "warnings": []
+    }
+  },
+  "qualityFlags": []
+}

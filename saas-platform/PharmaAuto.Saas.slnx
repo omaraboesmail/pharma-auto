@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Saas.Api/">
+    <Project Path="src/Saas.Api/PharmaAuto.Saas.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Saas.Application/">
+    <Project Path="src/Saas.Application/PharmaAuto.Saas.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Saas.Domain/">
+    <Project Path="src/Saas.Domain/PharmaAuto.Saas.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Saas.Infrastructure/">
+    <Project Path="src/Saas.Infrastructure/PharmaAuto.Saas.Infrastructure.csproj" />
+  </Folder>
+</Solution>

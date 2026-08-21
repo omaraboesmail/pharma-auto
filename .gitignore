@@ -1,5 +1,7 @@
 # Sensitive local assets
 Genius.bak
+/invoice_examp/
+/.local-runtime/
 *.bak
 *.mdf
 *.ldf
@@ -40,6 +42,8 @@ Thumbs.db
 
 # Runtime data
 data/
+!/android-client/app/src/main/java/com/pharmaauto/android/data/
+!/android-client/app/src/main/java/com/pharmaauto/android/data/**
 temp/
 diagnostics/
 *.log

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0",
+  "localItemReference": "SYN-1001",
+  "displayLabel": "TEST-MED-A 500 mg Capsules",
+  "rawLabel": "TEST-MED-A 500 mg Capsules",
+  "rawLabelHash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "labelSource": "GENIUS_RAW",
+  "displayDirection": "LTR",
+  "qualityFlags": [
+    "UNVERIFIED"
+  ],
+  "identifiers": {
+    "itemCode": "SYN-1001",
+    "secondaryCode": null,
+    "internationalCode": null,
+    "vendorItemCodes": [
+      "TST-001"
+    ],
+    "barcodes": [
+      "6221000001001"
+    ]
+  },
+  "attributes": {
+    "activeIngredient": "Synthetic active A",
+    "strength": "500 mg",
+    "dosageForm": "CAPSULE",
+    "pack": "20 CAPSULE"
+  },
+  "reasonCodes": [
+    "VENDOR_ITEM_CODE",
+    "STRUCTURED_ATTRIBUTES"
+  ],
+  "hardMismatches": [],
+  "requiresManualConfirmation": true
+}

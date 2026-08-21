@@ -25,6 +25,8 @@
 - 232 indexes.
 - صفر Foreign Keys.
 - 6 triggers؛ بعضها row-at-a-time وغير set-safe.
+- five of those triggers attach to write-critical purchase dependencies: `Item_Class_Store` (`close_stock`, `watch_stock`), `F_Transaction_Header` (`delete_duplicate_records`) and `Vendor` (`VUPDATEDATE`, `watch_vendor_credit_chnge`).
+- `close_stock` can create a whole-stock `ICS_Month_Close` snapshot and update `Sys_setting.last_month_close_dt`; `delete_duplicate_records` can archive then delete matching financial rows and can create its archive table when absent. These are mandatory fingerprint،preflight and Golden surfaces،not incidental trigger noise.
 - لا توجد Purchase Invoice Stored Procedure رسمية.
 - `Item_Catalog`: 67,377 row.
 - `Item_Vendor`: 129,006 row.
@@ -41,6 +43,8 @@
 هذه facts تصف الـ backup فقط. Production Connector يعيد التحقق من fingerprint وcritical invariants.
 
 ## 3. DB Fingerprint
+
+The normative Phase 0 format،canonicalization،critical-object inventory and fail-closed comparison policy are defined in [DB Fingerprint Definition](16-db-fingerprint-definition.md). The summary below remains the adapter-facing boundary.
 
 يتكون fingerprint من:
 
@@ -166,6 +170,8 @@ Triggers على `Item_Class_Store` تقرأ scalar values من `inserted/deleted
 - يستخدم consistent lock order.
 - يختبر quantity before/after.
 - يميز overall class quantity عنper-store quantity.
+- blocks stock writes when the named month-close invariant is pending؛it never lets a receipt become the accidental `close_stock` initiator.
+- reconciles `watch_qty_chng`, `ICS_Month_Close` and `Sys_setting` even when the expected business action appears limited to one class/store row.
 
 ## 10. Financial Side Effects
 
@@ -183,6 +189,8 @@ Triggers على `Item_Class_Store` تقرأ scalar values من `inserted/deleted
 - Item return/purchase return في profile لاحق.
 
 Vendor balance formula يجب أن يطابق behavior الظاهر في e-plus views والـ reference transactions. لا يتم استخدام `total_bill` وحده كقيمة Vendor impact.
+
+The `delete_duplicate_records` trigger on `F_Transaction_Header` is a destructive hidden surface. The fingerprint requires `F_Transaction_Header_SaveDeleteRecords` to exist and hashes the trigger definition. Golden evidence must prove that purchase-generated type/form/notes values cannot unexpectedly archive or delete another row; all-table reconciliation treats any deletion as blocking.
 
 ## 11. Transaction and Locking
 

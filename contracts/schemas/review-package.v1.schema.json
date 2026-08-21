@@ -1,0 +1,362 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pharma-auto.invalid/v1/review-package.schema.json",
+  "title": "Read-Only Review Package v1",
+  "description": "Connector-owned OCR and candidate evidence presented for explicit human confirmation. It never authorizes a Genius write.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "revisionId",
+    "revisionNumber",
+    "sourceRevisionId",
+    "status",
+    "vendorEvidence",
+    "selectedLocalVendorReference",
+    "requiresManualVendorConfirmation",
+    "vendorCandidates",
+    "sourceLines",
+    "qualityFlags",
+    "createdByDeviceId",
+    "createdAt",
+    "revisionReason",
+    "geniusWritePerformed"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "jobId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "revisionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "revisionNumber": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sourceRevisionId": {
+      "type": ["string", "null"],
+      "format": "uuid"
+    },
+    "status": {
+      "const": "AWAITING_USER_REVIEW"
+    },
+    "vendorEvidence": {
+      "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/textField"
+    },
+    "selectedLocalVendorReference": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "requiresManualVendorConfirmation": {
+      "type": "boolean"
+    },
+    "vendorCandidates": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/vendorCandidate"
+      }
+    },
+    "sourceLines": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "items": {
+        "$ref": "#/$defs/sourceLine"
+      }
+    },
+    "qualityFlags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      }
+    },
+    "ocrEvidence": {
+      "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json"
+    },
+    "createdByDeviceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revisionReason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "geniusWritePerformed": {
+      "const": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "selectedLocalVendorReference": { "type": "null" }
+        },
+        "required": ["selectedLocalVendorReference"]
+      },
+      "then": {
+        "properties": {
+          "requiresManualVendorConfirmation": { "const": true }
+        }
+      },
+      "else": {
+        "properties": {
+          "requiresManualVendorConfirmation": { "const": false }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "vendorCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localVendorReference",
+        "displayName",
+        "code",
+        "reasonCodes",
+        "requiresManualConfirmation"
+      ],
+      "properties": {
+        "localVendorReference": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "code": {
+          "type": ["string", "null"],
+          "maxLength": 100
+        },
+        "reasonCodes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "requiresManualConfirmation": {
+          "const": true
+        }
+      }
+    },
+    "canonicalCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonicalProductId",
+        "displayName",
+        "reasonCodes",
+        "hardMismatches"
+      ],
+      "properties": {
+        "canonicalProductId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "reasonCodes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "hardMismatches": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["ACTIVE_INGREDIENT", "STRENGTH", "DOSAGE_FORM", "PACK"]
+          }
+        }
+      }
+    },
+    "sourceLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceLineId",
+        "sequence",
+        "descriptionEvidence",
+        "vendorItemCodeEvidence",
+        "selectedLocalItemReference",
+        "requiresManualItemConfirmation",
+        "localCandidates",
+        "canonicalCandidates",
+        "postingLines"
+      ],
+      "properties": {
+        "sourceLineId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "descriptionEvidence": {
+          "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/textField"
+        },
+        "vendorItemCodeEvidence": {
+          "oneOf": [
+            {
+              "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/textField"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "selectedLocalItemReference": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "requiresManualItemConfirmation": {
+          "type": "boolean"
+        },
+        "localCandidates": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "$ref": "https://schemas.pharma-auto.invalid/v1/catalog-candidate.schema.json"
+          }
+        },
+        "canonicalCandidates": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/$defs/canonicalCandidate"
+          }
+        },
+        "postingLines": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/postingLine"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "selectedLocalItemReference": { "type": "null" }
+            },
+            "required": ["selectedLocalItemReference"]
+          },
+          "then": {
+            "properties": {
+              "requiresManualItemConfirmation": { "const": true }
+            }
+          },
+          "else": {
+            "properties": {
+              "requiresManualItemConfirmation": { "const": false }
+            }
+          }
+        }
+      ]
+    },
+    "postingLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "postingLineId",
+        "splitIndex",
+        "postingSequence",
+        "quantity",
+        "bonus",
+        "expiryDate",
+        "batch",
+        "commercialValues",
+        "originalOcrCommercialValues"
+      ],
+      "properties": {
+        "postingLineId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "splitIndex": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "postingSequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quantity": {
+          "type": ["string", "null"],
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+        },
+        "bonus": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+        },
+        "expiryDate": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "batch": {
+          "type": ["string", "null"],
+          "maxLength": 128
+        },
+        "commercialValues": {
+          "$ref": "https://schemas.pharma-auto.invalid/v1/commercial-values.schema.json"
+        },
+        "originalOcrCommercialValues": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "purchaseUnitPrice",
+            "discount1Percentage",
+            "discount2Percentage",
+            "sellingUnitPrice"
+          ],
+          "properties": {
+            "purchaseUnitPrice": {
+              "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/decimalField"
+            },
+            "discount1Percentage": {
+              "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/decimalField"
+            },
+            "discount2Percentage": {
+              "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/decimalField"
+            },
+            "sellingUnitPrice": {
+              "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/decimalField"
+            }
+          }
+        }
+      }
+    }
+  }
+}

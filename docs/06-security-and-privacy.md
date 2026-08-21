@@ -1,5 +1,7 @@
 # Security and Privacy Specification
 
+The trust-boundary threat inventory،owners and residual-risk state are maintained in the [Phase 0 Threat Model](19-threat-model.md).
+
 ## 1. Security Position
 
 عبارة “maximum security” ليست requirement. المطلوب controls قابلة للاختبار وowners واضحون.

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0",
+  "entitlementId": "55555555-5555-4555-8555-555555555551",
+  "tenantId": "55555555-5555-4555-8555-555555555552",
+  "connectorId": "44444444-4444-4444-8444-444444444442",
+  "subscriptionStatus": "ACTIVE",
+  "validFrom": "2026-08-01T00:00:00Z",
+  "validUntil": "2026-09-01T00:00:00Z",
+  "periodStart": "2026-08-01T00:00:00Z",
+  "periodEnd": "2026-09-01T00:00:00Z",
+  "pageLimit": 500,
+  "pagesReserved": 4,
+  "pagesSettled": 3,
+  "offlineReviewAllowed": true,
+  "geniusWritesAllowed": false,
+  "algorithm": "ES256",
+  "keyId": "phase1-dev-key",
+  "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+}

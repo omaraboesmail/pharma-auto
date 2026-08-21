@@ -43,9 +43,11 @@
 
 Local API لا يقبل caller-provided `pth_id`, `c_id` أوfinal SQL values.
 
+**Phase 1 implemented surface stops at `confirm revision`.** `request commit` وcommit/reconciliation states في القائمة أعلاه contracts مستقبلية للمراحل write-enabled؛لا يوجد لها endpoint في `local-connector.v1.json` أوruntime حاليًا. Full-catalog manual selection يعيد Connector التحقق منها مقابل Sidecar الحالية ويضيف candidate evidence بنفسه؛Android لا يستطيع اختراع opaque local reference.
+
 ## 3. Connector ↔ SaaS
 
-كل request يستخدم mTLS connector identity بالإضافة إلى tenant-scoped authorization.
+كل request يستخدم mTLS connector identity بالإضافة إلى tenant/Connector headers،nonce،timestamp،content hash وHMAC signature. Connector يتحقق من ES256 entitlement payload قبل إرسال OCR work.
 
 ### Entitlement
 

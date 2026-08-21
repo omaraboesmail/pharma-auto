@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pharma-auto.invalid/v1/dataset-manifest.schema.json",
+  "title": "Synthetic Test Dataset Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "datasetId",
+    "datasetVersion",
+    "classification",
+    "approval",
+    "documents"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "datasetId": {
+      "const": "PHARMA_AUTO_PHASE_0_SYNTHETIC"
+    },
+    "datasetVersion": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "classification": {
+      "const": "SYNTHETIC_NO_REAL_BUSINESS_DATA"
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixturePolicy",
+        "approvedBy",
+        "approvedOn"
+      ],
+      "properties": {
+        "fixturePolicy": {
+          "const": "GENERATED_FROM_SCRATCH"
+        },
+        "approvedBy": {
+          "const": "Repository owner"
+        },
+        "approvedOn": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "documents": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/document"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "documentId",
+        "languageProfile",
+        "documentSha256",
+        "pages",
+        "expectedResult",
+        "coverage",
+        "provenance"
+      ],
+      "properties": {
+        "documentId": {
+          "type": "string",
+          "pattern": "^SYN-[A-Z]+-[0-9]{4}$"
+        },
+        "languageProfile": {
+          "enum": [
+            "ARABIC",
+            "ENGLISH",
+            "MIXED"
+          ]
+        },
+        "documentSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "pages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "page",
+              "path",
+              "mimeType",
+              "sha256",
+              "widthPixels",
+              "heightPixels"
+            ],
+            "properties": {
+              "page": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "path": {
+                "type": "string",
+                "pattern": "^sources/[a-z0-9.-]+\\.png$"
+              },
+              "mimeType": {
+                "const": "image/png"
+              },
+              "sha256": {
+                "$ref": "#/$defs/sha256"
+              },
+              "widthPixels": {
+                "const": 1600
+              },
+              "heightPixels": {
+                "const": 1200
+              }
+            }
+          }
+        },
+        "expectedResult": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "schemaId"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^expected/[a-z0-9.-]+\\.json$"
+            },
+            "schemaId": {
+              "const": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json"
+            }
+          }
+        },
+        "coverage": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "ARABIC_TEXT",
+              "ENGLISH_TEXT",
+              "MIXED_SCRIPT",
+              "MULTI_PAGE",
+              "EXPIRY_AND_BATCH",
+              "TWO_DISCOUNTS",
+              "SELLING_PRICE",
+              "MISSING_INVOICE_NUMBER",
+              "MULTIPLE_LINES"
+            ]
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "containsRealData",
+            "generator"
+          ],
+          "properties": {
+            "kind": {
+              "const": "SYNTHETIC"
+            },
+            "containsRealData": {
+              "const": false
+            },
+            "generator": {
+              "const": "test-data/phase-0/generate-fixtures.ps1"
+            }
+          }
+        }
+      }
+    }
+  }
+}
