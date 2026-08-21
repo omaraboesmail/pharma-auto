@@ -38,3 +38,26 @@ Catalog projection preserves source-byte hashes, unmodified reversed/code-page d
 ## Installer
 
 Create a self-contained unsigned lab package with `installer/Publish-Phase1Connector.ps1`. Production-style installation rejects unsigned binaries and requires Connector TLS plus SaaS mTLS certificates. `Install-PharmaAutoConnector.ps1` is deliberately visible, elevated and confirmation-gated; it stores the SaaS HMAC secret and SELECT-only Genius connection with machine DPAPI, grants only the virtual service account access, and opens only the configured port to the Private/Domain local subnet.
+
+## Manual Test Environment
+
+From the repository root, preview or start the local synthetic environment:
+
+```powershell
+& .\tools\Start-ManualTestEnvironment.cmd -Plan
+& .\tools\Start-ManualTestEnvironment.cmd
+```
+
+The `.cmd` entrypoint applies `ExecutionPolicy Bypass` only to its child PowerShell process, so it works on systems that block direct `.ps1` execution without changing the user or machine policy. The launcher shows a live progress bar and timestamped component statuses, uses visible windows, waits for SaaS and Connector health, and then opens the Control UI. If the active LAN is not Private, a visible administrator helper requires an explicit `PRIVATE` confirmation before changing the profile and creating a TCP 7443 Private/LocalSubnet firewall rule. It does not rebuild the Genius catalog automatically.
+
+If only the elevated Control UI was closed or failed while both backends remain healthy, restart it without restarting the environment:
+
+```powershell
+& .\tools\Start-ManualTestEnvironment.cmd -RestartControlUi
+```
+
+Stop the tracked processes and restore network changes owned by the launcher:
+
+```powershell
+& .\tools\Start-ManualTestEnvironment.cmd -Stop
+```
