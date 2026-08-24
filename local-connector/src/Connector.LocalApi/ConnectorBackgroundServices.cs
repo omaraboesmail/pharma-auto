@@ -6,28 +6,84 @@ namespace PharmaAuto.Connector.LocalApi;
 public sealed class SidecarInitializationService(
     ISidecarStore store,
     IInvoiceWorkflowQueue queue,
-    ILogger<SidecarInitializationService> logger) : IHostedService
+    TimeProvider timeProvider,
+    ILogger<SidecarInitializationService> logger) : BackgroundService
 {
-    public async Task StartAsync(CancellationToken cancellationToken)
+    private const int RecoveryBatchSize = 1000;
+    private long recoveryHighWatermark;
+
+    public override async Task StartAsync(CancellationToken cancellationToken)
     {
         await store.InitializeAsync(cancellationToken);
-        var pending = await store.ListJobsByStateAsync(
-            [InvoiceJobState.LocallyValidated],
-            1000,
-            cancellationToken);
-        foreach (var job in pending)
-        {
-            await queue.EnqueueAsync(job.JobId, cancellationToken);
-        }
-        logger.LogInformation(
-            "Connector Sidecar initialized; {PendingCount} pre-OCR jobs were requeued.",
-            pending.Count);
+        recoveryHighWatermark = await store.GetJobRecoveryHighWatermarkAsync(cancellationToken);
+        await base.StartAsync(cancellationToken);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        return Task.CompletedTask;
+        InvoiceJobState[] recoverableStates =
+            [
+                InvoiceJobState.LocallyValidated,
+                InvoiceJobState.OcrReserved,
+                InvoiceJobState.OcrProcessing,
+                InvoiceJobState.OcrValidated,
+                InvoiceJobState.Matching,
+                InvoiceJobState.OcrFailed,
+                InvoiceJobState.MatchingFailed
+            ];
+        var recovered = 0;
+        var queued = 0;
+        var afterStoreSequence = 0L;
+        while (afterStoreSequence < recoveryHighWatermark)
+        {
+            var pending = await store.ListJobsByStatePageAsync(
+                recoverableStates,
+                afterStoreSequence,
+                recoveryHighWatermark,
+                RecoveryBatchSize,
+                stoppingToken);
+            if (pending.Count == 0)
+            {
+                break;
+            }
+
+            foreach (var item in pending)
+            {
+                var job = item.Job;
+                var recoveryState = job.State switch
+                {
+                    InvoiceJobState.OcrReserved or InvoiceJobState.OcrProcessing =>
+                        InvoiceJobState.OcrFailed,
+                    InvoiceJobState.OcrValidated or InvoiceJobState.Matching =>
+                        InvoiceJobState.MatchingFailed,
+                    _ => job.State
+                };
+                if (recoveryState != job.State)
+                {
+                    if (!await store.TransitionJobAsync(
+                            job.JobId,
+                            job.State,
+                            recoveryState,
+                            timeProvider.GetUtcNow(),
+                            "CONNECTOR_RESTART_RECOVERY",
+                            null,
+                            stoppingToken))
+                    {
+                        afterStoreSequence = item.StoreSequence;
+                        continue;
+                    }
+                    recovered++;
+                }
+                await queue.EnqueueAsync(job.JobId, stoppingToken);
+                queued++;
+                afterStoreSequence = item.StoreSequence;
+            }
+        }
+        logger.LogInformation(
+            "Connector Sidecar initialized; {QueuedCount} durable jobs were requeued and " +
+            "{RecoveredCount} interrupted states were recovered.",
+            queued,
+            recovered);
     }
 }
 

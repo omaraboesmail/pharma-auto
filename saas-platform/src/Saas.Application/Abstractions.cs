@@ -2,6 +2,14 @@ using PharmaAuto.Saas.Domain;
 
 namespace PharmaAuto.Saas.Application;
 
+public sealed record CanonicalProductSearchHit(
+    CanonicalProduct Product,
+    bool SemanticMatch);
+
+public sealed record OcrProcessingAttempt(
+    OcrJob Job,
+    Guid AttemptId);
+
 public interface ISaasStore
 {
     Task<ConnectorRegistration?> GetConnectorAsync(
@@ -15,24 +23,26 @@ public interface ISaasStore
         DateTimeOffset now,
         CancellationToken cancellationToken);
 
-    Task<QuotaReservation> ReserveQuotaAsync(
+    Task<OcrProcessingAttempt> StartOcrJobAsync(
         Guid tenantId,
         Guid connectorId,
         Guid jobId,
         int pageCount,
+        string sourceSha256,
         DateTimeOffset now,
+        DateTimeOffset staleBefore,
         CancellationToken cancellationToken);
 
-    Task SettleQuotaAsync(
-        Guid tenantId,
-        Guid reservationId,
-        DateTimeOffset now,
+    Task<OcrJob> CompleteOcrJobAsync(
+        OcrJob job,
+        Guid attemptId,
+        AuditEvent auditEvent,
         CancellationToken cancellationToken);
 
-    Task ReleaseQuotaAsync(
-        Guid tenantId,
-        Guid reservationId,
-        DateTimeOffset now,
+    Task<OcrJob> FailOcrJobAsync(
+        OcrJob job,
+        Guid attemptId,
+        AuditEvent auditEvent,
         CancellationToken cancellationToken);
 
     Task<OcrJob?> GetOcrJobAsync(
@@ -40,9 +50,7 @@ public interface ISaasStore
         Guid jobId,
         CancellationToken cancellationToken);
 
-    Task SaveOcrJobAsync(OcrJob job, CancellationToken cancellationToken);
-
-    Task<IReadOnlyList<CanonicalProduct>> SearchCanonicalProductsAsync(
+    Task<IReadOnlyList<CanonicalProductSearchHit>> SearchCanonicalProductsAsync(
         Guid tenantId,
         CanonicalSearchQuery query,
         float[]? embedding,

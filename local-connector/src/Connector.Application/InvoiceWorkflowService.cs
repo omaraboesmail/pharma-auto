@@ -104,34 +104,18 @@ public sealed class InvoiceWorkflowService(
         {
             throw new ArgumentOutOfRangeException(nameof(content), "Chunk exceeds the 4 MiB limit.");
         }
+        if (mimeType is not ("image/jpeg" or "image/png"))
+        {
+            throw new ArgumentException(
+                "Connector uploads accept normalized JPEG or PNG pages only. Multi-page PDFs must be validated and rendered into ordered image pages by the capture client.",
+                nameof(mimeType));
+        }
         RequireSha256(chunkSha256, nameof(chunkSha256));
         RequireSha256(pageSha256, nameof(pageSha256));
         var actualChunkHash = Convert.ToHexStringLower(SHA256.HashData(content.Span));
         if (!FixedEquals(actualChunkHash, chunkSha256))
         {
             throw new ArgumentException("Chunk hash does not match its payload.", nameof(chunkSha256));
-        }
-
-        var existingChunks = await store.GetChunksAsync(jobId, page, cancellationToken);
-        var matching = existingChunks.FirstOrDefault(chunk => chunk.ChunkIndex == chunkIndex);
-        if (matching is not null)
-        {
-            if (!FixedEquals(matching.ChunkSha256, chunkSha256) ||
-                matching.ChunkCount != chunkCount ||
-                !FixedEquals(matching.PageSha256, pageSha256))
-            {
-                throw new InvalidOperationException(
-                    "A resumable chunk index was replayed with different content.");
-            }
-            return await BuildPageStatusAsync(jobId, page, cancellationToken);
-        }
-
-        if (existingChunks.Any(chunk =>
-                chunk.ChunkCount != chunkCount ||
-                !FixedEquals(chunk.PageSha256, pageSha256) ||
-                !string.Equals(chunk.MimeType, mimeType, StringComparison.Ordinal)))
-        {
-            throw new InvalidOperationException("Chunk metadata conflicts with the existing page upload.");
         }
 
         var objectReference = await objectStore.WriteAsync(
@@ -141,7 +125,7 @@ public sealed class InvoiceWorkflowService(
             content,
             cancellationToken);
         var now = timeProvider.GetUtcNow();
-        await store.SaveChunkAsync(
+        var saveResult = await store.SaveChunkAsync(
             new UploadChunk(
                 jobId,
                 page,
@@ -154,6 +138,25 @@ public sealed class InvoiceWorkflowService(
                 content.Length,
                 now),
             cancellationToken);
+        if (saveResult.Disposition != UploadChunkSaveDisposition.Stored &&
+            !string.Equals(
+                saveResult.PersistedChunk.ObjectReference,
+                objectReference,
+                StringComparison.Ordinal))
+        {
+            await objectStore.DeleteAsync(objectReference, CancellationToken.None);
+        }
+        if (saveResult.Disposition == UploadChunkSaveDisposition.Replay)
+        {
+            return await BuildPageStatusAsync(jobId, page, cancellationToken);
+        }
+        if (saveResult.Disposition == UploadChunkSaveDisposition.Conflict)
+        {
+            throw new InvalidOperationException(
+                saveResult.PersistedChunk.ChunkIndex == chunkIndex
+                    ? "A resumable chunk index was replayed with different content."
+                    : "Chunk metadata conflicts with the existing page upload.");
+        }
 
         var chunks = await store.GetChunksAsync(jobId, page, cancellationToken);
         if (chunks.Count == chunkCount)
@@ -209,10 +212,13 @@ public sealed class InvoiceWorkflowService(
         CancellationToken cancellationToken)
     {
         var job = await RequireOwnedJobAsync(deviceId, jobId, cancellationToken);
-        if (job.State != InvoiceJobState.LocallyValidated)
+        if (job.State is not (
+            InvoiceJobState.LocallyValidated or
+            InvoiceJobState.OcrFailed or
+            InvoiceJobState.MatchingFailed))
         {
             throw new InvalidOperationException(
-                "Every page must be uploaded and locally validated before OCR submission.");
+                "The invoice is not ready for initial submission or an explicit retry.");
         }
         await queue.EnqueueAsync(jobId, cancellationToken);
     }
@@ -221,8 +227,10 @@ public sealed class InvoiceWorkflowService(
     {
         var job = await store.GetJobAsync(jobId, cancellationToken)
             ?? throw new InvalidOperationException("Invoice job does not exist.");
-        if (job.State != InvoiceJobState.LocallyValidated &&
-            job.State != InvoiceJobState.OcrFailed)
+        if (job.State is not (
+            InvoiceJobState.LocallyValidated or
+            InvoiceJobState.OcrFailed or
+            InvoiceJobState.MatchingFailed))
         {
             return;
         }
@@ -286,36 +294,31 @@ public sealed class InvoiceWorkflowService(
                 job,
                 ocrResponse.ResultJson,
                 cancellationToken);
-            await store.SaveRevisionAsync(revision, cancellationToken);
-            await RequireTransitionAsync(
-                jobId,
-                InvoiceJobState.Matching,
-                InvoiceJobState.AwaitingUserReview,
-                cancellationToken,
-                revision.RevisionId);
+            if (!await store.SaveRevisionAndTransitionJobAsync(
+                    revision,
+                    InvoiceJobState.Matching,
+                    InvoiceJobState.AwaitingUserReview,
+                    null,
+                    timeProvider.GetUtcNow(),
+                    cancellationToken))
+            {
+                throw new WorkflowException(
+                    "STATE_CONFLICT",
+                    "Job state changed before the review revision could be published.");
+            }
         }
         catch (WorkflowException exception)
         {
-            var current = await store.GetJobAsync(jobId, cancellationToken);
-            if (current is null)
-            {
-                return;
-            }
-            var failedState = current.State is InvoiceJobState.OcrReserved or
-                InvoiceJobState.OcrProcessing
-                ? InvoiceJobState.OcrFailed
-                : InvoiceJobState.MatchingFailed;
-            if (current.State != failedState)
-            {
-                _ = await store.TransitionJobAsync(
-                    jobId,
-                    current.State,
-                    failedState,
-                    timeProvider.GetUtcNow(),
-                    exception.Code,
-                    null,
-                    cancellationToken);
-            }
+            await MarkFailedAsync(jobId, exception.Code, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            await MarkFailedAsync(jobId, FailureCode(exception), cancellationToken);
+            throw;
         }
     }
 
@@ -336,6 +339,10 @@ public sealed class InvoiceWorkflowService(
         if (job.State != InvoiceJobState.AwaitingUserReview)
         {
             throw new InvalidOperationException("Invoice is not awaiting review.");
+        }
+        if (job.CurrentRevisionId != sourceRevisionId)
+        {
+            throw new InvalidOperationException("Only the current review revision can be edited.");
         }
 
         var revisionId = Guid.NewGuid();
@@ -364,15 +371,17 @@ public sealed class InvoiceWorkflowService(
             deviceId,
             timeProvider.GetUtcNow(),
             null);
-        await store.SaveRevisionAsync(revision, cancellationToken);
-        _ = await store.TransitionJobAsync(
-            job.JobId,
-            InvoiceJobState.AwaitingUserReview,
-            InvoiceJobState.AwaitingUserReview,
-            timeProvider.GetUtcNow(),
-            null,
-            revision.RevisionId,
-            cancellationToken);
+        if (!await store.SaveRevisionAndTransitionJobAsync(
+                revision,
+                InvoiceJobState.AwaitingUserReview,
+                InvoiceJobState.AwaitingUserReview,
+                sourceRevisionId,
+                timeProvider.GetUtcNow(),
+                cancellationToken))
+        {
+            throw new InvalidOperationException(
+                "Invoice state changed before the edited revision could be saved.");
+        }
         return revision;
     }
 
@@ -458,24 +467,27 @@ public sealed class InvoiceWorkflowService(
             ?? throw new InvalidOperationException("Revision does not exist.");
         var job = await RequireOwnedJobAsync(deviceId, revision.JobId, cancellationToken);
         if (job.CurrentRevisionId != revisionId ||
-            job.State != InvoiceJobState.AwaitingUserReview)
+            job.State is not (
+                InvoiceJobState.AwaitingUserReview or
+                InvoiceJobState.Confirmed))
         {
             throw new InvalidOperationException("Only the current review revision can be confirmed.");
         }
-        ReviewRevisionGuard.EnsureConfirmable(revision.Json);
-        var now = timeProvider.GetUtcNow();
-        if (!await store.ConfirmRevisionAsync(revisionId, deviceId, now, cancellationToken))
+        if (job.State == InvoiceJobState.AwaitingUserReview)
         {
-            throw new InvalidOperationException("Revision was already confirmed or changed.");
+            ReviewRevisionGuard.EnsureConfirmable(revision.Json);
         }
-        await RequireTransitionAsync(
-            job.JobId,
-            InvoiceJobState.AwaitingUserReview,
-            InvoiceJobState.Confirmed,
-            cancellationToken,
-            revisionId);
-        await store.AppendAuditAsync(
-            new AuditRecord(
+        else if (!string.Equals(revision.Status, "CONFIRMED", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Confirmed job and revision state do not agree.");
+        }
+        var now = timeProvider.GetUtcNow();
+        if (!await store.ConfirmRevisionAndTransitionJobAsync(
+                revisionId,
+                job.JobId,
+                deviceId,
+                now,
+                new AuditRecord(
                 Guid.NewGuid(),
                 "DEVICE",
                 deviceId.ToString("D"),
@@ -484,7 +496,10 @@ public sealed class InvoiceWorkflowService(
                 "SUCCESS_NO_GENIUS_WRITE",
                 job.JobId,
                 now),
-            cancellationToken);
+                cancellationToken))
+        {
+            throw new InvalidOperationException("Revision was already changed or is no longer current.");
+        }
     }
 
     private async Task FinalizePageAsync(
@@ -732,6 +747,48 @@ public sealed class InvoiceWorkflowService(
                 $"Job state changed while moving from {expected} to {next}.");
         }
     }
+
+    private async Task MarkFailedAsync(
+        Guid jobId,
+        string failureCode,
+        CancellationToken cancellationToken)
+    {
+        var current = await store.GetJobAsync(jobId, cancellationToken);
+        if (current is null)
+        {
+            return;
+        }
+        var failedState = current.State switch
+        {
+            InvoiceJobState.OcrReserved or InvoiceJobState.OcrProcessing =>
+                InvoiceJobState.OcrFailed,
+            InvoiceJobState.OcrValidated or InvoiceJobState.Matching =>
+                InvoiceJobState.MatchingFailed,
+            _ => (InvoiceJobState?)null
+        };
+        if (failedState is null)
+        {
+            return;
+        }
+        _ = await store.TransitionJobAsync(
+            jobId,
+            current.State,
+            failedState.Value,
+            timeProvider.GetUtcNow(),
+            failureCode,
+            null,
+            cancellationToken);
+    }
+
+    private static string FailureCode(Exception exception) => exception switch
+    {
+        JsonException => "OCR_SCHEMA_INVALID",
+        CryptographicException => "DOCUMENT_CRYPTOGRAPHY_FAILED",
+        IOException => "DOCUMENT_IO_FAILED",
+        HttpRequestException => "SAAS_UNAVAILABLE",
+        InvalidOperationException => "WORKFLOW_INVARIANT_FAILED",
+        _ => "UNEXPECTED_WORKFLOW_FAILURE"
+    };
 
     private static JsonObject BuildCommercialValues(JsonObject line) => new()
     {

@@ -492,6 +492,10 @@ app.MapPut(
                 detail: exception.Message,
                 statusCode: StatusCodes.Status400BadRequest);
         }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
+        }
     });
 
 app.MapGet(
@@ -512,6 +516,13 @@ app.MapGet(
         catch (UnauthorizedAccessException)
         {
             return Results.Forbid();
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Results.Problem(
+                title: "Invoice upload not found",
+                detail: exception.Message,
+                statusCode: StatusCodes.Status404NotFound);
         }
     });
 
@@ -534,6 +545,10 @@ app.MapPost(
                 title: "Invoice submission rejected",
                 detail: exception.Message,
                 statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
         }
     });
 
@@ -606,6 +621,10 @@ app.MapPost(
                 detail: exception.Message,
                 statusCode: StatusCodes.Status400BadRequest);
         }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
+        }
     });
 
 app.MapPost(
@@ -636,6 +655,10 @@ app.MapPost(
                 title: "Review confirmation blocked",
                 detail: exception.Message,
                 statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
         }
     });
 

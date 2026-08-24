@@ -405,11 +405,7 @@ public static class ReviewRevisionGuard
         {
             throw new InvalidOperationException($"Discount {sequence} violates the approved semantics.");
         }
-        var percentage = RequireNonNegativeDecimal(discount["percentage"], $"discount {sequence}");
-        if (percentage > 100m)
-        {
-            throw new InvalidOperationException($"Discount {sequence} must be at most 100 percent.");
-        }
+        _ = RequirePercentage(discount["percentage"], $"discount {sequence}");
     }
 
     private static decimal RequirePositiveDecimal(JsonNode? node, string field)
@@ -425,15 +421,21 @@ public static class ReviewRevisionGuard
     private static decimal RequireNonNegativeDecimal(JsonNode? node, string field)
     {
         var value = node?.GetValue<string>();
-        if (value is null ||
-            !decimal.TryParse(
-                value,
-                NumberStyles.AllowDecimalPoint,
-                CultureInfo.InvariantCulture,
-                out var parsed) ||
-            parsed < 0m)
+        if (!CanonicalDecimalContract.TryParseDecimal(value, out var parsed))
         {
-            throw new InvalidOperationException($"{field} must be a non-negative invariant decimal string.");
+            throw new InvalidOperationException(
+                $"{field} must be a canonical DECIMAL(18,6) string with at most 12 integer and 6 fractional digits.");
+        }
+        return parsed;
+    }
+
+    private static decimal RequirePercentage(JsonNode? node, string field)
+    {
+        var value = node?.GetValue<string>();
+        if (!CanonicalDecimalContract.TryParsePercentage(value, out var parsed))
+        {
+            throw new InvalidOperationException(
+                $"{field} must be a canonical percentage from 0 through 100 with at most 4 fractional digits.");
         }
         return parsed;
     }

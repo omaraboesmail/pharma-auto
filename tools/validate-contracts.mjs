@@ -205,6 +205,60 @@ assertRejected(
   "non-percentage second discount"
 );
 
+let canonicalNumericNegativeCaseCount = 0;
+const boundaryInvoiceExample = structuredClone(invoiceExample);
+boundaryInvoiceExample.postingLines[0].quantity = "999999999999.999999";
+boundaryInvoiceExample.postingLines[0].commercialValues.purchaseUnitPrice =
+  "999999999999.999999";
+boundaryInvoiceExample.postingLines[0].commercialValues.sellingUnitPrice =
+  "999999999999.999999";
+boundaryInvoiceExample.postingLines[0].commercialValues.discounts[0].percentage =
+  "100.0000";
+assertValid(
+  validators.invoice,
+  boundaryInvoiceExample,
+  "Invoice canonical numeric boundaries"
+);
+
+const invalidDecimalLexemes = [
+  ["-1", "signed decimal"],
+  ["1e3", "decimal exponent"],
+  ["1,000", "grouped decimal"],
+  [".5", "decimal without integer digits"],
+  ["1.", "decimal without fractional digits"],
+  ["01", "decimal with a leading zero"],
+  ["1.1234567", "decimal with excessive scale"],
+  ["1000000000000", "decimal exceeding DECIMAL(18,6) integer precision"]
+];
+for (const [value, label] of invalidDecimalLexemes) {
+  const invalid = structuredClone(invoiceExample);
+  invalid.postingLines[0].commercialValues.purchaseUnitPrice = value;
+  assertRejected(validators.invoice, invalid, label);
+  canonicalNumericNegativeCaseCount += 1;
+}
+
+for (const [value, label] of [
+  ["99.99999", "percentage with excessive scale"],
+  ["100.0001", "percentage greater than 100"]
+]) {
+  const invalid = structuredClone(invoiceExample);
+  invalid.postingLines[0].commercialValues.discounts[0].percentage = value;
+  assertRejected(validators.invoice, invalid, label);
+  canonicalNumericNegativeCaseCount += 1;
+}
+
+for (const value of ["1.1234567", "1000000000000"]) {
+  const invalid = structuredClone(unsafeReviewPackage);
+  invalid.geniusWritePerformed = false;
+  invalid.sourceLines[0].postingLines[0].quantity = value;
+  assertRejected(
+    validators.review,
+    invalid,
+    `review quantity outside canonical DECIMAL(18,6): ${value}`
+  );
+  canonicalNumericNegativeCaseCount += 1;
+}
+
 const fingerprintDefinition = await readJson(fingerprintPath);
 assertValid(
   validators.fingerprint,
@@ -376,6 +430,16 @@ for (const document of datasetManifest.documents) {
     invalidOcrResult,
     `${document.documentId} OCR result with an unexpected field`
   );
+  if (ocrExampleCount === 0) {
+    const invalidPercentage = structuredClone(expectedResult);
+    invalidPercentage.sourceLines[0].discount1Percentage.normalizedValue =
+      "99.99999";
+    assertRejected(
+      validators.ocr,
+      invalidPercentage,
+      "OCR result with excessive percentage scale"
+    );
+  }
   ocrExampleCount += 1;
 }
 
@@ -401,6 +465,7 @@ const requiredPaths = [
   "/api/v1/catalog/vendors/search",
   "/api/v1/invoice-jobs",
   "/api/v1/invoice-jobs/{jobId}/pages/{page}/chunks/{chunkIndex}",
+  "/api/v1/invoice-jobs/{jobId}/upload-status",
   "/api/v1/invoice-jobs/{jobId}/submit",
   "/api/v1/invoice-jobs/{jobId}",
   "/api/v1/invoice-revisions/{revisionId}",
@@ -436,6 +501,67 @@ for (const requiredPath of requiredSaasPaths) {
   }
 }
 
+const requiredSignedHeaderSchemes = {
+  tenantIdHeader: "X-Tenant-Id",
+  connectorIdHeader: "X-Connector-Id",
+  requestTimestampHeader: "X-Request-Timestamp",
+  requestNonceHeader: "X-Request-Nonce",
+  contentSha256Header: "X-Content-SHA256",
+  requestSignatureHeader: "X-Request-Signature"
+};
+const productionSecurity = saasOpenApi.security?.find((requirement) =>
+  Object.hasOwn(requirement, "mutualTls")
+);
+if (!productionSecurity) {
+  throw new Error("SaaS OpenAPI must require Connector mTLS by default.");
+}
+for (const [schemeName, headerName] of Object.entries(requiredSignedHeaderSchemes)) {
+  const scheme = saasOpenApi.components?.securitySchemes?.[schemeName];
+  if (
+    !Object.hasOwn(productionSecurity, schemeName) ||
+    scheme?.type !== "apiKey" ||
+    scheme?.in !== "header" ||
+    scheme?.name !== headerName
+  ) {
+    throw new Error(`SaaS signed-request header is missing or malformed: ${headerName}`);
+  }
+}
+
+const canonicalSearch =
+  saasOpenApi.components?.schemas?.CanonicalSearchRequest?.properties;
+if (
+  canonicalSearch?.description?.maxLength !== 2000 ||
+  canonicalSearch?.limit?.maximum !== 25
+) {
+  throw new Error(
+    "SaaS canonical-search limits must match the runtime (description 2000, limit 25)."
+  );
+}
+
+const ocrPageMimeTypes =
+  saasOpenApi.components?.schemas?.ProcessOcrRequest?.properties?.pages?.items
+    ?.properties?.mimeType?.enum;
+if (
+  JSON.stringify(ocrPageMimeTypes) !== JSON.stringify(["image/jpeg", "image/png"]) ||
+  JSON.stringify(saasOpenApi).includes("application/pdf") ||
+  JSON.stringify(openApi).includes("application/pdf")
+) {
+  throw new Error(
+    "Connector-to-SaaS transport must accept normalized JPEG/PNG pages only, never raw PDF."
+  );
+}
+
+const processResponses =
+  saasOpenApi.paths?.["/api/v1/ocr/jobs/{jobId}/process"]?.post?.responses ?? {};
+for (const status of ["200", "400", "401", "403", "409", "413", "429", "502"]) {
+  if (!processResponses[status]) {
+    throw new Error(`SaaS OCR process response is undocumented: ${status}`);
+  }
+}
+if (processResponses["402"]) {
+  throw new Error("SaaS OCR process must not advertise the obsolete 402 response.");
+}
+
 console.log(
-  `Validated ${schemaFiles.length} schemas, ${ocrExampleCount} OCR results, ${datasetManifest.documents.length} synthetic documents/${datasetPageCount} PNG pages, ${phaseOneExamples.length + 1} domain examples, 1 Golden manifest, 1 DB fingerprint definition, ${8 + ocrExampleCount} negative cases, and ${requiredPaths.length + requiredSaasPaths.length} OpenAPI paths.`
+  `Validated ${schemaFiles.length} schemas, ${ocrExampleCount} OCR results, ${datasetManifest.documents.length} synthetic documents/${datasetPageCount} PNG pages, ${phaseOneExamples.length + 1} domain examples, 1 Golden manifest, 1 DB fingerprint definition, ${9 + ocrExampleCount + canonicalNumericNegativeCaseCount} negative cases, and ${requiredPaths.length + requiredSaasPaths.length} OpenAPI paths.`
 );

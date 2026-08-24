@@ -3,7 +3,7 @@
   "info": {
     "title": "Pharma Auto SaaS API",
     "version": "1.0.0",
-    "description": "Tenant-scoped Phase 1 entitlement, quota, OCR and canonical-candidate API. It never receives Genius credentials or exposes an ERP write operation."
+    "description": "Tenant-scoped Phase 1 entitlement, quota, OCR and canonical-candidate API. It never receives Genius credentials or exposes an ERP write operation. Production Connector calls require mTLS plus all six signed-request headers declared below."
   },
   "servers": [
     {
@@ -13,7 +13,12 @@
   "security": [
     {
       "mutualTls": [],
-      "signedConnectorRequest": []
+      "tenantIdHeader": [],
+      "connectorIdHeader": [],
+      "requestTimestampHeader": [],
+      "requestNonceHeader": [],
+      "contentSha256Header": [],
+      "requestSignatureHeader": []
     }
   ],
   "paths": {
@@ -23,7 +28,14 @@
         "operationId": "getSaasLiveness",
         "responses": {
           "200": {
-            "description": "SaaS API is alive"
+            "description": "SaaS API is alive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -42,6 +54,9 @@
               }
             }
           },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
           "403": {
             "$ref": "#/components/responses/Problem"
           }
@@ -53,7 +68,17 @@
         "operationId": "getCurrentEntitlementSigningKey",
         "responses": {
           "200": {
-            "description": "Current ES256 SubjectPublicKeyInfo public key"
+            "description": "Current ES256 SubjectPublicKeyInfo public key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SigningKeyResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           }
         }
       }
@@ -61,6 +86,7 @@
     "/api/v1/ocr/jobs/{jobId}/process": {
       "post": {
         "operationId": "processOcrJob",
+        "description": "Each ordered image entry is one normalized, billable invoice page.",
         "parameters": [
           {
             "$ref": "#/components/parameters/JobId"
@@ -78,12 +104,34 @@
         },
         "responses": {
           "200": {
-            "description": "Idempotent OCR result or terminal failure"
+            "description": "Idempotent OCR job result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcrJobResponse"
+                }
+              }
+            }
           },
-          "402": {
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "413": {
             "$ref": "#/components/responses/Problem"
           },
           "429": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "502": {
             "$ref": "#/components/responses/Problem"
           }
         }
@@ -99,10 +147,20 @@
         ],
         "responses": {
           "200": {
-            "description": "Tenant-scoped OCR job status"
+            "description": "Tenant-scoped OCR job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcrJobResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           },
           "404": {
-            "$ref": "#/components/responses/Problem"
+            "description": "OCR job was not found for the authenticated tenant"
           }
         }
       }
@@ -110,7 +168,7 @@
     "/api/v1/canonical-products/search": {
       "post": {
         "operationId": "searchCanonicalProducts",
-        "description": "Returns candidates only; no result is a final local Genius identity.",
+        "description": "Returns at most 25 canonical candidates; no result is a final local Genius identity.",
         "requestBody": {
           "required": true,
           "content": {
@@ -123,7 +181,23 @@
         },
         "responses": {
           "200": {
-            "description": "Filtered candidate shortlist with hard mismatches"
+            "description": "Filtered candidate shortlist with hard mismatches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CanonicalSearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "413": {
+            "$ref": "#/components/responses/Problem"
           }
         }
       }
@@ -132,13 +206,44 @@
   "components": {
     "securitySchemes": {
       "mutualTls": {
-        "type": "mutualTLS"
+        "type": "mutualTLS",
+        "description": "Production requests require the active Connector client certificate."
       },
-      "signedConnectorRequest": {
+      "tenantIdHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Tenant-Id",
+        "description": "Tenant UUID bound to the Connector registration."
+      },
+      "connectorIdHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Connector-Id",
+        "description": "Active Connector registration UUID."
+      },
+      "requestTimestampHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Request-Timestamp",
+        "description": "Unix timestamp in seconds; accepted within a five-minute clock-skew window."
+      },
+      "requestNonceHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Request-Nonce",
+        "description": "Single-use Connector nonce containing 16 to 128 characters."
+      },
+      "contentSha256Header": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Content-SHA256",
+        "description": "Lowercase SHA-256 hex digest of the exact request body."
+      },
+      "requestSignatureHeader": {
         "type": "apiKey",
         "in": "header",
         "name": "X-Request-Signature",
-        "description": "HMAC-SHA256 over method, path, timestamp, nonce and content hash."
+        "description": "Base64url HMAC-SHA256 over uppercase method, path, Unix timestamp, nonce and body digest, joined with LF characters."
       }
     },
     "parameters": {
@@ -153,6 +258,57 @@
       }
     },
     "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "service",
+          "storageProvider",
+          "ocrProvider",
+          "fixtureMode",
+          "geniusWritesEnabled"
+        ],
+        "properties": {
+          "status": {
+            "const": "ok"
+          },
+          "service": {
+            "const": "PharmaAuto.Saas.Api"
+          },
+          "storageProvider": {
+            "type": "string"
+          },
+          "ocrProvider": {
+            "type": "string"
+          },
+          "fixtureMode": {
+            "type": "boolean"
+          },
+          "geniusWritesEnabled": {
+            "const": false
+          }
+        }
+      },
+      "SigningKeyResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["algorithm", "keyId", "subjectPublicKeyInfoPem"],
+        "properties": {
+          "algorithm": {
+            "const": "ES256"
+          },
+          "keyId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "subjectPublicKeyInfoPem": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
       "ProcessOcrRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -164,6 +320,7 @@
           },
           "pages": {
             "type": "array",
+            "description": "Ordered normalized image pages. One array entry consumes one OCR quota page.",
             "minItems": 1,
             "maxItems": 100,
             "items": {
@@ -177,7 +334,7 @@
                   "maximum": 100
                 },
                 "mimeType": {
-                  "enum": ["image/jpeg", "image/png", "application/pdf"]
+                  "enum": ["image/jpeg", "image/png"]
                 },
                 "sha256": {
                   "type": "string",
@@ -192,21 +349,102 @@
           }
         }
       },
+      "OcrJobResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "jobId",
+          "state",
+          "pageCount",
+          "sourceSha256",
+          "providerModel",
+          "failureCode",
+          "result",
+          "createdAt",
+          "updatedAt",
+          "geniusWritePerformed"
+        ],
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "enum": ["RESERVED", "PROCESSING", "COMPLETED", "FAILED"]
+          },
+          "pageCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "sourceSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "providerModel": {
+            "type": ["string", "null"]
+          },
+          "failureCode": {
+            "type": ["string", "null"]
+          },
+          "result": {},
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "geniusWritePerformed": {
+            "const": false
+          }
+        }
+      },
+      "PharmaAttributes": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "activeIngredient": {
+            "type": ["string", "null"]
+          },
+          "strength": {
+            "type": ["string", "null"]
+          },
+          "dosageForm": {
+            "type": ["string", "null"]
+          },
+          "pack": {
+            "type": ["string", "null"]
+          },
+          "manufacturer": {
+            "type": ["string", "null"]
+          }
+        }
+      },
       "CanonicalSearchRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["description", "vendorItemCode", "attributes", "locale", "limit"],
+        "required": ["description", "locale", "limit"],
         "properties": {
           "description": {
             "type": "string",
-            "maxLength": 1000
+            "minLength": 1,
+            "maxLength": 2000
           },
           "vendorItemCode": {
             "type": ["string", "null"],
             "maxLength": 100
           },
           "attributes": {
-            "type": "object"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PharmaAttributes"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "locale": {
             "enum": ["ar-EG", "en-EG"]
@@ -214,7 +452,103 @@
           "limit": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 50
+            "maximum": 25
+          }
+        }
+      },
+      "CanonicalCandidate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "canonicalProductId",
+          "displayName",
+          "attributes",
+          "reasonCodes",
+          "hardMismatches",
+          "requiresLocalResolution"
+        ],
+        "properties": {
+          "canonicalProductId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "attributes": {
+            "$ref": "#/components/schemas/PharmaAttributes"
+          },
+          "reasonCodes": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "EXACT_IDENTIFIER",
+                "EXACT_NORMALIZED_NAME",
+                "LEXICAL_SHORTLIST",
+                "SEMANTIC_RETRIEVAL",
+                "STRUCTURED_ATTRIBUTES",
+                "CANONICAL_SHORTLIST"
+              ]
+            }
+          },
+          "hardMismatches": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": ["ACTIVE_INGREDIENT", "STRENGTH", "DOSAGE_FORM", "PACK"]
+            }
+          },
+          "requiresLocalResolution": {
+            "const": true
+          }
+        }
+      },
+      "CanonicalSearchResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidates",
+          "localItemIdentitySelected",
+          "requiresLocalResolution",
+          "geniusWritePerformed"
+        ],
+        "properties": {
+          "candidates": {
+            "type": "array",
+            "maxItems": 25,
+            "items": {
+              "$ref": "#/components/schemas/CanonicalCandidate"
+            }
+          },
+          "localItemIdentitySelected": {
+            "const": false
+          },
+          "requiresLocalResolution": {
+            "const": true
+          },
+          "geniusWritePerformed": {
+            "const": false
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
           }
         }
       }
@@ -225,7 +559,17 @@
         "content": {
           "application/problem+json": {
             "schema": {
-              "type": "object"
+              "$ref": "#/components/schemas/ProblemDetails"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Connector authentication failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetails"
             }
           }
         }

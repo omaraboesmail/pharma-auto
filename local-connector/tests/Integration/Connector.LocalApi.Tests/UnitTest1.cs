@@ -91,6 +91,40 @@ public sealed class CommercialEditPreviewEndpointTests
         Assert.False(body.GeniusWritePerformed);
     }
 
+    [Fact]
+    public async Task Upload_RejectsRawPdfBeforePersistingAChunk()
+    {
+        await AuthenticateAsync();
+        using var createResponse = await client.PostAsJsonAsync(
+            "/api/v1/invoice-jobs",
+            new { pageCount = 1 });
+        createResponse.EnsureSuccessStatusCode();
+        var job = await createResponse.Content.ReadFromJsonAsync<JobContract>()
+            ?? throw new InvalidOperationException("Invoice job response was empty.");
+        var bytes = "%PDF-1.7 synthetic\n%%EOF"u8.ToArray();
+        var sha256 = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        using var request = new HttpRequestMessage(
+            HttpMethod.Put,
+            $"/api/v1/invoice-jobs/{job.JobId:D}/pages/1/chunks/0")
+        {
+            Content = new ByteArrayContent(bytes)
+        };
+        request.Headers.Add("X-Chunk-Count", "1");
+        request.Headers.Add("X-Chunk-SHA256", sha256);
+        request.Headers.Add("X-Page-SHA256", sha256);
+        request.Headers.Add("X-Page-Mime-Type", "application/pdf");
+
+        using var uploadResponse = await client.SendAsync(request);
+        var uploadStatus = await client.GetFromJsonAsync<UploadStatusContract>(
+            $"/api/v1/invoice-jobs/{job.JobId:D}/upload-status");
+
+        Assert.Equal(HttpStatusCode.BadRequest, uploadResponse.StatusCode);
+        Assert.NotNull(uploadStatus);
+        Assert.Equal(0, uploadStatus.UploadedPageCount);
+        Assert.Single(uploadStatus.Pages);
+        Assert.Empty(uploadStatus.Pages[0].ReceivedChunks);
+    }
+
     private async Task AuthenticateAsync()
     {
         using var deviceKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
@@ -146,6 +180,14 @@ public sealed class CommercialEditPreviewEndpointTests
     }
 
     private sealed record HealthContract(string Status, bool GeniusWritesEnabled);
+
+    private sealed record JobContract(Guid JobId);
+
+    private sealed record UploadStatusContract(
+        int UploadedPageCount,
+        IReadOnlyList<UploadPageContract> Pages);
+
+    private sealed record UploadPageContract(IReadOnlyList<int> ReceivedChunks);
 
     private sealed record PreviewContract(
         string PurchaseUnitPriceAfterDiscount1,

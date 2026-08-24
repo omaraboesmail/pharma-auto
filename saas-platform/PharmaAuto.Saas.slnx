@@ -12,4 +12,8 @@
   <Folder Name="/src/Saas.Infrastructure/">
     <Project Path="src/Saas.Infrastructure/PharmaAuto.Saas.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Saas.Application.Tests/">
+    <Project Path="tests/Saas.Application.Tests/PharmaAuto.Saas.Application.Tests.csproj" />
+  </Folder>
 </Solution>

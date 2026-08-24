@@ -63,6 +63,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pharmaauto.android.PharmaAutoApplication
 import com.pharmaauto.android.R
 import com.pharmaauto.android.data.PharmaAutoRepository
+import com.pharmaauto.android.domain.DecimalInputRules
 import com.pharmaauto.android.network.SaveRevisionRequest
 import com.pharmaauto.android.network.LocalItemCandidateContract
 import com.pharmaauto.android.network.LocalVendorCandidateContract
@@ -273,7 +274,8 @@ private fun ConnectorReviewScreen(
             Surface(shadowElevation = 8.dp, tonalElevation = 3.dp) {
                 Button(
                     onClick = onConfirm,
-                    enabled = !state.busy && !state.searchBusy && state.lines.isNotEmpty(),
+                    enabled = !state.busy && !state.searchBusy && state.lines.isNotEmpty() &&
+                        state.lines.haveValidNumericInputs(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
@@ -734,6 +736,7 @@ private fun PostingLineEditor(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(stringResource(R.string.quantity_boxes)) },
                 enabled = enabled,
+                isError = !DecimalInputRules.decimal(posting.quantity).isValid,
                 singleLine = true
             )
             OutlinedTextField(
@@ -771,6 +774,7 @@ private fun PostingLineEditor(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(stringResource(R.string.purchase_unit_price_egp)) },
                 enabled = enabled,
+                isError = !DecimalInputRules.decimal(posting.purchaseUnitPrice).isValid,
                 singleLine = true
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -780,6 +784,7 @@ private fun PostingLineEditor(
                     modifier = Modifier.weight(1f),
                     label = { Text(stringResource(R.string.discount_one_percent)) },
                     enabled = enabled,
+                    isError = !DecimalInputRules.percentage(posting.discountOne).isValid,
                     singleLine = true
                 )
                 OutlinedTextField(
@@ -788,6 +793,7 @@ private fun PostingLineEditor(
                     modifier = Modifier.weight(1f),
                     label = { Text(stringResource(R.string.discount_two_percent)) },
                     enabled = enabled,
+                    isError = !DecimalInputRules.percentage(posting.discountTwo).isValid,
                     singleLine = true
                 )
             }
@@ -798,6 +804,7 @@ private fun PostingLineEditor(
                 label = { Text(stringResource(R.string.selling_price_box_tax_inclusive)) },
                 supportingText = { Text(stringResource(R.string.new_stock_only_preserve_existing)) },
                 enabled = enabled,
+                isError = !DecimalInputRules.decimal(posting.sellingUnitPrice).isValid,
                 singleLine = true
             )
             if (count > 1) {
@@ -1031,15 +1038,15 @@ private class ConnectorReviewViewModel(
         updateCurrentLine { line ->
             line.copy(postingLines = line.postingLines.mapIndexed { candidate, posting ->
                 if (candidate != index) posting else when (field) {
-                    PostingField.Quantity -> posting.copy(quantity = normalizeDecimal(value))
+                    PostingField.Quantity -> posting.copy(quantity = value)
                     PostingField.ExpiryDate -> posting.copy(expiryDate = value.take(10))
                     PostingField.Batch -> posting.copy(batch = value.take(128))
                     PostingField.PurchaseUnitPrice ->
-                        posting.copy(purchaseUnitPrice = normalizeDecimal(value))
-                    PostingField.DiscountOne -> posting.copy(discountOne = normalizeDecimal(value))
-                    PostingField.DiscountTwo -> posting.copy(discountTwo = normalizeDecimal(value))
+                        posting.copy(purchaseUnitPrice = value)
+                    PostingField.DiscountOne -> posting.copy(discountOne = value)
+                    PostingField.DiscountTwo -> posting.copy(discountTwo = value)
                     PostingField.SellingUnitPrice ->
-                        posting.copy(sellingUnitPrice = normalizeDecimal(value))
+                        posting.copy(sellingUnitPrice = value)
                 }
             })
         }
@@ -1247,7 +1254,9 @@ private fun parseReview(json: String): Pair<JsonObject, ConnectorReviewUiState> 
             .orEmpty()
         val descriptionEvidence = source.objectOrNull("descriptionEvidence")
         val required = postingLines.fold(BigDecimal.ZERO) { total, posting ->
-            total.add(decimalOrZero(posting.quantity))
+            val quantity = DecimalInputRules.decimal(posting.quantity).value
+                ?: error("Source line ${index + 1} has an invalid quantity.")
+            total.add(quantity)
         }.stripTrailingZeros().toPlainString()
         SourceLineUi(
             sourceLineId = source.string("sourceLineId"),
@@ -1319,31 +1328,35 @@ private fun patchPostingLine(original: JsonObject, posting: PostingLineUi): Json
     edited["postingLineId"] = JsonPrimitive(posting.postingLineId)
     edited["splitIndex"] = JsonPrimitive(posting.splitIndex)
     edited["postingSequence"] = JsonPrimitive(posting.postingSequence)
-    edited["quantity"] = JsonPrimitive(posting.quantity)
+    edited["quantity"] = JsonPrimitive(requireCanonicalDecimal(posting.quantity))
     edited["expiryDate"] = JsonPrimitive(posting.expiryDate)
     edited["batch"] = posting.batch.takeIf(String::isNotBlank)?.let(::JsonPrimitive) ?: JsonNull
     val originalCommercial = original.objectOrNull("commercialValues") ?: JsonObject(emptyMap())
     val commercial = originalCommercial.toMutableMap()
     commercial["currency"] = JsonPrimitive("EGP")
-    commercial["purchaseUnitPrice"] = JsonPrimitive(posting.purchaseUnitPrice)
+    commercial["purchaseUnitPrice"] = JsonPrimitive(
+        requireCanonicalDecimal(posting.purchaseUnitPrice)
+    )
     commercial["discounts"] = JsonArray(listOf(
         JsonObject(mapOf(
             "sequence" to JsonPrimitive(1),
             "kind" to JsonPrimitive("PERCENTAGE"),
-            "percentage" to JsonPrimitive(posting.discountOne),
+            "percentage" to JsonPrimitive(requireCanonicalPercentage(posting.discountOne)),
             "applicationBasis" to JsonPrimitive("PURCHASE_UNIT_PRICE"),
             "affectsPurchaseUnitPrice" to JsonPrimitive(true)
         )),
         JsonObject(mapOf(
             "sequence" to JsonPrimitive(2),
             "kind" to JsonPrimitive("PERCENTAGE"),
-            "percentage" to JsonPrimitive(posting.discountTwo),
+            "percentage" to JsonPrimitive(requireCanonicalPercentage(posting.discountTwo)),
             "applicationBasis" to JsonPrimitive("REMAINING_LINE_SUBTOTAL"),
             "affectsPurchaseUnitPrice" to JsonPrimitive(false)
         ))
     ))
     commercial["sellingUnit"] = JsonPrimitive("BOX")
-    commercial["sellingUnitPrice"] = JsonPrimitive(posting.sellingUnitPrice)
+    commercial["sellingUnitPrice"] = JsonPrimitive(
+        requireCanonicalDecimal(posting.sellingUnitPrice)
+    )
     commercial["sellingPriceTaxTreatment"] = JsonPrimitive("INCLUSIVE")
     commercial["sellingPriceScope"] = JsonPrimitive("NEW_STOCK_ONLY")
     commercial["existingStockPriceBehavior"] = JsonPrimitive("PRESERVE")
@@ -1362,24 +1375,35 @@ private fun validateLine(line: SourceLineUi): ConnectorReviewNotice? {
     }
     if (!commercialValid) return ConnectorReviewNotice.InvalidCommercial
     val assigned = line.postingLines.fold(BigDecimal.ZERO) { total, posting ->
-        total.add(decimalOrZero(posting.quantity))
+        total.add(decimalValueOrNull(posting.quantity) ?: return ConnectorReviewNotice.InvalidExpiry)
     }
     val expiryValid = line.postingLines.all { posting ->
         positive(posting.quantity) && runCatching { LocalDate.parse(posting.expiryDate) }.isSuccess
-    } && assigned.compareTo(decimalOrZero(line.requiredQuantity)) == 0
+    } && assigned.compareTo(decimalValueOrNull(line.requiredQuantity) ?: BigDecimal.ZERO) == 0
     return if (expiryValid) null else ConnectorReviewNotice.InvalidExpiry
 }
 
+private fun List<SourceLineUi>.haveValidNumericInputs(): Boolean = all { line ->
+    line.postingLines.all { posting ->
+        positive(posting.quantity) &&
+            nonNegative(posting.purchaseUnitPrice) &&
+            percentage(posting.discountOne) &&
+            percentage(posting.discountTwo) &&
+            nonNegative(posting.sellingUnitPrice)
+    }
+}
+
 private fun calculateTotals(lines: List<SourceLineUi>): CalculatedReviewTotals? {
+    if (!lines.haveValidNumericInputs()) return null
     var gross = BigDecimal.ZERO
     var net = BigDecimal.ZERO
     var selling = BigDecimal.ZERO
     for (posting in lines.flatMap(SourceLineUi::postingLines)) {
-        val quantity = normalizeDecimal(posting.quantity).toBigDecimalOrNull() ?: return null
-        val purchase = normalizeDecimal(posting.purchaseUnitPrice).toBigDecimalOrNull() ?: return null
-        val discountOne = normalizeDecimal(posting.discountOne).toBigDecimalOrNull() ?: return null
-        val discountTwo = normalizeDecimal(posting.discountTwo).toBigDecimalOrNull() ?: return null
-        val sellingPrice = normalizeDecimal(posting.sellingUnitPrice).toBigDecimalOrNull() ?: return null
+        val quantity = decimalValueOrNull(posting.quantity) ?: return null
+        val purchase = decimalValueOrNull(posting.purchaseUnitPrice) ?: return null
+        val discountOne = percentageValueOrNull(posting.discountOne) ?: return null
+        val discountTwo = percentageValueOrNull(posting.discountTwo) ?: return null
+        val sellingPrice = decimalValueOrNull(posting.sellingUnitPrice) ?: return null
         if (quantity < BigDecimal.ZERO || purchase < BigDecimal.ZERO ||
             discountOne !in BigDecimal.ZERO..BigDecimal("100") ||
             discountTwo !in BigDecimal.ZERO..BigDecimal("100") ||
@@ -1399,15 +1423,22 @@ private fun calculateTotals(lines: List<SourceLineUi>): CalculatedReviewTotals? 
     return CalculatedReviewTotals(gross, net, selling)
 }
 
-private fun normalizeDecimal(input: String): String = InvoiceReviewRules.normalizeDecimalInput(input)
-private fun decimalOrZero(value: String): BigDecimal = normalizeDecimal(value).toBigDecimalOrNull()
-    ?: BigDecimal.ZERO
-private fun nonNegative(value: String): Boolean = normalizeDecimal(value).toBigDecimalOrNull()
+private fun decimalValueOrNull(value: String): BigDecimal? = DecimalInputRules.decimal(value).value
+private fun percentageValueOrNull(value: String): BigDecimal? =
+    DecimalInputRules.percentage(value).value
+private fun nonNegative(value: String): Boolean = decimalValueOrNull(value)
     ?.let { it >= BigDecimal.ZERO } == true
-private fun positive(value: String): Boolean = normalizeDecimal(value).toBigDecimalOrNull()
+private fun positive(value: String): Boolean = decimalValueOrNull(value)
     ?.let { it > BigDecimal.ZERO } == true
-private fun percentage(value: String): Boolean = normalizeDecimal(value).toBigDecimalOrNull()
-    ?.let { it in BigDecimal.ZERO..BigDecimal("100") } == true
+private fun percentage(value: String): Boolean = percentageValueOrNull(value) != null
+private fun requireCanonicalDecimal(value: String): String =
+    requireNotNull(DecimalInputRules.decimal(value).canonicalText) {
+        "Decimal value is invalid."
+    }
+private fun requireCanonicalPercentage(value: String): String =
+    requireNotNull(DecimalInputRules.percentage(value).canonicalText) {
+        "Percentage value is invalid."
+    }
 
 private fun extractStrength(description: String): String? {
     val match = Regex("""(?i)(\d+(?:[.,]\d+)?)\s*(mg|ml|مجم|مل)\b""")

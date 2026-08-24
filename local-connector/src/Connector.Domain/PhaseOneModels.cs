@@ -212,7 +212,8 @@ public static class InvoiceJobTransitions
                 [InvoiceJobState.AwaitingUserReview, InvoiceJobState.MatchingFailed],
             [InvoiceJobState.AwaitingUserReview] = [InvoiceJobState.Confirmed, InvoiceJobState.Rejected],
             [InvoiceJobState.OcrFailed] = [InvoiceJobState.OcrReserved, InvoiceJobState.Rejected],
-            [InvoiceJobState.MatchingFailed] = [InvoiceJobState.Matching, InvoiceJobState.Rejected]
+            [InvoiceJobState.MatchingFailed] =
+                [InvoiceJobState.OcrReserved, InvoiceJobState.Matching, InvoiceJobState.Rejected]
         };
 
     public static void EnsureAllowed(InvoiceJobState current, InvoiceJobState next)

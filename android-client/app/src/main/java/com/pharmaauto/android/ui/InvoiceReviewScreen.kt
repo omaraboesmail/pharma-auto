@@ -1071,7 +1071,11 @@ private fun InvoiceTotalsBar(
                                 )
                             }
                         }
-                        FinishReviewButton(onFinishReview, Modifier.fillMaxWidth())
+                        FinishReviewButton(
+                            onClick = onFinishReview,
+                            enabled = totals != null,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 } else {
                     Row(
@@ -1080,7 +1084,11 @@ private fun InvoiceTotalsBar(
                         horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         InvoiceNetTotal(totals?.netPurchase, Modifier.weight(0.8f))
-                        FinishReviewButton(onFinishReview, Modifier.weight(1.2f))
+                        FinishReviewButton(
+                            onClick = onFinishReview,
+                            enabled = totals != null,
+                            modifier = Modifier.weight(1.2f)
+                        )
                         IconButton(
                             onClick = onToggleTotals,
                             modifier = Modifier.semantics {
@@ -1140,9 +1148,10 @@ private fun InvoiceNetTotal(amount: BigDecimal?, modifier: Modifier) {
 }
 
 @Composable
-private fun FinishReviewButton(onClick: () -> Unit, modifier: Modifier) {
+private fun FinishReviewButton(onClick: () -> Unit, enabled: Boolean, modifier: Modifier) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.heightIn(min = 56.dp),
         shape = MaterialTheme.shapes.small
     ) {
@@ -1217,7 +1226,7 @@ private fun isValidMoney(value: String): Boolean =
     InvoiceReviewRules.decimalOrNull(value)?.let { it >= BigDecimal.ZERO } == true
 
 private fun isValidPercentage(value: String): Boolean =
-    InvoiceReviewRules.decimalOrNull(value)?.let { it in BigDecimal.ZERO..BigDecimal("100") } == true
+    InvoiceReviewRules.percentageOrNull(value) != null
 
 private fun displayMoney(value: BigDecimal): String = NumberFormat.getNumberInstance().run {
     minimumFractionDigits = 2

@@ -33,6 +33,9 @@ public sealed record CommercialCalculation(
 
 public static class CommercialRules
 {
+    public const decimal MaximumContractDecimal = 999999999999.999999m;
+    public const int DecimalMaximumFractionDigits = 6;
+    public const int PercentageMaximumFractionDigits = 4;
     public const string Currency = "EGP";
     public const string SellingUnit = "BOX";
     public const string SellingPriceTaxTreatment = "INCLUSIVE";
@@ -69,15 +72,27 @@ public static class CommercialRules
         {
             errors.Add("quantity must be greater than zero.");
         }
+        else
+        {
+            ValidateContractDecimal(errors, "quantity", quantity);
+        }
 
         if (values.PurchaseUnitPrice < 0m)
         {
             errors.Add("purchaseUnitPrice cannot be negative.");
         }
+        else
+        {
+            ValidateContractDecimal(errors, "purchaseUnitPrice", values.PurchaseUnitPrice);
+        }
 
         if (values.SellingUnitPrice < 0m)
         {
             errors.Add("sellingUnitPrice cannot be negative.");
+        }
+        else
+        {
+            ValidateContractDecimal(errors, "sellingUnitPrice", values.SellingUnitPrice);
         }
 
         RequireEqual(errors, "currency", values.Currency, Currency);
@@ -122,7 +137,32 @@ public static class CommercialRules
         {
             errors.Add($"discount {sequence} percentage must be between 0 and 100.");
         }
+        else if (Scale(discount.Percentage) > PercentageMaximumFractionDigits)
+        {
+            errors.Add(
+                $"discount {sequence} percentage must have at most {PercentageMaximumFractionDigits} fractional digits.");
+        }
     }
+
+    private static void ValidateContractDecimal(
+        List<string> errors,
+        string field,
+        decimal value)
+    {
+        if (value > MaximumContractDecimal)
+        {
+            errors.Add(
+                $"{field} must not exceed {MaximumContractDecimal:0.000000}.");
+        }
+        if (Scale(value) > DecimalMaximumFractionDigits)
+        {
+            errors.Add(
+                $"{field} must have at most {DecimalMaximumFractionDigits} fractional digits.");
+        }
+    }
+
+    private static int Scale(decimal value) =>
+        (decimal.GetBits(value)[3] >> 16) & 0x7F;
 
     private static void RequireEqual(
         List<string> errors,

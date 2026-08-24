@@ -315,11 +315,13 @@
         },
         "quantity": {
           "type": ["string", "null"],
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$"
         },
         "bonus": {
           "type": "string",
-          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$"
         },
         "expiryDate": {
           "type": ["string", "null"],
@@ -346,10 +348,10 @@
               "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/decimalField"
             },
             "discount1Percentage": {
-              "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/decimalField"
+              "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/percentageField"
             },
             "discount2Percentage": {
-              "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/decimalField"
+              "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/percentageField"
             },
             "sellingUnitPrice": {
               "$ref": "https://schemas.pharma-auto.invalid/v1/ocr-result.schema.json#/$defs/decimalField"
