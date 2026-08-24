@@ -17,7 +17,7 @@ Exit gate: لا توجد write assumptions غير مسجلة،وكل critical ta
 
 ## Phase 1 — Read-Only Vertical Slice
 
-Status: **Complete (2026-08-21) for the local non-billable acceptance scope; evidence and limitations are recorded in [Phase 1 Closure](21-phase-1-closure.md).**
+Status: **Implementation baseline recorded 2026-08-21 and updated 2026-08-24; acceptance pending. Evidence and open limitations are recorded in [Phase 1 Implementation Record](21-phase-1-closure.md).**
 
 - Connector installer/service/control UI.
 - Android pairing/upload.
@@ -28,17 +28,35 @@ Status: **Complete (2026-08-21) for the local non-billable acceptance scope; evi
 - Android review،expiry splitting وper-Posting-Line purchase/discount/selling-price editor.
 - لا DB writes.
 
-Exit gate: OCR/matching metrics معروفة وworkflow قابل للاستخدام دون data corruption risk.
+Acceptance still open:
+
+- API-28+ physical/emulator end-to-end and visual/accessibility acceptance،مع قرار صريح لمسار PAX API 27.
+- controlled live Gemini staging run على synthetic data وقياس field accuracy،schema rejection،latency،cost وquota idempotency.
+- independent pairing/replay،tenant isolation،file-limit،retention-recovery and local workflow tests tied to a commit/CI evidence record.
+- implementation and independent verification of the accepted local human identity/step-up and offline write-grant boundaries in ADR-012 and ADR-013 before any Phase 2 mutation implementation.
+
+Exit gate: OCR/matching metrics معروفة وworkflow قابل للاستخدام ومختبر على target device دون data corruption risk. Implementation existence أوstatic validation وحدهما لا يغلقان هذا gate.
 
 ## Phase 2 — Master Item Creation
 
-- New Item wizard.
-- permissions وduplicate checks.
-- Master Item Adapter.
-- `Item_Vendor` linkage.
-- read-back verification وaudit.
+Genius mutation status: **Blocked until Phase 1 acceptance and completion of the ADR-012/ADR-013 implementation،test and approval gates. Accepting either design decision does not enable writes.**
 
-Exit gate: Golden New Item scenarios وunit conversion tests كاملة.
+### Phase 2A — Golden Evidence First
+
+- implement and independently verify per-person Operator/Catalog Manager/Supervisor identity،role provisioning،session revocation،step-up and actor audit per ADR-012.
+- implement and independently verify separate `GENIUS_MASTER_ITEM_CREATE` grant،trusted-time and revocation behavior per ADR-013.
+- capture manual e-plus New Item،duplicate and unit-conversion scenarios on a disposable isolated Clone using the accepted Golden procedure.
+- obtain byte-for-byte read-back،all-table diff،DB Integration second review and Product/Accounting/Security approval where applicable.
+- **No Connector Genius mutation command،endpoint or runtime writer exists in Phase 2A.**
+
+### Phase 2B — Clone-Only Writer
+
+- implement New Item wizard،permissions and duplicate checks only after the matching Phase 2A evidence bundle is `PASS`.
+- implement Master Item Adapter and `Item_Vendor` linkage inside a disposable Clone profile only.
+- enforce DBFP-1،human step-up،capability-specific grant،read-back verification،audit and fault tests.
+- keep production/pilot activation absent؛there is no bypass or unsigned lab evidence promoted to a live profile.
+
+Exit gate: every enabled New Item/unit-conversion scenario has an approved Golden bundle،the Clone-only writer matches it،authorization/revocation/fault tests pass،and no production Genius write surface exists.
 
 ## Phase 3 — Direct DB Commit Lab
 

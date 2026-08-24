@@ -11,7 +11,7 @@ The Android client captures and reviews purchase invoices. It never contains SQL
 - CameraX `1.6.1`, Hilt `2.60.1`, Room `2.8.4` and WorkManager `2.11.2`.
 - Retrofit, OkHttp and Kotlinx Serialization for the Local Connector API.
 - Firebase App Distribution plugin `5.3.0`; project `pharma-auto-eg-smartsolustions`, Android package registration, and the `internal-testers` group are initialized. No App ID, token, or service credential is committed.
-- EGP decimal-string contracts; selling price is tax-inclusive per `BOX` and applies to new stock only.
+- Canonical EGP `DECIMAL(18,6)` strings (12 integer + 6 fractional digits maximum)،0..100 percentages with scale up to four،and no signs/exponents/grouping; selling price is tax-inclusive per `BOX` and applies to new stock only.
 
 ## Implemented Read-Only Slice
 

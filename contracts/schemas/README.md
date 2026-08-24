@@ -6,7 +6,7 @@ Product label schema تفصل `rawLabel` و`canonicalLabel` و`labelSource` و`q
 
 Initialized Phase 0 contracts:
 
-- `commercial-values.v1.schema.json`: EGP commercial values،two sequential percentage discounts،and new-stock-only box selling price.
+- `commercial-values.v1.schema.json`: EGP commercial values،unsigned `DECIMAL(18,6)` amounts/quantities،0..100 percentages with scale up to four،two sequential discounts،and new-stock-only box selling price.
 - `posting-line.v1.schema.json`: split identity, editable quantity and expiry, commercial evidence, and unified review-correction audit.
 - `invoice-revision.v1.schema.json`: immutable revision envelope and policy snapshot.
 - `ocr-result.v1.schema.json`: canonical Gemini-backed field/line evidence with page bounds،warnings and no Genius identity authority.

@@ -151,7 +151,7 @@ const threatModel = await readFile(
   path.join(repositoryRoot, "docs", "19-threat-model.md"),
   "utf8"
 );
-for (let index = 1; index <= 18; index += 1) {
+for (let index = 1; index <= 20; index += 1) {
   const id = `TM-${String(index).padStart(2, "0")}`;
   if (!threatModel.includes(id)) {
     throw new Error(`Threat Model entry is missing: ${id}`);
@@ -253,5 +253,5 @@ if (brokenLinks.length > 0) {
 }
 
 console.log(
-  `Phase 0 audit passed: ${baselineSystemDocuments.length} approved baseline system documents, ${requiredFiles.length} required Phase 0 artifacts, ${adrFiles.length} accepted ADRs, 17 registered write assumptions, 18 owned critical surfaces plus unknown-object fallback, 18 threats, 4 synthetic pages, 3 OCR results, no forbidden tracked files, and ${markdownFiles.length} Markdown files with valid local links.`
+  `Phase 0 audit passed: ${baselineSystemDocuments.length} approved baseline system documents, ${requiredFiles.length} required Phase 0 artifacts, ${adrFiles.length} accepted ADRs, 17 registered write assumptions, 18 owned critical surfaces plus unknown-object fallback, 20 threats, 4 synthetic pages, 3 OCR results, no forbidden tracked files, and ${markdownFiles.length} Markdown files with valid local links.`
 );

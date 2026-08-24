@@ -36,6 +36,68 @@ jobs:
       - name: Validate contracts
         run: pnpm contracts:validate
 
+      - name: Validate Phase 0 closure
+        run: pnpm phase0:validate
+
+      - name: Validate Phase 1 read-only closure
+        run: pnpm phase1:validate
+
+  saas:
+    name: SaaS Platform
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.6-pg18-trixie
+        env:
+          POSTGRES_USER: pharma_auto
+          POSTGRES_PASSWORD: pharma_auto_ci
+          POSTGRES_DB: pharma_auto_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready --username=pharma_auto --dbname=pharma_auto_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore locked dependencies
+        working-directory: saas-platform
+        run: dotnet restore PharmaAuto.Saas.slnx --locked-mode
+
+      - name: Build
+        working-directory: saas-platform
+        run: dotnet build PharmaAuto.Saas.slnx --no-restore
+
+      - name: Verify formatting
+        working-directory: saas-platform
+        run: dotnet format PharmaAuto.Saas.slnx --verify-no-changes --no-restore
+
+      - name: Test
+        working-directory: saas-platform
+        run: dotnet test PharmaAuto.Saas.slnx --no-build --no-restore
+
+      - name: Audit NuGet packages
+        working-directory: saas-platform
+        run: dotnet list PharmaAuto.Saas.slnx package --vulnerable --include-transitive
+
+      - name: Smoke-test PostgreSQL and pgvector migration
+        shell: bash
+        run: |
+          docker exec -i "${{ job.services.postgres.id }}" \
+            psql --username=pharma_auto --dbname=pharma_auto_ci --set=ON_ERROR_STOP=1 \
+            < saas-platform/db/001-phase-1.sql
+          docker exec "${{ job.services.postgres.id }}" \
+            psql --username=pharma_auto --dbname=pharma_auto_ci --set=ON_ERROR_STOP=1 \
+            --command "SELECT 'tenants'::regclass, 'connector_registrations'::regclass, 'subscriptions'::regclass, 'subscription_periods'::regclass, 'quota_reservations'::regclass, 'ocr_jobs'::regclass, 'canonical_products'::regclass, 'audit_events'::regclass, 'vector'::regtype;"
+
   connector:
     name: Local Connector
     runs-on: windows-latest
