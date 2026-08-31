@@ -89,7 +89,7 @@ CREATE TABLE quota_reservations (
     released_at timestamptz,
     CHECK (settled_at IS NULL OR released_at IS NULL),
     UNIQUE (tenant_id, job_id),
-    UNIQUE (tenant_id, reservation_id),
+    UNIQUE (tenant_id, reservation_id, job_id, page_count),
     FOREIGN KEY (tenant_id, entitlement_id)
         REFERENCES subscription_periods(tenant_id, entitlement_id)
 );
@@ -125,8 +125,8 @@ CREATE TABLE ocr_jobs (
     UNIQUE (tenant_id, job_id),
     FOREIGN KEY (tenant_id, connector_id)
         REFERENCES connector_registrations(tenant_id, connector_id),
-    FOREIGN KEY (tenant_id, reservation_id)
-        REFERENCES quota_reservations(tenant_id, reservation_id)
+    FOREIGN KEY (tenant_id, reservation_id, job_id, page_count)
+        REFERENCES quota_reservations(tenant_id, reservation_id, job_id, page_count)
 );
 
 CREATE TABLE canonical_products (

@@ -78,6 +78,42 @@
   <string name="review_remaining_line">راجع هذا البند قبل الإنهاء</string>
   <string name="invalid_commercial">راجع الأسعار والخصومات المحددة ثم حاول مرة أخرى</string>
   <string name="invalid_expiry">أكمل كل تواريخ الصلاحية وتأكد أن مجموع الكميات يساوي كمية الصنف</string>
+  <string name="invalid_split_quantity">أدخل كمية أكبر من صفر قبل تقسيم تاريخ الصلاحية</string>
+  <string name="numeric_value_required">أدخل قيمة</string>
+  <plurals name="numeric_value_too_long">
+    <item quantity="zero">لا تستخدم أي أحرف</item>
+    <item quantity="one">استخدم حرفًا واحدًا بحد أقصى</item>
+    <item quantity="two">استخدم حرفين بحد أقصى</item>
+    <item quantity="few">استخدم %1$d أحرف بحد أقصى</item>
+    <item quantity="many">استخدم %1$d حرفًا بحد أقصى</item>
+    <item quantity="other">استخدم %1$d حرف بحد أقصى</item>
+  </plurals>
+  <string name="numeric_grouping_not_allowed">لا يُسمح بفواصل الآلاف أو المسافات</string>
+  <string name="numeric_sign_not_allowed">لا يُسمح بإشارة موجبة أو سالبة</string>
+  <string name="numeric_exponent_not_allowed">لا يُسمح بالصيغة العلمية</string>
+  <string name="numeric_invalid_character">استخدم أرقامًا وفاصلة عشرية واحدة فقط</string>
+  <string name="numeric_multiple_decimal_separators">استخدم فاصلة عشرية واحدة فقط</string>
+  <string name="numeric_missing_integer_digits">أدخل صفرًا قبل الفاصلة العشرية</string>
+  <string name="numeric_missing_fraction_digits">أدخل أرقامًا بعد الفاصلة العشرية</string>
+  <string name="numeric_leading_zero">احذف الصفر الزائد في بداية القيمة</string>
+  <plurals name="numeric_too_many_integer_digits">
+    <item quantity="zero">لا تستخدم أرقامًا قبل الفاصلة العشرية</item>
+    <item quantity="one">استخدم رقمًا واحدًا بحد أقصى قبل الفاصلة العشرية</item>
+    <item quantity="two">استخدم رقمين بحد أقصى قبل الفاصلة العشرية</item>
+    <item quantity="few">استخدم %1$d أرقام بحد أقصى قبل الفاصلة العشرية</item>
+    <item quantity="many">استخدم %1$d رقمًا بحد أقصى قبل الفاصلة العشرية</item>
+    <item quantity="other">استخدم %1$d رقم بحد أقصى قبل الفاصلة العشرية</item>
+  </plurals>
+  <plurals name="numeric_too_many_fraction_digits">
+    <item quantity="zero">لا تستخدم أرقامًا بعد الفاصلة العشرية</item>
+    <item quantity="one">استخدم رقمًا واحدًا بحد أقصى بعد الفاصلة العشرية</item>
+    <item quantity="two">استخدم رقمين بحد أقصى بعد الفاصلة العشرية</item>
+    <item quantity="few">استخدم %1$d أرقام بحد أقصى بعد الفاصلة العشرية</item>
+    <item quantity="many">استخدم %1$d رقمًا بحد أقصى بعد الفاصلة العشرية</item>
+    <item quantity="other">استخدم %1$d رقم بحد أقصى بعد الفاصلة العشرية</item>
+  </plurals>
+  <string name="numeric_percentage_out_of_range">أدخل نسبة من 0 إلى 100</string>
+  <string name="numeric_value_must_be_positive">أدخل قيمة أكبر من صفر</string>
   <string name="back">رجوع</string>
   <string name="pair_this_device">ربط هذا الجهاز</string>
   <string name="connect_to_pharmacy">الاتصال بهذه الصيدلية</string>

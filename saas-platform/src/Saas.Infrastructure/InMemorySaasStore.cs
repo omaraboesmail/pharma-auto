@@ -343,14 +343,17 @@ public sealed class InMemorySaasStore(InMemorySaasSeed seed) : ISaasStore
                     ? CosineSimilarity(embedding, product.Embedding)
                     : 0d
             })
-            .Where(result => result.IdentifierMatch || result.LexicalHits > 0 || result.VectorScore > 0.1)
+            .Where(result =>
+                result.IdentifierMatch ||
+                result.LexicalHits > 0 ||
+                result.VectorScore >= CanonicalSearchPolicy.SemanticThreshold)
             .OrderByDescending(result => result.IdentifierMatch)
             .ThenByDescending(result => result.LexicalHits)
             .ThenByDescending(result => result.VectorScore)
             .Take(Math.Max(query.Limit * 3, query.Limit))
             .Select(result => new CanonicalProductSearchHit(
                 result.Product,
-                result.VectorScore > 0.1))
+                result.VectorScore))
             .ToArray();
         return Task.FromResult<IReadOnlyList<CanonicalProductSearchHit>>(products);
     }

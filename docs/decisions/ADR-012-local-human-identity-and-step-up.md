@@ -31,6 +31,13 @@ Local review and future supervised writes must continue during an allowed Intern
 - Every business command rechecks the current device, user, session and role state. Transport tokens alone never authorize invoice viewing, correction, confirmation, catalog creation or a write.
 - Stored capture transport may resume under device identity, but viewing tenant invoice content and issuing review or business commands require a valid human session. Internet loss does not extend a session and does not bypass local authentication.
 
+### Online authentication abuse controls
+
+- Every credential and step-up attempt is throttled server-side by the Local Connector. Limits are keyed at minimum by the `(actorId, deviceId)` pair and are reinforced by independent per-actor, per-device and source-network buckets so rotating any one identifier cannot bypass the control.
+- Repeated failures trigger progressive, bounded backoff followed by a policy-defined temporary lockout. The Connector persists the relevant counters across service restarts, records security audit events without credential material and does not let a successful attempt immediately erase evidence needed to detect a distributed guessing campaign.
+- Authentication, enrollment and recovery responses are enumeration-resistant: unknown, disabled and temporarily locked actors receive the same public response shape and materially equivalent work/timing as an invalid credential. Android does not learn whether an actor identifier exists from status codes, response text or retry metadata.
+- Lockout recovery never becomes a weaker authentication path. It requires the same second-Supervisor or documented pharmacy-owner ceremony as credential recovery, revokes affected sessions and approvals, rotates the credential version and preserves the write hold and audit requirements described above.
+
 ### Step-up and approval binding
 
 - High-impact actions require fresh authentication no more than five minutes old. The minimum step-up set is New Item creation, Genius Commit, missing-expiry override, ambiguous-duplicate override, privileged selling-price impact and user/role administration.
@@ -49,7 +56,7 @@ Local review and future supervised writes must continue during an allowed Intern
 ## Consequences
 
 - Phase 1 remains read-only،and its human authorization acceptance remains open until these contracts and tests exist.
-- Accepting this decision does not enable a write. Phase 2 cannot expose New Item mutation commands until provisioning،session revocation،permission،transaction-time recheck and step-up tests pass with independent Security/Product approval.
+- Accepting this decision does not enable a write. Phase 2 cannot expose New Item mutation commands until provisioning،session revocation،permission،transaction-time recheck،step-up،online-guessing throttling/backoff،anti-enumeration and lockout/recovery tests pass with independent Security/Product approval.
 - Android needs an explicit sign-in/lock/actor-switch experience suitable for a shared counter device.
 - Local recovery is more deliberate،but the implemented boundary will stop audit attribution from collapsing a person into a paired device or shared pharmacy credential.
 - Manual e-plus entry remains the operational path when local identity recovery places Pharma Auto writes on hold.

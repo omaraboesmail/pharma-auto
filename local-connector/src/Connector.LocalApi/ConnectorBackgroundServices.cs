@@ -27,9 +27,7 @@ public sealed class SidecarInitializationService(
                 InvoiceJobState.OcrReserved,
                 InvoiceJobState.OcrProcessing,
                 InvoiceJobState.OcrValidated,
-                InvoiceJobState.Matching,
-                InvoiceJobState.OcrFailed,
-                InvoiceJobState.MatchingFailed
+                InvoiceJobState.Matching
             ];
         var recovered = 0;
         var queued = 0;

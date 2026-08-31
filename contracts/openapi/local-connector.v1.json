@@ -525,7 +525,8 @@
           },
           "quantity": {
             "type": "string",
-            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+            "maxLength": 19,
+            "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$"
           },
           "commercialValues": {
             "$ref": "#/components/schemas/CommercialValues"
@@ -600,7 +601,8 @@
       },
       "DecimalString": {
         "type": "string",
-        "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+        "maxLength": 19,
+        "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$"
       },
       "ProblemDetails": {
         "type": "object",

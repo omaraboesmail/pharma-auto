@@ -55,7 +55,11 @@ public enum UploadChunkSaveDisposition
 {
     Stored,
     Replay,
-    Conflict
+    Conflict,
+    JobNotCaptured,
+    PageAlreadyComplete,
+    PageConflict,
+    PageSizeExceeded
 }
 
 public sealed record UploadChunkSaveResult(
@@ -143,7 +147,9 @@ public interface ISidecarStore
 
     Task DeleteChunksAsync(Guid jobId, int page, CancellationToken cancellationToken);
 
-    Task SavePageAsync(DocumentPage page, CancellationToken cancellationToken);
+    Task<DocumentPage> FinalizePageUploadAsync(
+        DocumentPage page,
+        CancellationToken cancellationToken);
 
     Task<IReadOnlyList<DocumentPage>> GetPagesAsync(
         Guid jobId,

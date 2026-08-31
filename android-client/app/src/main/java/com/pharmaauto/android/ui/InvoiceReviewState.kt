@@ -17,7 +17,8 @@ enum class ReviewMessage {
     PrototypeReviewComplete,
     ReviewRemainingLine,
     InvalidCommercial,
-    InvalidExpiry
+    InvalidExpiry,
+    InvalidSplitQuantity
 }
 
 @Immutable
@@ -136,8 +137,9 @@ object InvoiceReviewRules {
         expiryIndex: Int,
         newId: String
     ): InvoiceLineDraft {
-        val selected = line.expiries[expiryIndex]
-        val quantity = decimalOrNull(selected.quantity) ?: BigDecimal.ZERO
+        val selected = line.expiries.getOrNull(expiryIndex) ?: return line
+        val quantity = decimalOrNull(selected.quantity) ?: return line
+        if (quantity <= BigDecimal.ZERO) return line
         val newQuantity = if (quantity > BigDecimal.ONE) {
             quantity.divide(BigDecimal("2"), 3, RoundingMode.HALF_UP)
                 .stripTrailingZeros()

@@ -1,0 +1,3 @@
+\set ON_ERROR_STOP on
+\ir 001-phase-1.sql
+\ir 002-phase-1-hardening.sql

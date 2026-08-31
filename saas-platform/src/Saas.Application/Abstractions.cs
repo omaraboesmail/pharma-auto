@@ -4,7 +4,15 @@ namespace PharmaAuto.Saas.Application;
 
 public sealed record CanonicalProductSearchHit(
     CanonicalProduct Product,
-    bool SemanticMatch);
+    double SemanticScore)
+{
+    public bool SemanticMatch => SemanticScore >= CanonicalSearchPolicy.SemanticThreshold;
+}
+
+public static class CanonicalSearchPolicy
+{
+    public const double SemanticThreshold = 0.55d;
+}
 
 public sealed record OcrProcessingAttempt(
     OcrJob Job,

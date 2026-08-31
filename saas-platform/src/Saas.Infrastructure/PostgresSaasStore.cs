@@ -432,7 +432,7 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
         var vectorPredicate = embedding is null
             ? "FALSE"
             : "(embedding_version = @embedding_version AND embedding IS NOT NULL " +
-              "AND 1.0 - (embedding <=> CAST(@embedding AS vector)) >= 0.55)";
+              "AND 1.0 - (embedding <=> CAST(@embedding AS vector)) >= @semantic_threshold)";
         var sql = $$"""
             SELECT canonical_product_id, display_name, aliases, identifiers,
                    active_ingredient, strength, dosage_form, pack, manufacturer,
@@ -465,6 +465,9 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
                     ',',
                     embedding.Select(value => value.ToString("R", CultureInfo.InvariantCulture))) + "]");
             command.Parameters.AddWithValue("embedding_version", embeddingVersion!);
+            command.Parameters.AddWithValue(
+                "semantic_threshold",
+                CanonicalSearchPolicy.SemanticThreshold);
         }
 
         var products = new List<CanonicalProductSearchHit>();
@@ -485,7 +488,7 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
                         reader.IsDBNull(8) ? null : reader.GetString(8)),
                     reader.GetString(9),
                     null),
-                reader.GetDouble(10) >= 0.55d));
+                reader.GetDouble(10)));
         }
         _ = tenantId;
         return products;

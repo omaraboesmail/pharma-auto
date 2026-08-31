@@ -47,6 +47,32 @@ class InvoiceReviewRulesTest {
     }
 
     @Test
+    fun splitPreservesInvalidRawQuantityAndShowsTargetedMessage() {
+        val viewModel = InvoiceReviewViewModel()
+        viewModel.updateExpiryQuantity(expiryIndex = 0, input = "1e3")
+        val before = viewModel.uiState.currentLine.expiries
+
+        viewModel.splitExpiry(expiryIndex = 0)
+
+        assertEquals(before, viewModel.uiState.currentLine.expiries)
+        assertEquals("1e3", viewModel.uiState.currentLine.expiries[0].quantity)
+        assertEquals(ReviewMessage.InvalidSplitQuantity, viewModel.uiState.message)
+    }
+
+    @Test
+    fun splitPreservesNonPositiveQuantityAndShowsTargetedMessage() {
+        val viewModel = InvoiceReviewViewModel()
+        viewModel.updateExpiryQuantity(expiryIndex = 0, input = "0")
+        val before = viewModel.uiState.currentLine.expiries
+
+        viewModel.splitExpiry(expiryIndex = 0)
+
+        assertEquals(before, viewModel.uiState.currentLine.expiries)
+        assertEquals("0", viewModel.uiState.currentLine.expiries[0].quantity)
+        assertEquals(ReviewMessage.InvalidSplitQuantity, viewModel.uiState.message)
+    }
+
+    @Test
     fun arabicIndicValuesRemainVisibleAndParticipateInCalculations() {
         val state = sampleInvoiceReviewState()
         val line = state.currentLine.copy(

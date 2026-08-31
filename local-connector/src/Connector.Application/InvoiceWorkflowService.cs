@@ -138,17 +138,38 @@ public sealed class InvoiceWorkflowService(
                 content.Length,
                 now),
             cancellationToken);
+        var candidateWasRejected = saveResult.Disposition is
+            UploadChunkSaveDisposition.JobNotCaptured or
+            UploadChunkSaveDisposition.PageAlreadyComplete or
+            UploadChunkSaveDisposition.PageConflict or
+            UploadChunkSaveDisposition.PageSizeExceeded;
         if (saveResult.Disposition != UploadChunkSaveDisposition.Stored &&
-            !string.Equals(
-                saveResult.PersistedChunk.ObjectReference,
-                objectReference,
-                StringComparison.Ordinal))
+            (candidateWasRejected ||
+             !string.Equals(
+                 saveResult.PersistedChunk.ObjectReference,
+                 objectReference,
+                 StringComparison.Ordinal)))
         {
             await objectStore.DeleteAsync(objectReference, CancellationToken.None);
         }
-        if (saveResult.Disposition == UploadChunkSaveDisposition.Replay)
+        if (saveResult.Disposition == UploadChunkSaveDisposition.JobNotCaptured)
         {
+            throw new InvalidOperationException(
+                "Uploads are accepted only while a job is Captured.");
+        }
+        if (saveResult.Disposition == UploadChunkSaveDisposition.PageAlreadyComplete)
+        {
+            await RecoverCompletedPageAsync(job, page, cancellationToken);
             return await BuildPageStatusAsync(jobId, page, cancellationToken);
+        }
+        if (saveResult.Disposition == UploadChunkSaveDisposition.PageConflict)
+        {
+            throw new InvalidOperationException(
+                "Page number was replayed with different content.");
+        }
+        if (saveResult.Disposition == UploadChunkSaveDisposition.PageSizeExceeded)
+        {
+            throw new InvalidOperationException("Assembled page exceeds the 20 MiB limit.");
         }
         if (saveResult.Disposition == UploadChunkSaveDisposition.Conflict)
         {
@@ -520,10 +541,31 @@ public sealed class InvoiceWorkflowService(
         }
 
         await using var stream = new MemoryStream((int)total);
-        foreach (var chunk in ordered)
+        try
         {
-            var bytes = await objectStore.ReadAsync(chunk.ObjectReference, cancellationToken);
-            await stream.WriteAsync(bytes, cancellationToken);
+            foreach (var chunk in ordered)
+            {
+                var bytes = await objectStore.ReadAsync(
+                    chunk.ObjectReference,
+                    cancellationToken);
+                await stream.WriteAsync(bytes, cancellationToken);
+            }
+        }
+        catch (Exception exception) when (exception is
+            FileNotFoundException or
+            DirectoryNotFoundException or
+            KeyNotFoundException)
+        {
+            if (await TryRecoverCompletedPageAsync(
+                    job,
+                    page,
+                    ordered[0].PageSha256,
+                    ordered[0].MimeType,
+                    cancellationToken))
+            {
+                return;
+            }
+            throw;
         }
         var pageBytes = stream.ToArray();
         var pageHash = Convert.ToHexStringLower(SHA256.HashData(pageBytes));
@@ -542,7 +584,7 @@ public sealed class InvoiceWorkflowService(
             $"page-{page:D3}",
             pageBytes,
             cancellationToken);
-        await store.SavePageAsync(
+        var persistedPage = await store.FinalizePageUploadAsync(
             new DocumentPage(
                 job.JobId,
                 page,
@@ -552,25 +594,56 @@ public sealed class InvoiceWorkflowService(
                 pageBytes.Length,
                 timeProvider.GetUtcNow()),
             cancellationToken);
+        if (!string.Equals(
+                persistedPage.ObjectReference,
+                objectReference,
+                StringComparison.Ordinal))
+        {
+            await objectStore.DeleteAsync(objectReference, CancellationToken.None);
+        }
 
         foreach (var chunk in ordered)
         {
             await objectStore.DeleteAsync(chunk.ObjectReference, cancellationToken);
         }
-        await store.DeleteChunksAsync(job.JobId, page, cancellationToken);
+    }
 
-        var pages = await store.GetPagesAsync(job.JobId, cancellationToken);
-        if (pages.Count == job.ExpectedPageCount)
+    private async Task RecoverCompletedPageAsync(
+        InvoiceJob job,
+        int page,
+        CancellationToken cancellationToken)
+    {
+        var chunks = await store.GetChunksAsync(job.JobId, page, cancellationToken);
+        var completedPage = (await store.GetPagesAsync(job.JobId, cancellationToken))
+            .SingleOrDefault(candidate => candidate.Page == page)
+            ?? throw new InvalidOperationException("Completed upload page does not exist.");
+        _ = await store.FinalizePageUploadAsync(completedPage, cancellationToken);
+        foreach (var chunk in chunks)
         {
-            _ = await store.TransitionJobAsync(
-                job.JobId,
-                InvoiceJobState.Captured,
-                InvoiceJobState.LocallyValidated,
-                timeProvider.GetUtcNow(),
-                null,
-                null,
-                cancellationToken);
+            await objectStore.DeleteAsync(chunk.ObjectReference, cancellationToken);
         }
+    }
+
+    private async Task<bool> TryRecoverCompletedPageAsync(
+        InvoiceJob job,
+        int page,
+        string expectedSha256,
+        string expectedMimeType,
+        CancellationToken cancellationToken)
+    {
+        var completedPage = (await store.GetPagesAsync(job.JobId, cancellationToken))
+            .SingleOrDefault(candidate => candidate.Page == page);
+        if (completedPage is null ||
+            !FixedEquals(completedPage.Sha256, expectedSha256) ||
+            !string.Equals(
+                completedPage.MimeType,
+                expectedMimeType,
+                StringComparison.Ordinal))
+        {
+            return false;
+        }
+        await RecoverCompletedPageAsync(job, page, cancellationToken);
+        return true;
     }
 
     private async Task<UploadPageStatus> BuildPageStatusAsync(

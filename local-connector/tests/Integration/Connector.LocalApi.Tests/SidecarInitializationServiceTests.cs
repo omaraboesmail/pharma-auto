@@ -89,6 +89,26 @@ public sealed class SidecarInitializationServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Start_DoesNotRetryPreviouslyFailedJobsWithoutExplicitSubmission()
+    {
+        _ = await CreateJobAsync(InvoiceJobState.OcrFailed);
+        _ = await CreateJobAsync(InvoiceJobState.MatchingFailed);
+        var durablePendingJobId = await CreateJobAsync(InvoiceJobState.LocallyValidated);
+        var queue = new CapturingQueue();
+        var service = new SidecarInitializationService(
+            store,
+            queue,
+            new FixedTimeProvider(Now),
+            NullLogger<SidecarInitializationService>.Instance);
+
+        await service.StartAsync(CancellationToken.None);
+        await queue.WaitForJobAsync(durablePendingJobId, TimeSpan.FromSeconds(10));
+
+        Assert.Equal([durablePendingJobId], queue.JobIds);
+        await service.StopAsync(CancellationToken.None);
+    }
+
+    [Fact]
     public async Task Start_ReturnsWhileRecoveryQueueIsBackpressured()
     {
         var deviceId = await CreateDeviceAsync();
@@ -161,6 +181,15 @@ public sealed class SidecarInitializationServiceTests : IAsyncLifetime
         {
             using var cancellation = new CancellationTokenSource(timeout);
             for (var index = 0; index < count; index++)
+            {
+                await enqueueSignal.WaitAsync(cancellation.Token);
+            }
+        }
+
+        public async Task WaitForJobAsync(Guid jobId, TimeSpan timeout)
+        {
+            using var cancellation = new CancellationTokenSource(timeout);
+            while (!jobIds.Contains(jobId))
             {
                 await enqueueSignal.WaitAsync(cancellation.Token);
             }

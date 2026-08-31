@@ -10,7 +10,7 @@ public static class OcrContractGuard
 {
     private static readonly Regex Sha256Pattern = Pattern("^[a-f0-9]{64}$");
     private static readonly Regex DecimalPattern =
-        Pattern("^(0|[1-9][0-9]*)([.][0-9]{1,6})?$");
+        Pattern("^(0|[1-9][0-9]{0,11})([.][0-9]{1,6})?$");
     private static readonly Regex PercentagePattern = Pattern(
         "^(100([.]0{1,4})?|([0-9]|[1-9][0-9])([.][0-9]{1,4})?)$");
     private static readonly Regex DateTimePattern = Pattern(
@@ -406,7 +406,7 @@ public static class OcrContractGuard
         {
             return;
         }
-        var text = RequireString(value, path, 1, 128);
+        var text = RequireString(value, path, 1, percentage ? 8 : 19);
         if (!(percentage ? PercentagePattern : DecimalPattern).IsMatch(text) ||
             !decimal.TryParse(
                 text,

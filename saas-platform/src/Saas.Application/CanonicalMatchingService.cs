@@ -31,16 +31,22 @@ public sealed partial class CanonicalMatchingService(
             cancellationToken);
 
         return products
-            .Select(hit => BuildCandidate(
-                query,
-                normalizedDescription,
-                hit.Product,
-                hit.SemanticMatch))
-            .Where(candidate => candidate.ReasonCodes.Count > 0)
-            .OrderBy(candidate => candidate.HardMismatches.Count)
-            .ThenByDescending(candidate => CandidateRank(candidate.ReasonCodes))
-            .ThenBy(candidate => candidate.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .Select(hit => new
+            {
+                Candidate = BuildCandidate(
+                    query,
+                    normalizedDescription,
+                    hit.Product,
+                    hit.SemanticMatch),
+                hit.SemanticScore
+            })
+            .Where(hit => hit.Candidate.ReasonCodes.Count > 0)
+            .OrderBy(hit => hit.Candidate.HardMismatches.Count)
+            .ThenByDescending(hit => CandidateRank(hit.Candidate.ReasonCodes))
+            .ThenByDescending(hit => hit.SemanticScore)
+            .ThenBy(hit => hit.Candidate.DisplayName, StringComparer.OrdinalIgnoreCase)
             .Take(query.Limit)
+            .Select(hit => hit.Candidate)
             .ToArray();
     }
 

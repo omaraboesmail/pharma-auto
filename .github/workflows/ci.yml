@@ -68,6 +68,17 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Apply PostgreSQL migrations and replay hardening
+        shell: bash
+        run: |
+          docker cp saas-platform/db/. "${{ job.services.postgres.id }}:/tmp/pharma-auto-db"
+          docker exec "${{ job.services.postgres.id }}" \
+            psql --username=pharma_auto --dbname=pharma_auto_ci --set=ON_ERROR_STOP=1 \
+            --file=/tmp/pharma-auto-db/apply-all.psql
+          docker exec "${{ job.services.postgres.id }}" \
+            psql --username=pharma_auto --dbname=pharma_auto_ci --set=ON_ERROR_STOP=1 \
+            --file=/tmp/pharma-auto-db/002-phase-1-hardening.sql
+
       - name: Restore locked dependencies
         working-directory: saas-platform
         run: dotnet restore PharmaAuto.Saas.slnx --locked-mode
@@ -82,21 +93,21 @@ jobs:
 
       - name: Test
         working-directory: saas-platform
+        env:
+          PHARMA_AUTO_POSTGRES_TEST_CONNECTION_STRING: >-
+            Host=127.0.0.1;Port=5432;Database=pharma_auto_ci;Username=pharma_auto;Password=pharma_auto_ci;Include Error Detail=true
         run: dotnet test PharmaAuto.Saas.slnx --no-build --no-restore
 
       - name: Audit NuGet packages
         working-directory: saas-platform
         run: dotnet list PharmaAuto.Saas.slnx package --vulnerable --include-transitive
 
-      - name: Smoke-test PostgreSQL and pgvector migration
+      - name: Verify PostgreSQL hardening
         shell: bash
         run: |
-          docker exec -i "${{ job.services.postgres.id }}" \
-            psql --username=pharma_auto --dbname=pharma_auto_ci --set=ON_ERROR_STOP=1 \
-            < saas-platform/db/001-phase-1.sql
           docker exec "${{ job.services.postgres.id }}" \
             psql --username=pharma_auto --dbname=pharma_auto_ci --set=ON_ERROR_STOP=1 \
-            --command "SELECT 'tenants'::regclass, 'connector_registrations'::regclass, 'subscriptions'::regclass, 'subscription_periods'::regclass, 'quota_reservations'::regclass, 'ocr_jobs'::regclass, 'canonical_products'::regclass, 'audit_events'::regclass, 'vector'::regtype;"
+            --command "SELECT 'tenants'::regclass, 'connector_registrations'::regclass, 'subscriptions'::regclass, 'subscription_periods'::regclass, 'quota_reservations'::regclass, 'ocr_jobs'::regclass, 'canonical_products'::regclass, 'audit_events'::regclass, 'vector'::regtype; SELECT 1 / CASE WHEN count(*) = 6 AND bool_and(relrowsecurity AND relforcerowsecurity) THEN 1 ELSE 0 END FROM pg_class WHERE relname IN ('connector_registrations', 'subscriptions', 'subscription_periods', 'quota_reservations', 'ocr_jobs', 'audit_events');"
 
   connector:
     name: Local Connector

@@ -66,6 +66,30 @@
   <string name="review_remaining_line">Review this line before finishing</string>
   <string name="invalid_commercial">Check the highlighted prices and discounts, then try again</string>
   <string name="invalid_expiry">Complete every expiry date and make the quantities match the item total</string>
+  <string name="invalid_split_quantity">Enter a quantity greater than zero before splitting this expiry</string>
+  <string name="numeric_value_required">Enter a value</string>
+  <plurals name="numeric_value_too_long">
+    <item quantity="one">Use no more than %1$d character</item>
+    <item quantity="other">Use no more than %1$d characters</item>
+  </plurals>
+  <string name="numeric_grouping_not_allowed">Grouping separators and spaces are not allowed</string>
+  <string name="numeric_sign_not_allowed">Signed values are not allowed</string>
+  <string name="numeric_exponent_not_allowed">Scientific notation is not allowed</string>
+  <string name="numeric_invalid_character">Use digits and one decimal point only</string>
+  <string name="numeric_multiple_decimal_separators">Use only one decimal point</string>
+  <string name="numeric_missing_integer_digits">Enter zero before the decimal point</string>
+  <string name="numeric_missing_fraction_digits">Enter digits after the decimal point</string>
+  <string name="numeric_leading_zero">Remove the extra leading zero</string>
+  <plurals name="numeric_too_many_integer_digits">
+    <item quantity="one">Use at most %1$d digit before the decimal point</item>
+    <item quantity="other">Use at most %1$d digits before the decimal point</item>
+  </plurals>
+  <plurals name="numeric_too_many_fraction_digits">
+    <item quantity="one">Use at most %1$d digit after the decimal point</item>
+    <item quantity="other">Use at most %1$d digits after the decimal point</item>
+  </plurals>
+  <string name="numeric_percentage_out_of_range">Enter a percentage from 0 to 100</string>
+  <string name="numeric_value_must_be_positive">Enter a value greater than zero</string>
   <string name="back">Back</string>
   <string name="pair_this_device">Pair this device</string>
   <string name="connect_to_pharmacy">Connect to this pharmacy</string>

@@ -83,6 +83,15 @@ class InvoiceReviewViewModel : ViewModel() {
     }
 
     fun splitExpiry(expiryIndex: Int) {
+        val selected = uiState.currentLine.expiries.getOrNull(expiryIndex)
+        val quantity = selected?.let { expiry ->
+            InvoiceReviewRules.decimalOrNull(expiry.quantity)
+        }
+        if (quantity == null || quantity <= java.math.BigDecimal.ZERO) {
+            uiState = uiState.copy(message = ReviewMessage.InvalidSplitQuantity)
+            return
+        }
+
         updateCurrentLine { line ->
             InvoiceReviewRules.splitExpiry(
                 line = line,

@@ -20,6 +20,7 @@ public sealed class OcrContractGuardTests
     [InlineData("page-outside-document")]
     [InlineData("percentage-over-100")]
     [InlineData("percentage-excess-scale")]
+    [InlineData("decimal-excess-integer-digits")]
     [InlineData("duplicate-warning")]
     [InlineData("mismatched-mime-evidence")]
     [InlineData("impossible-date")]
@@ -76,6 +77,9 @@ public sealed class OcrContractGuardTests
                 break;
             case "percentage-excess-scale":
                 firstLine["discount1Percentage"]!["normalizedValue"] = "99.99999";
+                break;
+            case "decimal-excess-integer-digits":
+                firstLine["purchaseUnitPrice"]!["normalizedValue"] = "1000000000000";
                 break;
             case "duplicate-warning":
                 supplier["warnings"] = new JsonArray(

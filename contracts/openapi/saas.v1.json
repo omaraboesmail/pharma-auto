@@ -387,7 +387,12 @@
           "failureCode": {
             "type": ["string", "null"]
           },
-          "result": {},
+          "result": {
+            "oneOf": [
+              { "$ref": "../schemas/ocr-result.v1.schema.json" },
+              { "type": "null" }
+            ]
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -399,7 +404,33 @@
           "geniusWritePerformed": {
             "const": false
           }
-        }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "state": { "const": "COMPLETED" },
+              "providerModel": { "type": "string", "minLength": 1 },
+              "failureCode": { "type": "null" },
+              "result": { "$ref": "../schemas/ocr-result.v1.schema.json" }
+            }
+          },
+          {
+            "properties": {
+              "state": { "enum": ["RESERVED", "PROCESSING"] },
+              "providerModel": { "type": "null" },
+              "failureCode": { "type": "null" },
+              "result": { "type": "null" }
+            }
+          },
+          {
+            "properties": {
+              "state": { "const": "FAILED" },
+              "providerModel": { "type": "null" },
+              "failureCode": { "type": "string", "minLength": 1 },
+              "result": { "type": "null" }
+            }
+          }
+        ]
       },
       "PharmaAttributes": {
         "type": "object",

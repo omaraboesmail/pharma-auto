@@ -483,6 +483,20 @@ if (Object.keys(openApi.paths).some((apiPath) => /commit/i.test(apiPath))) {
   throw new Error("Phase 1 OpenAPI must not expose a Genius commit path.");
 }
 
+const canonicalDecimalPattern = "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$";
+const localDecimalContracts = [
+  [
+    "CommercialEditPreviewRequest.quantity",
+    openApi.components?.schemas?.CommercialEditPreviewRequest?.properties?.quantity
+  ],
+  ["DecimalString", openApi.components?.schemas?.DecimalString]
+];
+for (const [name, schema] of localDecimalContracts) {
+  if (schema?.maxLength !== 19 || schema?.pattern !== canonicalDecimalPattern) {
+    throw new Error(`${name} must enforce the canonical DECIMAL(18,6) text contract.`);
+  }
+}
+
 const saasOpenApi = await readJson(path.join(openApiDirectory, "saas.v1.json"));
 if (saasOpenApi.openapi !== "3.1.0") {
   throw new Error("SaaS contract must use OpenAPI 3.1.0.");
@@ -499,6 +513,44 @@ for (const requiredPath of requiredSaasPaths) {
   if (!saasOpenApi.paths?.[requiredPath]) {
     throw new Error(`SaaS OpenAPI path is missing: ${requiredPath}`);
   }
+}
+
+const ocrJobResponse = saasOpenApi.components?.schemas?.OcrJobResponse;
+const ocrResultVariants = ocrJobResponse?.properties?.result?.oneOf ?? [];
+const ocrStateVariants = ocrJobResponse?.oneOf ?? [];
+if (
+  !ocrResultVariants.some(
+    (variant) => variant?.$ref === "../schemas/ocr-result.v1.schema.json"
+  ) ||
+  !ocrResultVariants.some((variant) => variant?.type === "null") ||
+  !ocrStateVariants.some(
+    (variant) =>
+      variant?.properties?.state?.const === "COMPLETED" &&
+      variant?.properties?.providerModel?.type === "string" &&
+      variant?.properties?.providerModel?.minLength === 1 &&
+      variant?.properties?.failureCode?.type === "null" &&
+      variant?.properties?.result?.$ref === "../schemas/ocr-result.v1.schema.json"
+  ) ||
+  !ocrStateVariants.some(
+    (variant) =>
+      JSON.stringify(variant?.properties?.state?.enum) ===
+        JSON.stringify(["RESERVED", "PROCESSING"]) &&
+      variant?.properties?.providerModel?.type === "null" &&
+      variant?.properties?.failureCode?.type === "null" &&
+      variant?.properties?.result?.type === "null"
+  ) ||
+  !ocrStateVariants.some(
+    (variant) =>
+      variant?.properties?.state?.const === "FAILED" &&
+      variant?.properties?.providerModel?.type === "null" &&
+      variant?.properties?.failureCode?.type === "string" &&
+      variant?.properties?.failureCode?.minLength === 1 &&
+      variant?.properties?.result?.type === "null"
+  )
+) {
+  throw new Error(
+    "SaaS OCR job responses must bind each state to its result, provider, and failure payload."
+  );
 }
 
 const requiredSignedHeaderSchemes = {
