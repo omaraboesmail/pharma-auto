@@ -421,7 +421,7 @@ public sealed class PostgresSaasStoreIntegrationTests
         ALTER TABLE canonical_products DROP COLUMN search_vector;
         ALTER TABLE canonical_products
             ADD COLUMN search_vector tsvector GENERATED ALWAYS AS (
-                to_tsvector('simple', display_name || ' ' || array_to_string(aliases, ' '))
+                to_tsvector('simple'::regconfig, display_name)
             ) STORED;
         CREATE INDEX ix_canonical_products_search
             ON canonical_products USING gin(search_vector);
