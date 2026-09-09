@@ -17,7 +17,7 @@ room = "2.8.4"
 work = "2.11.2"
 coroutines = "1.11.0"
 exifinterface = "1.4.2"
-camerax = "1.6.1"
+camerax = "1.6.2"
 hilt = "2.60.1"
 
 [libraries]

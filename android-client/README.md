@@ -8,7 +8,7 @@ The Android client captures and reviews purchase invoices. It never contains SQL
 - `minSdk 28`, `compileSdk 37`, `targetSdk 37`.
 - Kotlin `2.4.10` with AGP built-in Kotlin and the Compose compiler plugin.
 - Jetpack Compose with Material 3 BOM `2026.08.00`.
-- CameraX `1.6.1`, Hilt `2.60.1`, Room `2.8.4` and WorkManager `2.11.2`.
+- CameraX `1.6.2`, Hilt `2.60.1`, Room `2.8.4` and WorkManager `2.11.2`.
 - Retrofit, OkHttp and Kotlinx Serialization for the Local Connector API.
 - Firebase App Distribution plugin `5.3.0`; project `pharma-auto-eg-smartsolustions`, Android package registration, and the `internal-testers` group are initialized. No App ID, token, or service credential is committed.
 - Canonical EGP `DECIMAL(18,6)` strings (12 integer + 6 fractional digits maximum)،0..100 percentages with scale up to four،and no signs/exponents/grouping; selling price is tax-inclusive per `BOX` and applies to new stock only.
