@@ -81,6 +81,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -109,6 +110,7 @@ fun InvoiceReviewRoute(viewModel: InvoiceReviewViewModel = viewModel()) {
                 ReviewMessage.ReviewRemainingLine -> R.string.review_remaining_line
                 ReviewMessage.InvalidCommercial -> R.string.invalid_commercial
                 ReviewMessage.InvalidExpiry -> R.string.invalid_expiry
+                ReviewMessage.InvalidSplitQuantity -> R.string.invalid_split_quantity
             }
         )
     }
@@ -161,7 +163,8 @@ fun InvoiceReviewScreen(
     LaunchedEffect(state.currentLine.id, state.message) {
         val targetIndex = when (state.message) {
             ReviewMessage.InvalidCommercial -> 3
-            ReviewMessage.InvalidExpiry -> 4
+            ReviewMessage.InvalidExpiry,
+            ReviewMessage.InvalidSplitQuantity -> 4
             else -> if (lastScrolledLineId != state.currentLine.id) 0 else null
         }
         if (targetIndex != null) {
@@ -473,7 +476,6 @@ private fun CommercialEvidenceEditor(
             sourceValue = moneyLabel(line.evidence.purchaseUnitPrice),
             confirmedValue = line.confirmed.purchaseUnitPrice,
             isPercentage = false,
-            isError = !isValidMoney(line.confirmed.purchaseUnitPrice),
             onValueChange = { onCommercialChange(CommercialField.PurchaseUnitPrice, it) }
         )
         CommercialEvidenceRow(
@@ -481,7 +483,6 @@ private fun CommercialEvidenceEditor(
             sourceValue = isolateForDisplay(line.evidence.discountOne),
             confirmedValue = line.confirmed.discountOne,
             isPercentage = true,
-            isError = !isValidPercentage(line.confirmed.discountOne),
             onValueChange = { onCommercialChange(CommercialField.DiscountOne, it) }
         )
         CommercialEvidenceRow(
@@ -489,7 +490,6 @@ private fun CommercialEvidenceEditor(
             sourceValue = isolateForDisplay(line.evidence.discountTwo),
             confirmedValue = line.confirmed.discountTwo,
             isPercentage = true,
-            isError = !isValidPercentage(line.confirmed.discountTwo),
             onValueChange = { onCommercialChange(CommercialField.DiscountTwo, it) }
         )
         CommercialEvidenceRow(
@@ -497,7 +497,6 @@ private fun CommercialEvidenceEditor(
             sourceValue = moneyLabel(line.evidence.sellingUnitPrice),
             confirmedValue = line.confirmed.sellingUnitPrice,
             isPercentage = false,
-            isError = !isValidMoney(line.confirmed.sellingUnitPrice),
             onValueChange = { onCommercialChange(CommercialField.SellingUnitPrice, it) },
             showDivider = false
         )
@@ -549,7 +548,6 @@ private fun CommercialEvidenceRow(
     sourceValue: String,
     confirmedValue: String,
     isPercentage: Boolean,
-    isError: Boolean,
     onValueChange: (String) -> Unit,
     showDivider: Boolean = true
 ) {
@@ -566,7 +564,6 @@ private fun CommercialEvidenceRow(
                 ConfirmedValueField(
                     value = confirmedValue,
                     isPercentage = isPercentage,
-                    isError = isError,
                     contentDescription = confirmedDescription,
                     onValueChange = onValueChange,
                     modifier = Modifier
@@ -585,7 +582,6 @@ private fun CommercialEvidenceRow(
                 ConfirmedValueField(
                     value = confirmedValue,
                     isPercentage = isPercentage,
-                    isError = isError,
                     contentDescription = confirmedDescription,
                     onValueChange = onValueChange,
                     modifier = Modifier
@@ -633,19 +629,23 @@ private fun SourceValue(
 private fun ConfirmedValueField(
     value: String,
     isPercentage: Boolean,
-    isError: Boolean,
     contentDescription: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier
 ) {
+    val errorText = decimalInputErrorText(value, isPercentage = isPercentage)
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier
             .heightIn(min = 64.dp)
-            .semantics { this.contentDescription = contentDescription },
+            .semantics {
+                this.contentDescription = contentDescription
+                if (errorText != null) error(errorText)
+            },
         singleLine = true,
-        isError = isError,
+        isError = errorText != null,
+        supportingText = errorText?.let { message -> { Text(message) } },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         prefix = if (isPercentage) null else {
             { Text(stringResource(R.string.currency_egp)) }
@@ -659,7 +659,7 @@ private fun ConfirmedValueField(
             Icon(
                 imageVector = Icons.Filled.Edit,
                 contentDescription = null,
-                tint = if (isError) {
+                tint = if (errorText != null) {
                     MaterialTheme.colorScheme.error
                 } else {
                     MaterialTheme.colorScheme.primary
@@ -751,8 +751,6 @@ private fun ExpiryRow(
     onSplit: () -> Unit,
     onRemove: () -> Unit
 ) {
-    val quantity = InvoiceReviewRules.decimalOrNull(expiry.quantity)
-    val quantityError = quantity == null || quantity <= BigDecimal.ZERO
     val splitDescription = stringResource(
         R.string.split_expiry_description,
         (expiryIndex + 1).toString()
@@ -782,7 +780,6 @@ private fun ExpiryRow(
                     QuantityField(
                         value = expiry.quantity,
                         expiryIndex = expiryIndex,
-                        isError = quantityError,
                         onValueChange = onQuantityChange,
                         modifier = Modifier.weight(1f)
                     )
@@ -817,7 +814,6 @@ private fun ExpiryRow(
                 QuantityField(
                     value = expiry.quantity,
                     expiryIndex = expiryIndex,
-                    isError = quantityError,
                     onValueChange = onQuantityChange,
                     modifier = Modifier.weight(0.8f)
                 )
@@ -845,7 +841,6 @@ private fun ExpiryRow(
 private fun QuantityField(
     value: String,
     expiryIndex: Int,
-    isError: Boolean,
     onValueChange: (String) -> Unit,
     modifier: Modifier
 ) {
@@ -854,16 +849,21 @@ private fun QuantityField(
         (expiryIndex + 1).toString()
     )
     val quantity = InvoiceReviewRules.decimalOrNull(value) ?: BigDecimal.ZERO
+    val errorText = decimalInputErrorText(value, positiveRequired = true)
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier
             .heightIn(min = 64.dp)
-            .semantics { contentDescription = quantityDescription },
+            .semantics {
+                contentDescription = quantityDescription
+                if (errorText != null) error(errorText)
+            },
         label = { Text(stringResource(R.string.quantity)) },
         suffix = { Text(boxUnit(quantity)) },
         singleLine = true,
-        isError = isError,
+        isError = errorText != null,
+        supportingText = errorText?.let { message -> { Text(message) } },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
     )
 }
@@ -1071,7 +1071,11 @@ private fun InvoiceTotalsBar(
                                 )
                             }
                         }
-                        FinishReviewButton(onFinishReview, Modifier.fillMaxWidth())
+                        FinishReviewButton(
+                            onClick = onFinishReview,
+                            enabled = state.lines.isNotEmpty(),
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 } else {
                     Row(
@@ -1080,7 +1084,11 @@ private fun InvoiceTotalsBar(
                         horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         InvoiceNetTotal(totals?.netPurchase, Modifier.weight(0.8f))
-                        FinishReviewButton(onFinishReview, Modifier.weight(1.2f))
+                        FinishReviewButton(
+                            onClick = onFinishReview,
+                            enabled = state.lines.isNotEmpty(),
+                            modifier = Modifier.weight(1.2f)
+                        )
                         IconButton(
                             onClick = onToggleTotals,
                             modifier = Modifier.semantics {
@@ -1140,9 +1148,10 @@ private fun InvoiceNetTotal(amount: BigDecimal?, modifier: Modifier) {
 }
 
 @Composable
-private fun FinishReviewButton(onClick: () -> Unit, modifier: Modifier) {
+private fun FinishReviewButton(onClick: () -> Unit, enabled: Boolean, modifier: Modifier) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.heightIn(min = 56.dp),
         shape = MaterialTheme.shapes.small
     ) {
@@ -1212,12 +1221,6 @@ private fun quantityPluralSelector(quantity: BigDecimal): Int {
 
 private fun localizedDateFormatter(): DateTimeFormatter =
     DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
-
-private fun isValidMoney(value: String): Boolean =
-    InvoiceReviewRules.decimalOrNull(value)?.let { it >= BigDecimal.ZERO } == true
-
-private fun isValidPercentage(value: String): Boolean =
-    InvoiceReviewRules.decimalOrNull(value)?.let { it in BigDecimal.ZERO..BigDecimal("100") } == true
 
 private fun displayMoney(value: BigDecimal): String = NumberFormat.getNumberInstance().run {
     minimumFractionDigits = 2

@@ -51,6 +51,25 @@ public sealed record SaasCanonicalCandidate(
     IReadOnlyList<string> ReasonCodes,
     IReadOnlyList<string> HardMismatches);
 
+public enum UploadChunkSaveDisposition
+{
+    Stored,
+    Replay,
+    Conflict,
+    JobNotCaptured,
+    PageAlreadyComplete,
+    PageConflict,
+    PageSizeExceeded
+}
+
+public sealed record UploadChunkSaveResult(
+    UploadChunkSaveDisposition Disposition,
+    UploadChunk PersistedChunk);
+
+public sealed record DurableJobPageItem(
+    long StoreSequence,
+    InvoiceJob Job);
+
 public interface ISidecarStore
 {
     Task InitializeAsync(CancellationToken cancellationToken);
@@ -98,8 +117,13 @@ public interface ISidecarStore
         int limit,
         CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<InvoiceJob>> ListJobsByStateAsync(
+    Task<long> GetJobRecoveryHighWatermarkAsync(
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<DurableJobPageItem>> ListJobsByStatePageAsync(
         IReadOnlyCollection<InvoiceJobState> states,
+        long afterStoreSequence,
+        long highWatermark,
         int limit,
         CancellationToken cancellationToken);
 
@@ -112,7 +136,9 @@ public interface ISidecarStore
         Guid? revisionId,
         CancellationToken cancellationToken);
 
-    Task SaveChunkAsync(UploadChunk chunk, CancellationToken cancellationToken);
+    Task<UploadChunkSaveResult> SaveChunkAsync(
+        UploadChunk chunk,
+        CancellationToken cancellationToken);
 
     Task<IReadOnlyList<UploadChunk>> GetChunksAsync(
         Guid jobId,
@@ -121,24 +147,32 @@ public interface ISidecarStore
 
     Task DeleteChunksAsync(Guid jobId, int page, CancellationToken cancellationToken);
 
-    Task SavePageAsync(DocumentPage page, CancellationToken cancellationToken);
+    Task<DocumentPage> FinalizePageUploadAsync(
+        DocumentPage page,
+        CancellationToken cancellationToken);
 
     Task<IReadOnlyList<DocumentPage>> GetPagesAsync(
         Guid jobId,
         CancellationToken cancellationToken);
 
-    Task SaveRevisionAsync(
+    Task<bool> SaveRevisionAndTransitionJobAsync(
         InvoiceRevisionRecord revision,
+        InvoiceJobState expectedJobState,
+        InvoiceJobState nextJobState,
+        Guid? expectedCurrentRevisionId,
+        DateTimeOffset changedAt,
         CancellationToken cancellationToken);
 
     Task<InvoiceRevisionRecord?> GetRevisionAsync(
         Guid revisionId,
         CancellationToken cancellationToken);
 
-    Task<bool> ConfirmRevisionAsync(
+    Task<bool> ConfirmRevisionAndTransitionJobAsync(
         Guid revisionId,
+        Guid jobId,
         Guid deviceId,
         DateTimeOffset confirmedAt,
+        AuditRecord audit,
         CancellationToken cancellationToken);
 
     Task ReplaceCatalogAsync(

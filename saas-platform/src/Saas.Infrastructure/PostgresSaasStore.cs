@@ -83,24 +83,58 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
             reader.GetBoolean(11));
     }
 
-    public async Task<QuotaReservation> ReserveQuotaAsync(
+    public async Task<OcrProcessingAttempt> StartOcrJobAsync(
         Guid tenantId,
         Guid connectorId,
         Guid jobId,
         int pageCount,
+        string sourceSha256,
         DateTimeOffset now,
+        DateTimeOffset staleBefore,
         CancellationToken cancellationToken)
     {
+        if (pageCount is < 1 or > 100)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageCount));
+        }
+        if (sourceSha256.Length != 64)
+        {
+            throw new ArgumentException("A SHA-256 source binding is required.", nameof(sourceSha256));
+        }
+
         await using var connection = await OpenTenantAsync(tenantId, cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(
-            IsolationLevel.Serializable,
+            IsolationLevel.ReadCommitted,
             cancellationToken);
 
+        await using (var lockCommand = new NpgsqlCommand(
+            "SELECT pg_advisory_xact_lock(hashtextextended(@lock_key, 0));",
+            connection,
+            transaction))
+        {
+            lockCommand.Parameters.AddWithValue("lock_key", $"{tenantId:D}:{jobId:D}");
+            await lockCommand.ExecuteNonQueryAsync(cancellationToken);
+        }
+
         const string existingSql = """
-            SELECT reservation_id, page_count, reserved_at, settled_at, released_at IS NOT NULL
-            FROM quota_reservations
-            WHERE tenant_id = @tenant_id AND job_id = @job_id;
+            SELECT job.job_id, job.tenant_id, job.connector_id, job.page_count,
+                   job.source_sha256, job.state, job.reservation_id,
+                   job.result_json::text, job.provider_model, job.failure_code,
+                   job.created_at, job.updated_at, job.attempt_id,
+                   reservation.entitlement_id, reservation.page_count,
+                   reservation.settled_at, reservation.released_at
+            FROM ocr_jobs AS job
+            JOIN quota_reservations AS reservation
+              ON reservation.reservation_id = job.reservation_id
+             AND reservation.tenant_id = job.tenant_id
+             AND reservation.job_id = job.job_id
+            WHERE job.tenant_id = @tenant_id AND job.job_id = @job_id
+            FOR UPDATE OF job, reservation;
             """;
+        OcrJob? existingJob = null;
+        Guid existingAttemptId = Guid.Empty;
+        DateTimeOffset? existingSettledAt = null;
+        DateTimeOffset? existingReleasedAt = null;
         await using (var existingCommand = new NpgsqlCommand(existingSql, connection, transaction))
         {
             existingCommand.Parameters.AddWithValue("tenant_id", tenantId);
@@ -108,23 +142,80 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
             await using var reader = await existingCommand.ExecuteReaderAsync(cancellationToken);
             if (await reader.ReadAsync(cancellationToken))
             {
-                var existingCount = reader.GetInt32(1);
-                if (existingCount != pageCount)
+                existingJob = ReadOcrJob(reader);
+                existingAttemptId = reader.GetGuid(12);
+                if (reader.GetInt32(14) != existingJob.PageCount)
                 {
                     throw new InvalidOperationException(
-                        "The idempotent OCR reservation was replayed with a different page count.");
+                        "OCR job and quota reservation page counts do not agree.");
                 }
-                var existing = new QuotaReservation(
-                    reader.GetGuid(0),
-                    tenantId,
-                    jobId,
-                    existingCount,
-                    reader.GetFieldValue<DateTimeOffset>(2),
-                    reader.IsDBNull(3) ? null : reader.GetFieldValue<DateTimeOffset>(3),
-                    reader.GetBoolean(4));
-                await reader.DisposeAsync();
+                existingSettledAt = reader.IsDBNull(15)
+                    ? null
+                    : reader.GetFieldValue<DateTimeOffset>(15);
+                existingReleasedAt = reader.IsDBNull(16)
+                    ? null
+                    : reader.GetFieldValue<DateTimeOffset>(16);
+            }
+        }
+
+        if (existingJob is not null)
+        {
+            EnsureSameOcrJob(
+                existingJob,
+                tenantId,
+                connectorId,
+                pageCount,
+                sourceSha256);
+            if (existingJob.State == OcrJobState.Completed)
+            {
+                if (existingSettledAt is null || existingReleasedAt is not null)
+                {
+                    throw new InvalidOperationException(
+                        "Completed OCR job and quota settlement do not agree.");
+                }
                 await transaction.CommitAsync(cancellationToken);
-                return existing;
+                return new OcrProcessingAttempt(existingJob, existingAttemptId);
+            }
+
+            if (existingJob.State is OcrJobState.Processing or OcrJobState.Reserved)
+            {
+                if (existingSettledAt is not null || existingReleasedAt is not null)
+                {
+                    throw new InvalidOperationException(
+                        "Active OCR job and quota reservation do not agree.");
+                }
+                if (existingJob.State == OcrJobState.Processing &&
+                    existingJob.UpdatedAt > staleBefore)
+                {
+                    throw new InvalidOperationException(
+                        "The OCR job is already being processed by an active attempt.");
+                }
+
+                var recoveredAttemptId = Guid.NewGuid();
+                var recoveredJob = existingJob with
+                {
+                    State = OcrJobState.Processing,
+                    ResultJson = null,
+                    ProviderModel = null,
+                    FailureCode = null,
+                    UpdatedAt = now
+                };
+                await UpdateProcessingJobAsync(
+                    connection,
+                    transaction,
+                    recoveredJob,
+                    recoveredAttemptId,
+                    cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return new OcrProcessingAttempt(recoveredJob, recoveredAttemptId);
+            }
+
+            if (existingJob.State != OcrJobState.Failed ||
+                existingSettledAt is not null ||
+                existingReleasedAt is null)
+            {
+                throw new InvalidOperationException(
+                    "Failed OCR job and released quota reservation do not agree.");
             }
         }
 
@@ -132,7 +223,9 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
             SELECT p.entitlement_id, p.page_limit, p.pages_reserved, p.pages_settled
             FROM connector_registrations c
             JOIN subscriptions s ON s.tenant_id = c.tenant_id
-            JOIN subscription_periods p ON p.subscription_id = s.subscription_id
+            JOIN subscription_periods p
+              ON p.subscription_id = s.subscription_id
+             AND p.tenant_id = s.tenant_id
             WHERE c.connector_id = @connector_id
               AND c.tenant_id = @tenant_id
               AND c.revoked_at IS NULL
@@ -167,52 +260,143 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
             throw new QuotaExceededException(pageCount, remaining);
         }
 
-        var reservation = new QuotaReservation(
-            Guid.NewGuid(),
-            tenantId,
-            jobId,
-            pageCount,
-            now,
-            null,
-            false);
-        const string insertSql = """
-            INSERT INTO quota_reservations
-                (reservation_id, tenant_id, entitlement_id, job_id, page_count, reserved_at)
-            VALUES
-                (@reservation_id, @tenant_id, @entitlement_id, @job_id, @page_count, @reserved_at);
+        var reservationId = existingJob?.ReservationId ?? Guid.NewGuid();
+        var attemptId = Guid.NewGuid();
+        OcrJob processingJob;
+        if (existingJob is null)
+        {
+            const string insertReservationSql = """
+                INSERT INTO quota_reservations
+                    (reservation_id, tenant_id, entitlement_id, job_id, page_count, reserved_at)
+                VALUES
+                    (@reservation_id, @tenant_id, @entitlement_id, @job_id, @page_count, @reserved_at);
+                """;
+            await using (var insertReservation = new NpgsqlCommand(
+                insertReservationSql,
+                connection,
+                transaction))
+            {
+                AddReservationParameters(
+                    insertReservation,
+                    reservationId,
+                    tenantId,
+                    entitlementId,
+                    jobId,
+                    pageCount,
+                    now);
+                if (await insertReservation.ExecuteNonQueryAsync(cancellationToken) != 1)
+                {
+                    throw new InvalidOperationException("Quota reservation was not created.");
+                }
+            }
 
+            processingJob = new OcrJob(
+                jobId,
+                tenantId,
+                connectorId,
+                pageCount,
+                sourceSha256,
+                OcrJobState.Processing,
+                reservationId,
+                null,
+                null,
+                null,
+                now,
+                now);
+            await InsertOcrJobAsync(
+                connection,
+                transaction,
+                processingJob,
+                attemptId,
+                cancellationToken);
+        }
+        else
+        {
+            const string reactivateReservationSql = """
+                UPDATE quota_reservations
+                SET entitlement_id = @entitlement_id,
+                    reserved_at = @reserved_at,
+                    settled_at = NULL,
+                    released_at = NULL
+                WHERE reservation_id = @reservation_id
+                  AND tenant_id = @tenant_id
+                  AND job_id = @job_id
+                  AND released_at IS NOT NULL
+                  AND settled_at IS NULL;
+                """;
+            await using (var reactivateReservation = new NpgsqlCommand(
+                reactivateReservationSql,
+                connection,
+                transaction))
+            {
+                AddReservationParameters(
+                    reactivateReservation,
+                    reservationId,
+                    tenantId,
+                    entitlementId,
+                    jobId,
+                    pageCount,
+                    now);
+                if (await reactivateReservation.ExecuteNonQueryAsync(cancellationToken) != 1)
+                {
+                    throw new InvalidOperationException("Released quota reservation changed during retry.");
+                }
+            }
+
+            processingJob = existingJob with
+            {
+                State = OcrJobState.Processing,
+                ResultJson = null,
+                ProviderModel = null,
+                FailureCode = null,
+                UpdatedAt = now
+            };
+            await UpdateProcessingJobAsync(
+                connection,
+                transaction,
+                processingJob,
+                attemptId,
+                cancellationToken);
+        }
+
+        const string incrementPeriodSql = """
             UPDATE subscription_periods
             SET pages_reserved = pages_reserved + @page_count,
                 updated_at = @reserved_at
-            WHERE entitlement_id = @entitlement_id;
+            WHERE entitlement_id = @entitlement_id
+              AND tenant_id = @tenant_id;
             """;
-        await using (var insertCommand = new NpgsqlCommand(insertSql, connection, transaction))
+        await using (var incrementPeriod = new NpgsqlCommand(
+            incrementPeriodSql,
+            connection,
+            transaction))
         {
-            insertCommand.Parameters.AddWithValue("reservation_id", reservation.ReservationId);
-            insertCommand.Parameters.AddWithValue("tenant_id", tenantId);
-            insertCommand.Parameters.AddWithValue("entitlement_id", entitlementId);
-            insertCommand.Parameters.AddWithValue("job_id", jobId);
-            insertCommand.Parameters.AddWithValue("page_count", pageCount);
-            insertCommand.Parameters.AddWithValue("reserved_at", now);
-            await insertCommand.ExecuteNonQueryAsync(cancellationToken);
+            incrementPeriod.Parameters.AddWithValue("page_count", pageCount);
+            incrementPeriod.Parameters.AddWithValue("reserved_at", now);
+            incrementPeriod.Parameters.AddWithValue("entitlement_id", entitlementId);
+            incrementPeriod.Parameters.AddWithValue("tenant_id", tenantId);
+            if (await incrementPeriod.ExecuteNonQueryAsync(cancellationToken) != 1)
+            {
+                throw new InvalidOperationException("Subscription period changed during reservation.");
+            }
         }
         await transaction.CommitAsync(cancellationToken);
-        return reservation;
+        return new OcrProcessingAttempt(processingJob, attemptId);
     }
 
-    public Task SettleQuotaAsync(
-        Guid tenantId,
-        Guid reservationId,
-        DateTimeOffset now,
+    public Task<OcrJob> CompleteOcrJobAsync(
+        OcrJob job,
+        Guid attemptId,
+        AuditEvent auditEvent,
         CancellationToken cancellationToken) =>
-        CompleteReservationAsync(tenantId, reservationId, now, settle: true, cancellationToken);
+        FinalizeOcrJobAsync(job, attemptId, auditEvent, settle: true, cancellationToken);
 
-    public Task ReleaseQuotaAsync(
-        Guid tenantId,
-        Guid reservationId,
-        DateTimeOffset now,
+    public Task<OcrJob> FailOcrJobAsync(
+        OcrJob job,
+        Guid attemptId,
+        AuditEvent auditEvent,
         CancellationToken cancellationToken) =>
-        CompleteReservationAsync(tenantId, reservationId, now, settle: false, cancellationToken);
+        FinalizeOcrJobAsync(job, attemptId, auditEvent, settle: false, cancellationToken);
 
     public async Task<OcrJob?> GetOcrJobAsync(
         Guid tenantId,
@@ -234,50 +418,7 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
         return await reader.ReadAsync(cancellationToken) ? ReadOcrJob(reader) : null;
     }
 
-    public async Task SaveOcrJobAsync(OcrJob job, CancellationToken cancellationToken)
-    {
-        const string sql = """
-            INSERT INTO ocr_jobs
-                (job_id, tenant_id, connector_id, page_count, source_sha256, state,
-                 reservation_id, result_json, provider_model, failure_code, created_at, updated_at)
-            VALUES
-                (@job_id, @tenant_id, @connector_id, @page_count, @source_sha256, @state,
-                 @reservation_id, @result_json, @provider_model, @failure_code, @created_at, @updated_at)
-            ON CONFLICT (job_id) DO UPDATE SET
-                state = EXCLUDED.state,
-                result_json = EXCLUDED.result_json,
-                provider_model = EXCLUDED.provider_model,
-                failure_code = EXCLUDED.failure_code,
-                updated_at = EXCLUDED.updated_at
-            WHERE ocr_jobs.tenant_id = EXCLUDED.tenant_id
-              AND ocr_jobs.connector_id = EXCLUDED.connector_id;
-            """;
-        await using var connection = await OpenTenantAsync(job.TenantId, cancellationToken);
-        await using var command = new NpgsqlCommand(sql, connection);
-        command.Parameters.AddWithValue("job_id", job.JobId);
-        command.Parameters.AddWithValue("tenant_id", job.TenantId);
-        command.Parameters.AddWithValue("connector_id", job.ConnectorId);
-        command.Parameters.AddWithValue("page_count", job.PageCount);
-        command.Parameters.AddWithValue("source_sha256", job.SourceSha256);
-        command.Parameters.AddWithValue("state", ToDatabaseState(job.State));
-        command.Parameters.AddWithValue("reservation_id", job.ReservationId);
-        command.Parameters.Add(
-            new NpgsqlParameter("result_json", NpgsqlDbType.Jsonb)
-            {
-                Value = (object?)job.ResultJson ?? DBNull.Value
-            });
-        command.Parameters.AddWithValue("provider_model", (object?)job.ProviderModel ?? DBNull.Value);
-        command.Parameters.AddWithValue("failure_code", (object?)job.FailureCode ?? DBNull.Value);
-        command.Parameters.AddWithValue("created_at", job.CreatedAt);
-        command.Parameters.AddWithValue("updated_at", job.UpdatedAt);
-        var affected = await command.ExecuteNonQueryAsync(cancellationToken);
-        if (affected == 0)
-        {
-            throw new InvalidOperationException("Cross-tenant OCR job collision.");
-        }
-    }
-
-    public async Task<IReadOnlyList<CanonicalProduct>> SearchCanonicalProductsAsync(
+    public async Task<IReadOnlyList<CanonicalProductSearchHit>> SearchCanonicalProductsAsync(
         Guid tenantId,
         CanonicalSearchQuery query,
         float[]? embedding,
@@ -285,17 +426,17 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
         CancellationToken cancellationToken)
     {
         var vectorOrder = embedding is null
-            ? "0.0"
+            ? "0.0::double precision"
             : "CASE WHEN embedding_version = @embedding_version AND embedding IS NOT NULL " +
               "THEN 1.0 - (embedding <=> CAST(@embedding AS vector)) ELSE 0.0 END";
         var vectorPredicate = embedding is null
             ? "FALSE"
             : "(embedding_version = @embedding_version AND embedding IS NOT NULL " +
-              "AND 1.0 - (embedding <=> CAST(@embedding AS vector)) >= 0.55)";
+              "AND 1.0 - (embedding <=> CAST(@embedding AS vector)) >= @semantic_threshold)";
         var sql = $$"""
             SELECT canonical_product_id, display_name, aliases, identifiers,
                    active_ingredient, strength, dosage_form, pack, manufacturer,
-                   embedding_version
+                   embedding_version, {{vectorOrder}} AS semantic_score
             FROM canonical_products
             WHERE active
               AND (
@@ -324,25 +465,30 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
                     ',',
                     embedding.Select(value => value.ToString("R", CultureInfo.InvariantCulture))) + "]");
             command.Parameters.AddWithValue("embedding_version", embeddingVersion!);
+            command.Parameters.AddWithValue(
+                "semantic_threshold",
+                CanonicalSearchPolicy.SemanticThreshold);
         }
 
-        var products = new List<CanonicalProduct>();
+        var products = new List<CanonicalProductSearchHit>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
-            products.Add(new CanonicalProduct(
-                reader.GetGuid(0),
-                reader.GetString(1),
-                reader.GetFieldValue<string[]>(2),
-                reader.GetFieldValue<string[]>(3),
-                new PharmaAttributes(
-                    reader.IsDBNull(4) ? null : reader.GetString(4),
-                    reader.IsDBNull(5) ? null : reader.GetString(5),
-                    reader.IsDBNull(6) ? null : reader.GetString(6),
-                    reader.IsDBNull(7) ? null : reader.GetString(7),
-                    reader.IsDBNull(8) ? null : reader.GetString(8)),
-                reader.GetString(9),
-                null));
+            products.Add(new CanonicalProductSearchHit(
+                new CanonicalProduct(
+                    reader.GetGuid(0),
+                    reader.GetString(1),
+                    reader.GetFieldValue<string[]>(2),
+                    reader.GetFieldValue<string[]>(3),
+                    new PharmaAttributes(
+                        reader.IsDBNull(4) ? null : reader.GetString(4),
+                        reader.IsDBNull(5) ? null : reader.GetString(5),
+                        reader.IsDBNull(6) ? null : reader.GetString(6),
+                        reader.IsDBNull(7) ? null : reader.GetString(7),
+                        reader.IsDBNull(8) ? null : reader.GetString(8)),
+                    reader.GetString(9),
+                    null),
+                reader.GetDouble(10)));
         }
         _ = tenantId;
         return products;
@@ -360,73 +506,311 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
             """;
         await using var connection = await OpenTenantAsync(auditEvent.TenantId, cancellationToken);
         await using var command = new NpgsqlCommand(sql, connection);
-        command.Parameters.AddWithValue("event_id", auditEvent.EventId);
-        command.Parameters.AddWithValue("tenant_id", auditEvent.TenantId);
-        command.Parameters.AddWithValue("actor_type", auditEvent.ActorType);
-        command.Parameters.AddWithValue("actor_reference", auditEvent.ActorReference);
-        command.Parameters.AddWithValue("action", auditEvent.Action);
-        command.Parameters.AddWithValue("target_reference", auditEvent.TargetReference);
-        command.Parameters.AddWithValue("result", auditEvent.Result);
-        command.Parameters.AddWithValue("correlation_id", auditEvent.CorrelationId);
-        command.Parameters.AddWithValue("occurred_at", auditEvent.OccurredAt);
+        AddAuditParameters(command, auditEvent);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    private async Task CompleteReservationAsync(
-        Guid tenantId,
+    private static async Task InsertOcrJobAsync(
+        NpgsqlConnection connection,
+        NpgsqlTransaction transaction,
+        OcrJob job,
+        Guid attemptId,
+        CancellationToken cancellationToken)
+    {
+        const string sql = """
+            INSERT INTO ocr_jobs
+                (job_id, tenant_id, connector_id, page_count, source_sha256, state,
+                 reservation_id, result_json, provider_model, failure_code,
+                 created_at, updated_at, attempt_id)
+            VALUES
+                (@job_id, @tenant_id, @connector_id, @page_count, @source_sha256, 'PROCESSING',
+                 @reservation_id, NULL, NULL, NULL, @created_at, @updated_at, @attempt_id);
+            """;
+        await using var command = new NpgsqlCommand(sql, connection, transaction);
+        AddOcrIdentityParameters(command, job);
+        command.Parameters.AddWithValue("created_at", job.CreatedAt);
+        command.Parameters.AddWithValue("updated_at", job.UpdatedAt);
+        command.Parameters.AddWithValue("attempt_id", attemptId);
+        if (await command.ExecuteNonQueryAsync(cancellationToken) != 1)
+        {
+            throw new InvalidOperationException("OCR processing job was not created.");
+        }
+    }
+
+    private static async Task UpdateProcessingJobAsync(
+        NpgsqlConnection connection,
+        NpgsqlTransaction transaction,
+        OcrJob job,
+        Guid attemptId,
+        CancellationToken cancellationToken)
+    {
+        const string sql = """
+            UPDATE ocr_jobs
+            SET state = 'PROCESSING',
+                result_json = NULL,
+                provider_model = NULL,
+                failure_code = NULL,
+                updated_at = @updated_at,
+                attempt_id = @attempt_id
+            WHERE job_id = @job_id
+              AND tenant_id = @tenant_id
+              AND connector_id = @connector_id
+              AND page_count = @page_count
+              AND source_sha256 = @source_sha256
+              AND reservation_id = @reservation_id
+              AND state <> 'COMPLETED';
+            """;
+        await using var command = new NpgsqlCommand(sql, connection, transaction);
+        AddOcrIdentityParameters(command, job);
+        command.Parameters.AddWithValue("updated_at", job.UpdatedAt);
+        command.Parameters.AddWithValue("attempt_id", attemptId);
+        if (await command.ExecuteNonQueryAsync(cancellationToken) != 1)
+        {
+            throw new InvalidOperationException("OCR job changed before processing could start.");
+        }
+    }
+
+    private static void AddOcrIdentityParameters(NpgsqlCommand command, OcrJob job)
+    {
+        command.Parameters.AddWithValue("job_id", job.JobId);
+        command.Parameters.AddWithValue("tenant_id", job.TenantId);
+        command.Parameters.AddWithValue("connector_id", job.ConnectorId);
+        command.Parameters.AddWithValue("page_count", job.PageCount);
+        command.Parameters.AddWithValue("source_sha256", job.SourceSha256);
+        command.Parameters.AddWithValue("reservation_id", job.ReservationId);
+    }
+
+    private static void AddReservationParameters(
+        NpgsqlCommand command,
         Guid reservationId,
-        DateTimeOffset now,
+        Guid tenantId,
+        Guid entitlementId,
+        Guid jobId,
+        int pageCount,
+        DateTimeOffset reservedAt)
+    {
+        command.Parameters.AddWithValue("reservation_id", reservationId);
+        command.Parameters.AddWithValue("tenant_id", tenantId);
+        command.Parameters.AddWithValue("entitlement_id", entitlementId);
+        command.Parameters.AddWithValue("job_id", jobId);
+        command.Parameters.AddWithValue("page_count", pageCount);
+        command.Parameters.AddWithValue("reserved_at", reservedAt);
+    }
+
+    private async Task<OcrJob> FinalizeOcrJobAsync(
+        OcrJob job,
+        Guid attemptId,
+        AuditEvent auditEvent,
         bool settle,
         CancellationToken cancellationToken)
     {
-        await using var connection = await OpenTenantAsync(tenantId, cancellationToken);
+        if (settle &&
+            (job.State != OcrJobState.Completed || string.IsNullOrWhiteSpace(job.ResultJson)))
+        {
+            throw new ArgumentException("A completed OCR job must include a result.", nameof(job));
+        }
+        if (!settle &&
+            (job.State != OcrJobState.Failed || string.IsNullOrWhiteSpace(job.FailureCode)))
+        {
+            throw new ArgumentException("A failed OCR job must include a failure code.", nameof(job));
+        }
+        EnsureMatchingAudit(job, auditEvent, settle);
+
+        await using var connection = await OpenTenantAsync(job.TenantId, cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(
-            IsolationLevel.Serializable,
+            IsolationLevel.ReadCommitted,
             cancellationToken);
         const string selectSql = """
-            SELECT entitlement_id, page_count, settled_at, released_at
-            FROM quota_reservations
-            WHERE reservation_id = @reservation_id
-            FOR UPDATE;
+            SELECT job.job_id, job.tenant_id, job.connector_id, job.page_count,
+                   job.source_sha256, job.state, job.reservation_id,
+                   job.result_json::text, job.provider_model, job.failure_code,
+                   job.created_at, job.updated_at, job.attempt_id,
+                   reservation.entitlement_id, reservation.page_count,
+                   reservation.settled_at, reservation.released_at
+            FROM ocr_jobs AS job
+            JOIN quota_reservations AS reservation
+              ON reservation.reservation_id = job.reservation_id
+             AND reservation.tenant_id = job.tenant_id
+             AND reservation.job_id = job.job_id
+            WHERE job.tenant_id = @tenant_id AND job.job_id = @job_id
+            FOR UPDATE OF job, reservation;
             """;
+        OcrJob current;
+        Guid currentAttemptId;
         Guid entitlementId;
-        int pageCount;
+        int reservedPageCount;
+        DateTimeOffset? settledAt;
+        DateTimeOffset? releasedAt;
         await using (var selectCommand = new NpgsqlCommand(selectSql, connection, transaction))
         {
-            selectCommand.Parameters.AddWithValue("reservation_id", reservationId);
+            selectCommand.Parameters.AddWithValue("tenant_id", job.TenantId);
+            selectCommand.Parameters.AddWithValue("job_id", job.JobId);
             await using var reader = await selectCommand.ExecuteReaderAsync(cancellationToken);
-            if (!await reader.ReadAsync(cancellationToken) ||
-                !reader.IsDBNull(2) ||
-                !reader.IsDBNull(3))
+            if (!await reader.ReadAsync(cancellationToken))
             {
-                await reader.DisposeAsync();
-                await transaction.CommitAsync(cancellationToken);
-                return;
+                throw new InvalidOperationException("OCR job and reservation binding does not exist.");
             }
-            entitlementId = reader.GetGuid(0);
-            pageCount = reader.GetInt32(1);
+            current = ReadOcrJob(reader);
+            currentAttemptId = reader.GetGuid(12);
+            entitlementId = reader.GetGuid(13);
+            reservedPageCount = reader.GetInt32(14);
+            settledAt = reader.IsDBNull(15)
+                ? null
+                : reader.GetFieldValue<DateTimeOffset>(15);
+            releasedAt = reader.IsDBNull(16)
+                ? null
+                : reader.GetFieldValue<DateTimeOffset>(16);
+        }
+
+        EnsureSameOcrJob(current, job);
+        if (currentAttemptId != attemptId)
+        {
+            throw new InvalidOperationException(
+                "The OCR result belongs to a superseded processing attempt.");
+        }
+        if (current.State == OcrJobState.Completed)
+        {
+            if (settledAt is null || releasedAt is not null)
+            {
+                throw new InvalidOperationException(
+                    "Completed OCR job and quota settlement do not agree.");
+            }
+            await transaction.CommitAsync(cancellationToken);
+            return current;
+        }
+        if (!settle && current.State == OcrJobState.Failed)
+        {
+            if (settledAt is not null || releasedAt is null)
+            {
+                throw new InvalidOperationException(
+                    "Failed OCR job and quota release do not agree.");
+            }
+            await transaction.CommitAsync(cancellationToken);
+            return current;
+        }
+        if (current.State != OcrJobState.Processing)
+        {
+            throw new InvalidOperationException(
+                "Only the active OCR processing attempt can be finalized.");
+        }
+        if (settledAt is not null || releasedAt is not null)
+        {
+            throw new InvalidOperationException(
+                "OCR job state and quota reservation finalization do not agree.");
+        }
+
+        const string updateJobSql = """
+            UPDATE ocr_jobs
+            SET state = @state,
+                result_json = @result_json,
+                provider_model = @provider_model,
+                failure_code = @failure_code,
+                updated_at = @updated_at
+            WHERE tenant_id = @tenant_id
+              AND job_id = @job_id
+              AND connector_id = @connector_id
+              AND page_count = @page_count
+              AND source_sha256 = @source_sha256
+              AND reservation_id = @reservation_id
+              AND attempt_id = @attempt_id
+              AND state = 'PROCESSING';
+            """;
+        await using (var updateJob = new NpgsqlCommand(updateJobSql, connection, transaction))
+        {
+            updateJob.Parameters.AddWithValue("state", ToDatabaseState(job.State));
+            updateJob.Parameters.Add(
+                new NpgsqlParameter("result_json", NpgsqlDbType.Jsonb)
+                {
+                    Value = (object?)job.ResultJson ?? DBNull.Value
+                });
+            updateJob.Parameters.AddWithValue(
+                "provider_model",
+                (object?)job.ProviderModel ?? DBNull.Value);
+            updateJob.Parameters.AddWithValue(
+                "failure_code",
+                (object?)job.FailureCode ?? DBNull.Value);
+            updateJob.Parameters.AddWithValue("updated_at", job.UpdatedAt);
+            updateJob.Parameters.AddWithValue("tenant_id", job.TenantId);
+            updateJob.Parameters.AddWithValue("job_id", job.JobId);
+            updateJob.Parameters.AddWithValue("connector_id", job.ConnectorId);
+            updateJob.Parameters.AddWithValue("page_count", job.PageCount);
+            updateJob.Parameters.AddWithValue("source_sha256", job.SourceSha256);
+            updateJob.Parameters.AddWithValue("reservation_id", job.ReservationId);
+            updateJob.Parameters.AddWithValue("attempt_id", attemptId);
+            if (await updateJob.ExecuteNonQueryAsync(cancellationToken) != 1)
+            {
+                throw new InvalidOperationException("OCR job changed during finalization.");
+            }
         }
 
         var reservationColumn = settle ? "settled_at" : "released_at";
-        var periodIncrement = settle ? ", pages_settled = pages_settled + @page_count" : string.Empty;
-        var sql = $$"""
+        var settledIncrement = settle
+            ? ", pages_settled = pages_settled + @page_count"
+            : string.Empty;
+        var finalizeReservationSql = $$"""
             UPDATE quota_reservations
-            SET {{reservationColumn}} = @now
-            WHERE reservation_id = @reservation_id;
+            SET {{reservationColumn}} = @updated_at
+            WHERE reservation_id = @reservation_id
+              AND tenant_id = @tenant_id
+              AND job_id = @job_id
+              AND settled_at IS NULL
+              AND released_at IS NULL;
+            """;
+        await using (var finalizeReservation = new NpgsqlCommand(
+            finalizeReservationSql,
+            connection,
+            transaction))
+        {
+            finalizeReservation.Parameters.AddWithValue("updated_at", job.UpdatedAt);
+            finalizeReservation.Parameters.AddWithValue("reservation_id", job.ReservationId);
+            finalizeReservation.Parameters.AddWithValue("tenant_id", job.TenantId);
+            finalizeReservation.Parameters.AddWithValue("job_id", job.JobId);
+            if (await finalizeReservation.ExecuteNonQueryAsync(cancellationToken) != 1)
+            {
+                throw new InvalidOperationException("Quota reservation changed during finalization.");
+            }
+        }
 
+        var finalizePeriodSql = $$"""
             UPDATE subscription_periods
             SET pages_reserved = pages_reserved - @page_count
-                {{periodIncrement}},
-                updated_at = @now
-            WHERE entitlement_id = @entitlement_id;
+                {{settledIncrement}},
+                updated_at = @updated_at
+            WHERE entitlement_id = @entitlement_id
+              AND tenant_id = @tenant_id
+              AND pages_reserved >= @page_count;
             """;
-        await using var command = new NpgsqlCommand(sql, connection, transaction);
-        command.Parameters.AddWithValue("now", now);
-        command.Parameters.AddWithValue("reservation_id", reservationId);
-        command.Parameters.AddWithValue("page_count", pageCount);
-        command.Parameters.AddWithValue("entitlement_id", entitlementId);
-        await command.ExecuteNonQueryAsync(cancellationToken);
+        await using (var finalizePeriod = new NpgsqlCommand(
+            finalizePeriodSql,
+            connection,
+            transaction))
+        {
+            finalizePeriod.Parameters.AddWithValue("updated_at", job.UpdatedAt);
+            finalizePeriod.Parameters.AddWithValue("tenant_id", job.TenantId);
+            finalizePeriod.Parameters.AddWithValue("page_count", reservedPageCount);
+            finalizePeriod.Parameters.AddWithValue("entitlement_id", entitlementId);
+            if (await finalizePeriod.ExecuteNonQueryAsync(cancellationToken) != 1)
+            {
+                throw new InvalidOperationException("Subscription period changed during finalization.");
+            }
+        }
+
+        const string auditSql = """
+            INSERT INTO audit_events
+                (event_id, tenant_id, actor_type, actor_reference, action, target_reference,
+                 result, correlation_id, occurred_at)
+            VALUES
+                (@event_id, @tenant_id, @actor_type, @actor_reference, @action, @target_reference,
+                 @result, @correlation_id, @occurred_at);
+            """;
+        await using (var insertAudit = new NpgsqlCommand(auditSql, connection, transaction))
+        {
+            AddAuditParameters(insertAudit, auditEvent);
+            await insertAudit.ExecuteNonQueryAsync(cancellationToken);
+        }
+
         await transaction.CommitAsync(cancellationToken);
+        return job;
     }
 
     private async Task<NpgsqlConnection> OpenAsync(CancellationToken cancellationToken)
@@ -447,6 +831,83 @@ public sealed class PostgresSaasStore(string connectionString) : ISaasStore
         command.Parameters.AddWithValue("tenant_id", tenantId.ToString("D"));
         await command.ExecuteNonQueryAsync(cancellationToken);
         return connection;
+    }
+
+    private static void EnsureSameOcrJob(OcrJob current, OcrJob requested)
+    {
+        if (current.JobId != requested.JobId ||
+            current.TenantId != requested.TenantId ||
+            current.ConnectorId != requested.ConnectorId ||
+            current.PageCount != requested.PageCount ||
+            !string.Equals(
+                current.SourceSha256,
+                requested.SourceSha256,
+                StringComparison.Ordinal) ||
+            current.ReservationId != requested.ReservationId)
+        {
+            throw new InvalidOperationException(
+                "OCR job identity or immutable source binding does not match.");
+        }
+    }
+
+    private static void EnsureSameOcrJob(
+        OcrJob existing,
+        Guid tenantId,
+        Guid connectorId,
+        int pageCount,
+        string sourceSha256)
+    {
+        if (existing.TenantId != tenantId ||
+            existing.ConnectorId != connectorId ||
+            existing.PageCount != pageCount ||
+            !string.Equals(existing.SourceSha256, sourceSha256, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                "The OCR job ID was replayed with a different connector or source document.");
+        }
+    }
+
+    private static void AddAuditParameters(NpgsqlCommand command, AuditEvent auditEvent)
+    {
+        command.Parameters.AddWithValue("event_id", auditEvent.EventId);
+        command.Parameters.AddWithValue("tenant_id", auditEvent.TenantId);
+        command.Parameters.AddWithValue("actor_type", auditEvent.ActorType);
+        command.Parameters.AddWithValue("actor_reference", auditEvent.ActorReference);
+        command.Parameters.AddWithValue("action", auditEvent.Action);
+        command.Parameters.AddWithValue("target_reference", auditEvent.TargetReference);
+        command.Parameters.AddWithValue("result", auditEvent.Result);
+        command.Parameters.AddWithValue("correlation_id", auditEvent.CorrelationId);
+        command.Parameters.AddWithValue("occurred_at", auditEvent.OccurredAt);
+    }
+
+    private static void EnsureMatchingAudit(
+        OcrJob job,
+        AuditEvent auditEvent,
+        bool settle)
+    {
+        if (auditEvent.TenantId != job.TenantId ||
+            auditEvent.CorrelationId != job.JobId ||
+            !string.Equals(auditEvent.ActorType, "CONNECTOR", StringComparison.Ordinal) ||
+            !string.Equals(
+                auditEvent.ActorReference,
+                job.ConnectorId.ToString("D"),
+                StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(
+                auditEvent.Action,
+                settle ? "OCR_SETTLED" : "OCR_RELEASED",
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                auditEvent.TargetReference,
+                job.JobId.ToString("D"),
+                StringComparison.OrdinalIgnoreCase) ||
+            auditEvent.OccurredAt != job.UpdatedAt ||
+            !string.Equals(
+                auditEvent.Result,
+                settle ? "SUCCESS" : job.FailureCode,
+                StringComparison.Ordinal))
+        {
+            throw new ArgumentException("OCR audit identity does not match the job.", nameof(auditEvent));
+        }
     }
 
     private static OcrJob ReadOcrJob(NpgsqlDataReader reader) =>

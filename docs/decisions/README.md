@@ -13,5 +13,7 @@
 | [ADR-009](ADR-009-temporary-encrypted-document-retention.md) | documents تخزن مؤقتًا بتشفير وTTL صريح | Accepted |
 | [ADR-010](ADR-010-raw-names-and-bidi.md) | reversed names raw untrusted؛BiDi display بلا heuristic repair | Accepted |
 | [ADR-011](ADR-011-commercial-edits-and-stock-class-pricing.md) | Commercial edits remain line-native؛new selling prices require isolated stock classes | Accepted with certified-write gate |
+| [ADR-012](ADR-012-local-human-identity-and-step-up.md) | Local human identity،role provisioning،sessions،step-up وactor audit | Accepted with Phase 2 implementation gate |
+| [ADR-013](ADR-013-offline-genius-write-entitlements.md) | Capability-specific offline Genius write grants with bounded TTL،trusted time and revocation | Accepted with Phase 2 implementation gate |
 
 تعديل قرار Accepted يحتاج ADR بديلة تشير إلى القرار السابق،ولا يتم حذف historical rationale.

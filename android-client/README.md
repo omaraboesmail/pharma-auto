@@ -6,12 +6,12 @@ The Android client captures and reviews purchase invoices. It never contains SQL
 
 - Permanent `applicationId` and namespace: `com.pharmaauto.android`.
 - `minSdk 28`, `compileSdk 37`, `targetSdk 37`.
-- Kotlin `2.4.10` with AGP built-in Kotlin and the Compose compiler plugin.
-- Jetpack Compose with Material 3 BOM `2026.08.00`.
-- CameraX `1.6.1`, Hilt `2.60.1`, Room `2.8.4` and WorkManager `2.11.2`.
+- Kotlin `2.4.20` with AGP built-in Kotlin and the Compose compiler plugin.
+- Jetpack Compose with Material 3 BOM `2026.09.00`.
+- CameraX `1.6.2`, Hilt `2.60.1`, Room `2.8.5` and WorkManager `2.11.2`.
 - Retrofit, OkHttp and Kotlinx Serialization for the Local Connector API.
 - Firebase App Distribution plugin `5.3.0`; project `pharma-auto-eg-smartsolustions`, Android package registration, and the `internal-testers` group are initialized. No App ID, token, or service credential is committed.
-- EGP decimal-string contracts; selling price is tax-inclusive per `BOX` and applies to new stock only.
+- Canonical EGP `DECIMAL(18,6)` strings (12 integer + 6 fractional digits maximum)،0..100 percentages with scale up to four،and no signs/exponents/grouping; selling price is tax-inclusive per `BOX` and applies to new stock only.
 
 ## Implemented Read-Only Slice
 
@@ -39,7 +39,7 @@ Requirements:
 - JDK 17.
 - Android SDK Platform `37.0`.
 - Android Build Tools `36.0.0`.
-- Android CLI and Kotlin CLI `2.4.10` are recommended for environment and pure-domain checks.
+- Android CLI and Kotlin CLI `2.4.20` are recommended for environment and pure-domain checks.
 
 Install the required Android SDK packages:
 

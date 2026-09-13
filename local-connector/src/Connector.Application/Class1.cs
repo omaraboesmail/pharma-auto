@@ -136,7 +136,7 @@ public sealed class CommercialEditPreviewService
             errors.Add($"discount {discount.Sequence} kind must be PERCENTAGE.");
         }
 
-        _ = TryParseDecimal(
+        _ = TryParsePercentage(
             discount.Percentage,
             $"discount {discount.Sequence} percentage",
             errors,
@@ -165,21 +165,34 @@ public sealed class CommercialEditPreviewService
     }
 
     private static bool TryParseDecimal(
-        string value,
+        string? value,
         string field,
         List<string> errors,
         out decimal parsed)
     {
-        if (decimal.TryParse(
-            value,
-            NumberStyles.AllowDecimalPoint,
-            CultureInfo.InvariantCulture,
-            out parsed) && parsed >= 0m)
+        if (CanonicalDecimalContract.TryParseDecimal(value, out parsed))
         {
             return true;
         }
 
-        errors.Add($"{field} must be a non-negative decimal string using a dot separator.");
+        errors.Add(
+            $"{field} must be a canonical DECIMAL(18,6) string with at most 12 integer and 6 fractional digits.");
+        return false;
+    }
+
+    private static bool TryParsePercentage(
+        string? value,
+        string field,
+        List<string> errors,
+        out decimal parsed)
+    {
+        if (CanonicalDecimalContract.TryParsePercentage(value, out parsed))
+        {
+            return true;
+        }
+
+        errors.Add(
+            $"{field} must be a canonical percentage from 0 through 100 with at most 4 fractional digits.");
         return false;
     }
 

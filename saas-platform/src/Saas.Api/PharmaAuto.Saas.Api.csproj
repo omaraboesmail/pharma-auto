@@ -4,6 +4,12 @@
     <ProjectReference Include="..\Saas.Domain\PharmaAuto.Saas.Domain.csproj" />
     <ProjectReference Include="..\Saas.Infrastructure\PharmaAuto.Saas.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Seed\canonical-products.v1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

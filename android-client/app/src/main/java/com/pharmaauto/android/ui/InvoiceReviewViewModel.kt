@@ -47,26 +47,24 @@ class InvoiceReviewViewModel : ViewModel() {
     }
 
     fun updateCommercial(field: CommercialField, input: String) {
-        val normalized = InvoiceReviewRules.normalizeDecimalInput(input)
         updateCurrentLine { line ->
             val confirmed = when (field) {
                 CommercialField.PurchaseUnitPrice ->
-                    line.confirmed.copy(purchaseUnitPrice = normalized)
-                CommercialField.DiscountOne -> line.confirmed.copy(discountOne = normalized)
-                CommercialField.DiscountTwo -> line.confirmed.copy(discountTwo = normalized)
+                    line.confirmed.copy(purchaseUnitPrice = input)
+                CommercialField.DiscountOne -> line.confirmed.copy(discountOne = input)
+                CommercialField.DiscountTwo -> line.confirmed.copy(discountTwo = input)
                 CommercialField.SellingUnitPrice ->
-                    line.confirmed.copy(sellingUnitPrice = normalized)
+                    line.confirmed.copy(sellingUnitPrice = input)
             }
             line.copy(confirmed = confirmed, reviewed = false)
         }
     }
 
     fun updateExpiryQuantity(expiryIndex: Int, input: String) {
-        val normalized = InvoiceReviewRules.normalizeDecimalInput(input)
         updateCurrentLine { line ->
             line.copy(
                 expiries = line.expiries.mapIndexed { index, expiry ->
-                    if (index == expiryIndex) expiry.copy(quantity = normalized) else expiry
+                    if (index == expiryIndex) expiry.copy(quantity = input) else expiry
                 },
                 reviewed = false
             )
@@ -85,6 +83,15 @@ class InvoiceReviewViewModel : ViewModel() {
     }
 
     fun splitExpiry(expiryIndex: Int) {
+        val selected = uiState.currentLine.expiries.getOrNull(expiryIndex)
+        val quantity = selected?.let { expiry ->
+            InvoiceReviewRules.decimalOrNull(expiry.quantity)
+        }
+        if (quantity == null || quantity <= java.math.BigDecimal.ZERO) {
+            uiState = uiState.copy(message = ReviewMessage.InvalidSplitQuantity)
+            return
+        }
+
         updateCurrentLine { line ->
             InvoiceReviewRules.splitExpiry(
                 line = line,

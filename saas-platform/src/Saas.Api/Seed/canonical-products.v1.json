@@ -1,0 +1,136 @@
+[
+  {
+    "canonicalProductId": "11111111-1111-4111-8111-111111111131",
+    "displayName": "TEST-MED-A 500 mg Capsules",
+    "aliases": [
+      "TEST MED A 500 MG CAPSULES",
+      "TEST-MED-A CAPSULES 500 MG"
+    ],
+    "identifiers": [
+      "TST-001",
+      "6221000001001"
+    ],
+    "attributes": {
+      "activeIngredient": "SYNTHETIC ACTIVE A",
+      "strength": "500 MG",
+      "dosageForm": "CAPSULE",
+      "pack": "20 CAPSULE",
+      "manufacturer": "SYNTHETIC LAB A"
+    },
+    "embeddingVersion": "gemini-embedding-2:768"
+  },
+  {
+    "canonicalProductId": "11111111-1111-4111-8111-111111111132",
+    "displayName": "TEST-MED-A 250 mg Capsules",
+    "aliases": [
+      "TEST MED A 250 MG CAPSULES",
+      "TEST-MED-A CAPSULES 250 MG"
+    ],
+    "identifiers": [
+      "TST-001-250"
+    ],
+    "attributes": {
+      "activeIngredient": "SYNTHETIC ACTIVE A",
+      "strength": "250 MG",
+      "dosageForm": "CAPSULE",
+      "pack": "20 CAPSULE",
+      "manufacturer": "SYNTHETIC LAB A"
+    },
+    "embeddingVersion": "gemini-embedding-2:768"
+  },
+  {
+    "canonicalProductId": "11111111-1111-4111-8111-111111111133",
+    "displayName": "TEST-SYRUP-B 120 ml",
+    "aliases": [
+      "TEST SYRUP B 120 ML",
+      "TEST-SYRUP-B 120ML"
+    ],
+    "identifiers": [
+      "TST-002"
+    ],
+    "attributes": {
+      "activeIngredient": "SYNTHETIC ACTIVE B",
+      "strength": "120 ML",
+      "dosageForm": "SYRUP",
+      "pack": "1 BOTTLE",
+      "manufacturer": "SYNTHETIC LAB B"
+    },
+    "embeddingVersion": "gemini-embedding-2:768"
+  },
+  {
+    "canonicalProductId": "11111111-1111-4111-8111-111111111134",
+    "displayName": "TEST-SYRUP-B 60 ml",
+    "aliases": [
+      "TEST SYRUP B 60 ML",
+      "TEST-SYRUP-B 60ML"
+    ],
+    "identifiers": [
+      "TST-002-060"
+    ],
+    "attributes": {
+      "activeIngredient": "SYNTHETIC ACTIVE B",
+      "strength": "60 ML",
+      "dosageForm": "SYRUP",
+      "pack": "1 BOTTLE",
+      "manufacturer": "SYNTHETIC LAB B"
+    },
+    "embeddingVersion": "gemini-embedding-2:768"
+  },
+  {
+    "canonicalProductId": "11111111-1111-4111-8111-111111111135",
+    "displayName": "دواء اختباري أ 500 مجم",
+    "aliases": [
+      "دواء اختباري أ 500 مجم",
+      "SYNTHETIC ARABIC MEDICINE A 500 MG"
+    ],
+    "identifiers": [
+      "TST-AR-001"
+    ],
+    "attributes": {
+      "activeIngredient": "مادة فعالة اختبارية أ",
+      "strength": "500 MG",
+      "dosageForm": "CAPSULE",
+      "pack": "20 CAPSULE",
+      "manufacturer": "مصنع اختباري أ"
+    },
+    "embeddingVersion": "gemini-embedding-2:768"
+  },
+  {
+    "canonicalProductId": "11111111-1111-4111-8111-111111111136",
+    "displayName": "دواء TEST-C 250 mg",
+    "aliases": [
+      "دواء TEST C 250 MG",
+      "TEST-C 250 MG"
+    ],
+    "identifiers": [
+      "TST-MIX-01"
+    ],
+    "attributes": {
+      "activeIngredient": "SYNTHETIC ACTIVE C",
+      "strength": "250 MG",
+      "dosageForm": "TABLET",
+      "pack": "30 TABLET",
+      "manufacturer": "SYNTHETIC LAB C"
+    },
+    "embeddingVersion": "gemini-embedding-2:768"
+  },
+  {
+    "canonicalProductId": "11111111-1111-4111-8111-111111111137",
+    "displayName": "TEST-D شراب 100 ml",
+    "aliases": [
+      "TEST D شراب 100 ML",
+      "TEST-D SYRUP 100 ML"
+    ],
+    "identifiers": [
+      "TST-MIX-02"
+    ],
+    "attributes": {
+      "activeIngredient": "SYNTHETIC ACTIVE D",
+      "strength": "100 ML",
+      "dosageForm": "SYRUP",
+      "pack": "1 BOTTLE",
+      "manufacturer": "SYNTHETIC LAB D"
+    },
+    "embeddingVersion": "gemini-embedding-2:768"
+  }
+]

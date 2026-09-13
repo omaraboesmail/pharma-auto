@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -51,7 +52,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -63,6 +67,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pharmaauto.android.PharmaAutoApplication
 import com.pharmaauto.android.R
 import com.pharmaauto.android.data.PharmaAutoRepository
+import com.pharmaauto.android.domain.DecimalInputRules
 import com.pharmaauto.android.network.SaveRevisionRequest
 import com.pharmaauto.android.network.LocalItemCandidateContract
 import com.pharmaauto.android.network.LocalVendorCandidateContract
@@ -84,7 +89,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import retrofit2.HttpException
 
-private enum class ConnectorReviewNotice {
+internal enum class ConnectorReviewNotice {
     SelectVendor,
     SelectItem,
     InvalidCommercial,
@@ -94,14 +99,14 @@ private enum class ConnectorReviewNotice {
     ConfirmationFailed
 }
 
-private data class VendorCandidateUi(
+internal data class VendorCandidateUi(
     val reference: String,
     val displayName: String,
     val code: String?,
     val reasonCodes: List<String>
 )
 
-private data class ItemCandidateUi(
+internal data class ItemCandidateUi(
     val reference: String,
     val displayLabel: String,
     val rawLabel: String?,
@@ -111,7 +116,7 @@ private data class ItemCandidateUi(
     val hardMismatches: List<String>
 )
 
-private data class PostingLineUi(
+internal data class PostingLineUi(
     val postingLineId: String,
     val splitIndex: Int,
     val postingSequence: Int,
@@ -128,7 +133,7 @@ private data class PostingLineUi(
     val originalSellingUnitPrice: String
 )
 
-private data class SourceLineUi(
+internal data class SourceLineUi(
     val sourceLineId: String,
     val sequence: Int,
     val description: String,
@@ -142,7 +147,7 @@ private data class SourceLineUi(
     val postingLines: List<PostingLineUi>
 )
 
-private data class ConnectorReviewUiState(
+internal data class ConnectorReviewUiState(
     val revisionId: String,
     val vendorEvidence: String,
     val selectedLocalVendorReference: String?,
@@ -703,6 +708,17 @@ private fun PostingLineEditor(
     onApplyCommercialToAll: () -> Unit,
     onRemove: () -> Unit
 ) {
+    val quantityErrorText = decimalInputErrorText(posting.quantity, positiveRequired = true)
+    val purchaseErrorText = decimalInputErrorText(posting.purchaseUnitPrice)
+    val discountOneErrorText = decimalInputErrorText(
+        posting.discountOne,
+        isPercentage = true
+    )
+    val discountTwoErrorText = decimalInputErrorText(
+        posting.discountTwo,
+        isPercentage = true
+    )
+    val sellingErrorText = decimalInputErrorText(posting.sellingUnitPrice)
     Surface(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp),
         shape = MaterialTheme.shapes.medium,
@@ -731,9 +747,16 @@ private fun PostingLineEditor(
             OutlinedTextField(
                 value = posting.quantity,
                 onValueChange = { onChange(PostingField.Quantity, it) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        if (quantityErrorText != null) error(quantityErrorText)
+                    },
                 label = { Text(stringResource(R.string.quantity_boxes)) },
                 enabled = enabled,
+                isError = quantityErrorText != null,
+                supportingText = quantityErrorText?.let { message -> { Text(message) } },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true
             )
             OutlinedTextField(
@@ -768,36 +791,68 @@ private fun PostingLineEditor(
             OutlinedTextField(
                 value = posting.purchaseUnitPrice,
                 onValueChange = { onChange(PostingField.PurchaseUnitPrice, it) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        if (purchaseErrorText != null) error(purchaseErrorText)
+                    },
                 label = { Text(stringResource(R.string.purchase_unit_price_egp)) },
                 enabled = enabled,
+                isError = purchaseErrorText != null,
+                supportingText = purchaseErrorText?.let { message -> { Text(message) } },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = posting.discountOne,
                     onValueChange = { onChange(PostingField.DiscountOne, it) },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics {
+                            if (discountOneErrorText != null) error(discountOneErrorText)
+                        },
                     label = { Text(stringResource(R.string.discount_one_percent)) },
                     enabled = enabled,
+                    isError = discountOneErrorText != null,
+                    supportingText = discountOneErrorText?.let { message -> { Text(message) } },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true
                 )
                 OutlinedTextField(
                     value = posting.discountTwo,
                     onValueChange = { onChange(PostingField.DiscountTwo, it) },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics {
+                            if (discountTwoErrorText != null) error(discountTwoErrorText)
+                        },
                     label = { Text(stringResource(R.string.discount_two_percent)) },
                     enabled = enabled,
+                    isError = discountTwoErrorText != null,
+                    supportingText = discountTwoErrorText?.let { message -> { Text(message) } },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true
                 )
             }
             OutlinedTextField(
                 value = posting.sellingUnitPrice,
                 onValueChange = { onChange(PostingField.SellingUnitPrice, it) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        if (sellingErrorText != null) error(sellingErrorText)
+                    },
                 label = { Text(stringResource(R.string.selling_price_box_tax_inclusive)) },
-                supportingText = { Text(stringResource(R.string.new_stock_only_preserve_existing)) },
+                supportingText = {
+                    Text(
+                        sellingErrorText
+                            ?: stringResource(R.string.new_stock_only_preserve_existing)
+                    )
+                },
                 enabled = enabled,
+                isError = sellingErrorText != null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true
             )
             if (count > 1) {
@@ -1031,15 +1086,15 @@ private class ConnectorReviewViewModel(
         updateCurrentLine { line ->
             line.copy(postingLines = line.postingLines.mapIndexed { candidate, posting ->
                 if (candidate != index) posting else when (field) {
-                    PostingField.Quantity -> posting.copy(quantity = normalizeDecimal(value))
+                    PostingField.Quantity -> posting.copy(quantity = value)
                     PostingField.ExpiryDate -> posting.copy(expiryDate = value.take(10))
                     PostingField.Batch -> posting.copy(batch = value.take(128))
                     PostingField.PurchaseUnitPrice ->
-                        posting.copy(purchaseUnitPrice = normalizeDecimal(value))
-                    PostingField.DiscountOne -> posting.copy(discountOne = normalizeDecimal(value))
-                    PostingField.DiscountTwo -> posting.copy(discountTwo = normalizeDecimal(value))
+                        posting.copy(purchaseUnitPrice = value)
+                    PostingField.DiscountOne -> posting.copy(discountOne = value)
+                    PostingField.DiscountTwo -> posting.copy(discountTwo = value)
                     PostingField.SellingUnitPrice ->
-                        posting.copy(sellingUnitPrice = normalizeDecimal(value))
+                        posting.copy(sellingUnitPrice = value)
                 }
             })
         }
@@ -1198,7 +1253,7 @@ private class ConnectorReviewViewModel(
     }
 }
 
-private fun parseReview(json: String): Pair<JsonObject, ConnectorReviewUiState> {
+internal fun parseReview(json: String): Pair<JsonObject, ConnectorReviewUiState> {
     val root = Json.parseToJsonElement(json).jsonObject
     check(root.string("status") == "AWAITING_USER_REVIEW") {
         "Revision is not awaiting review."
@@ -1247,7 +1302,9 @@ private fun parseReview(json: String): Pair<JsonObject, ConnectorReviewUiState> 
             .orEmpty()
         val descriptionEvidence = source.objectOrNull("descriptionEvidence")
         val required = postingLines.fold(BigDecimal.ZERO) { total, posting ->
-            total.add(decimalOrZero(posting.quantity))
+            val quantity = legacyV1DecimalOrNull(posting.quantity)
+                ?: error("Source line ${index + 1} has an invalid legacy quantity.")
+            total.add(quantity)
         }.stripTrailingZeros().toPlainString()
         SourceLineUi(
             sourceLineId = source.string("sourceLineId"),
@@ -1287,6 +1344,18 @@ private fun parseReview(json: String): Pair<JsonObject, ConnectorReviewUiState> 
     )
 }
 
+private fun legacyV1DecimalOrNull(rawText: String): BigDecimal? {
+    if (rawText.length > LegacyV1MaximumInputLength || !LegacyV1Decimal.matches(rawText)) {
+        return null
+    }
+    val value = rawText.toBigDecimalOrNull() ?: return null
+    return value.takeIf { it <= DotNetDecimalMaximum }
+}
+
+private const val LegacyV1MaximumInputLength = 36
+private val LegacyV1Decimal = Regex("^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$")
+private val DotNetDecimalMaximum = BigDecimal("79228162514264337593543950335")
+
 private fun buildEditedRevision(root: JsonObject, state: ConnectorReviewUiState): JsonObject {
     val editedRoot = root.toMutableMap()
     editedRoot["selectedLocalVendorReference"] = JsonPrimitive(
@@ -1319,31 +1388,35 @@ private fun patchPostingLine(original: JsonObject, posting: PostingLineUi): Json
     edited["postingLineId"] = JsonPrimitive(posting.postingLineId)
     edited["splitIndex"] = JsonPrimitive(posting.splitIndex)
     edited["postingSequence"] = JsonPrimitive(posting.postingSequence)
-    edited["quantity"] = JsonPrimitive(posting.quantity)
+    edited["quantity"] = JsonPrimitive(requireCanonicalDecimal(posting.quantity))
     edited["expiryDate"] = JsonPrimitive(posting.expiryDate)
     edited["batch"] = posting.batch.takeIf(String::isNotBlank)?.let(::JsonPrimitive) ?: JsonNull
     val originalCommercial = original.objectOrNull("commercialValues") ?: JsonObject(emptyMap())
     val commercial = originalCommercial.toMutableMap()
     commercial["currency"] = JsonPrimitive("EGP")
-    commercial["purchaseUnitPrice"] = JsonPrimitive(posting.purchaseUnitPrice)
+    commercial["purchaseUnitPrice"] = JsonPrimitive(
+        requireCanonicalDecimal(posting.purchaseUnitPrice)
+    )
     commercial["discounts"] = JsonArray(listOf(
         JsonObject(mapOf(
             "sequence" to JsonPrimitive(1),
             "kind" to JsonPrimitive("PERCENTAGE"),
-            "percentage" to JsonPrimitive(posting.discountOne),
+            "percentage" to JsonPrimitive(requireCanonicalPercentage(posting.discountOne)),
             "applicationBasis" to JsonPrimitive("PURCHASE_UNIT_PRICE"),
             "affectsPurchaseUnitPrice" to JsonPrimitive(true)
         )),
         JsonObject(mapOf(
             "sequence" to JsonPrimitive(2),
             "kind" to JsonPrimitive("PERCENTAGE"),
-            "percentage" to JsonPrimitive(posting.discountTwo),
+            "percentage" to JsonPrimitive(requireCanonicalPercentage(posting.discountTwo)),
             "applicationBasis" to JsonPrimitive("REMAINING_LINE_SUBTOTAL"),
             "affectsPurchaseUnitPrice" to JsonPrimitive(false)
         ))
     ))
     commercial["sellingUnit"] = JsonPrimitive("BOX")
-    commercial["sellingUnitPrice"] = JsonPrimitive(posting.sellingUnitPrice)
+    commercial["sellingUnitPrice"] = JsonPrimitive(
+        requireCanonicalDecimal(posting.sellingUnitPrice)
+    )
     commercial["sellingPriceTaxTreatment"] = JsonPrimitive("INCLUSIVE")
     commercial["sellingPriceScope"] = JsonPrimitive("NEW_STOCK_ONLY")
     commercial["existingStockPriceBehavior"] = JsonPrimitive("PRESERVE")
@@ -1352,7 +1425,7 @@ private fun patchPostingLine(original: JsonObject, posting: PostingLineUi): Json
     return JsonObject(edited)
 }
 
-private fun validateLine(line: SourceLineUi): ConnectorReviewNotice? {
+internal fun validateLine(line: SourceLineUi): ConnectorReviewNotice? {
     if (line.selectedLocalItemReference.isNullOrBlank()) return ConnectorReviewNotice.SelectItem
     val commercialValid = line.postingLines.all { posting ->
         nonNegative(posting.purchaseUnitPrice) &&
@@ -1362,24 +1435,35 @@ private fun validateLine(line: SourceLineUi): ConnectorReviewNotice? {
     }
     if (!commercialValid) return ConnectorReviewNotice.InvalidCommercial
     val assigned = line.postingLines.fold(BigDecimal.ZERO) { total, posting ->
-        total.add(decimalOrZero(posting.quantity))
+        total.add(decimalValueOrNull(posting.quantity) ?: return ConnectorReviewNotice.InvalidExpiry)
     }
     val expiryValid = line.postingLines.all { posting ->
         positive(posting.quantity) && runCatching { LocalDate.parse(posting.expiryDate) }.isSuccess
-    } && assigned.compareTo(decimalOrZero(line.requiredQuantity)) == 0
+    } && assigned.compareTo(legacyV1DecimalOrNull(line.requiredQuantity) ?: BigDecimal.ZERO) == 0
     return if (expiryValid) null else ConnectorReviewNotice.InvalidExpiry
 }
 
+private fun List<SourceLineUi>.haveValidNumericInputs(): Boolean = all { line ->
+    line.postingLines.all { posting ->
+        positive(posting.quantity) &&
+            nonNegative(posting.purchaseUnitPrice) &&
+            percentage(posting.discountOne) &&
+            percentage(posting.discountTwo) &&
+            nonNegative(posting.sellingUnitPrice)
+    }
+}
+
 private fun calculateTotals(lines: List<SourceLineUi>): CalculatedReviewTotals? {
+    if (!lines.haveValidNumericInputs()) return null
     var gross = BigDecimal.ZERO
     var net = BigDecimal.ZERO
     var selling = BigDecimal.ZERO
     for (posting in lines.flatMap(SourceLineUi::postingLines)) {
-        val quantity = normalizeDecimal(posting.quantity).toBigDecimalOrNull() ?: return null
-        val purchase = normalizeDecimal(posting.purchaseUnitPrice).toBigDecimalOrNull() ?: return null
-        val discountOne = normalizeDecimal(posting.discountOne).toBigDecimalOrNull() ?: return null
-        val discountTwo = normalizeDecimal(posting.discountTwo).toBigDecimalOrNull() ?: return null
-        val sellingPrice = normalizeDecimal(posting.sellingUnitPrice).toBigDecimalOrNull() ?: return null
+        val quantity = decimalValueOrNull(posting.quantity) ?: return null
+        val purchase = decimalValueOrNull(posting.purchaseUnitPrice) ?: return null
+        val discountOne = percentageValueOrNull(posting.discountOne) ?: return null
+        val discountTwo = percentageValueOrNull(posting.discountTwo) ?: return null
+        val sellingPrice = decimalValueOrNull(posting.sellingUnitPrice) ?: return null
         if (quantity < BigDecimal.ZERO || purchase < BigDecimal.ZERO ||
             discountOne !in BigDecimal.ZERO..BigDecimal("100") ||
             discountTwo !in BigDecimal.ZERO..BigDecimal("100") ||
@@ -1399,15 +1483,22 @@ private fun calculateTotals(lines: List<SourceLineUi>): CalculatedReviewTotals? 
     return CalculatedReviewTotals(gross, net, selling)
 }
 
-private fun normalizeDecimal(input: String): String = InvoiceReviewRules.normalizeDecimalInput(input)
-private fun decimalOrZero(value: String): BigDecimal = normalizeDecimal(value).toBigDecimalOrNull()
-    ?: BigDecimal.ZERO
-private fun nonNegative(value: String): Boolean = normalizeDecimal(value).toBigDecimalOrNull()
+private fun decimalValueOrNull(value: String): BigDecimal? = DecimalInputRules.decimal(value).value
+private fun percentageValueOrNull(value: String): BigDecimal? =
+    DecimalInputRules.percentage(value).value
+private fun nonNegative(value: String): Boolean = decimalValueOrNull(value)
     ?.let { it >= BigDecimal.ZERO } == true
-private fun positive(value: String): Boolean = normalizeDecimal(value).toBigDecimalOrNull()
+private fun positive(value: String): Boolean = decimalValueOrNull(value)
     ?.let { it > BigDecimal.ZERO } == true
-private fun percentage(value: String): Boolean = normalizeDecimal(value).toBigDecimalOrNull()
-    ?.let { it in BigDecimal.ZERO..BigDecimal("100") } == true
+private fun percentage(value: String): Boolean = percentageValueOrNull(value) != null
+private fun requireCanonicalDecimal(value: String): String =
+    requireNotNull(DecimalInputRules.decimal(value).canonicalText) {
+        "Decimal value is invalid."
+    }
+private fun requireCanonicalPercentage(value: String): String =
+    requireNotNull(DecimalInputRules.percentage(value).canonicalText) {
+        "Percentage value is invalid."
+    }
 
 private fun extractStrength(description: String): String? {
     val match = Regex("""(?i)(\d+(?:[.,]\d+)?)\s*(mg|ml|مجم|مل)\b""")

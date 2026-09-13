@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "1.0",
+  "jobId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
+  "revisionId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2",
+  "revisionNumber": 1,
+  "sourceRevisionId": null,
+  "status": "AWAITING_USER_REVIEW",
+  "vendorEvidence": {
+    "rawValue": "Legacy Supplier",
+    "normalizedValue": "Legacy Supplier"
+  },
+  "selectedLocalVendorReference": "local-vendor:legacy",
+  "requiresManualVendorConfirmation": false,
+  "vendorCandidates": [
+    {
+      "localVendorReference": "local-vendor:legacy",
+      "displayName": "Legacy Supplier",
+      "code": "LEGACY",
+      "reasonCodes": ["EXACT_IDENTIFIER"]
+    }
+  ],
+  "sourceLines": [
+    {
+      "sourceLineId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3",
+      "sequence": 1,
+      "descriptionEvidence": {
+        "rawValue": "Legacy medicine",
+        "normalizedValue": "Legacy medicine"
+      },
+      "selectedLocalItemReference": "local-item:legacy",
+      "requiresManualItemConfirmation": false,
+      "localCandidates": [
+        {
+          "localItemReference": "local-item:legacy",
+          "displayLabel": "Legacy medicine",
+          "rawLabel": "Legacy medicine",
+          "displayDirection": "LTR",
+          "qualityFlags": ["UNVERIFIED"],
+          "reasonCodes": ["EXACT_IDENTIFIER"],
+          "hardMismatches": []
+        }
+      ],
+      "postingLines": [
+        {
+          "postingLineId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4",
+          "splitIndex": 1,
+          "postingSequence": 1,
+          "quantity": "1000000000000",
+          "expiryDate": "2028-06-30",
+          "batch": "LEGACY-01",
+          "commercialValues": {
+            "purchaseUnitPrice": "100.00",
+            "discounts": [
+              { "percentage": "10.00" },
+              { "percentage": "5.00" }
+            ],
+            "sellingUnitPrice": "150.00"
+          },
+          "originalOcrCommercialValues": {
+            "purchaseUnitPrice": { "rawValue": "100", "normalizedValue": "100.00" },
+            "discount1Percentage": { "rawValue": "10%", "normalizedValue": "10.00" },
+            "discount2Percentage": { "rawValue": "5%", "normalizedValue": "5.00" },
+            "sellingUnitPrice": { "rawValue": "150", "normalizedValue": "150.00" }
+          }
+        }
+      ]
+    }
+  ],
+  "qualityFlags": ["MANUAL_REVIEW_REQUIRED"],
+  "createdByDeviceId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa5",
+  "createdAt": "2026-08-24T00:00:00Z",
+  "revisionReason": "OCR_AND_MATCHING_RESULT",
+  "geniusWritePerformed": false
+}

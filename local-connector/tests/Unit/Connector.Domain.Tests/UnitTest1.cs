@@ -31,6 +31,40 @@ public sealed class CommercialRulesTests
         Assert.Contains("existingStockPriceBehavior must be PRESERVE.", exception.Errors);
     }
 
+    [Fact]
+    public void Calculate_MaximumContractValuesDoNotOverflowDecimalArithmetic()
+    {
+        var maximum = CommercialRules.MaximumContractDecimal;
+        var values = CreateValues() with
+        {
+            PurchaseUnitPrice = maximum,
+            SellingUnitPrice = maximum,
+            Discounts =
+            [
+                new PercentageDiscount(1, 0m, DiscountApplicationBasis.PurchaseUnitPrice, true),
+                new PercentageDiscount(2, 0m, DiscountApplicationBasis.RemainingLineSubtotal, false)
+            ]
+        };
+
+        var result = CommercialRules.Calculate(maximum, values);
+
+        Assert.True(result.NetLineSubtotalAfterDiscount2 > 0m);
+    }
+
+    [Fact]
+    public void Calculate_RejectsOutOfContractValuesBeforeArithmeticCanOverflow()
+    {
+        var values = CreateValues() with { PurchaseUnitPrice = decimal.MaxValue };
+
+        var exception = Assert.Throws<CommercialRuleException>(
+            () => CommercialRules.Calculate(decimal.MaxValue, values));
+
+        Assert.Contains(exception.Errors, error => error.StartsWith("quantity must not exceed"));
+        Assert.Contains(
+            exception.Errors,
+            error => error.StartsWith("purchaseUnitPrice must not exceed"));
+    }
+
     private static CommercialValues CreateValues() =>
         new(
             Currency: "EGP",
@@ -56,4 +90,15 @@ public sealed class CommercialRulesTests
             SellingPriceScope: "NEW_STOCK_ONLY",
             ExistingStockPriceBehavior: "PRESERVE",
             UnsupportedScopeBehavior: "BLOCK_COMMIT");
+}
+
+public sealed class InvoiceJobTransitionsTests
+{
+    [Fact]
+    public void EnsureAllowed_AllowsAFullIdempotentRetryAfterMatchingFailure()
+    {
+        InvoiceJobTransitions.EnsureAllowed(
+            InvoiceJobState.MatchingFailed,
+            InvoiceJobState.OcrReserved);
+    }
 }

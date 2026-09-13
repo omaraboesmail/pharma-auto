@@ -52,7 +52,7 @@ public sealed class GeminiInteractionsOcrProvider(
         {
             input.Add(new JsonObject
             {
-                ["type"] = page.MimeType == "application/pdf" ? "document" : "image",
+                ["type"] = "image",
                 ["data"] = Convert.ToBase64String(page.Bytes.Span),
                 ["mime_type"] = page.MimeType
             });

@@ -30,7 +30,7 @@ public sealed class ConnectorCertificateProvider
             return X509CertificateLoader.LoadPkcs12FromFile(
                 pfxPath,
                 password,
-                X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
+                X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable);
         }
 
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(pfxPath))!);
@@ -71,7 +71,7 @@ public sealed class ConnectorCertificateProvider
         return X509CertificateLoader.LoadPkcs12(
             bytes,
             password,
-            X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable);
+            X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable);
     }
 
     public static string Sha256(X509Certificate2 certificate) =>

@@ -31,12 +31,22 @@ public sealed partial class CanonicalMatchingService(
             cancellationToken);
 
         return products
-            .Select(product => BuildCandidate(query, normalizedDescription, product))
-            .Where(candidate => candidate.ReasonCodes.Count > 0)
-            .OrderBy(candidate => candidate.HardMismatches.Count)
-            .ThenByDescending(candidate => CandidateRank(candidate.ReasonCodes))
-            .ThenBy(candidate => candidate.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .Select(hit => new
+            {
+                Candidate = BuildCandidate(
+                    query,
+                    normalizedDescription,
+                    hit.Product,
+                    hit.SemanticMatch),
+                hit.SemanticScore
+            })
+            .Where(hit => hit.Candidate.ReasonCodes.Count > 0)
+            .OrderBy(hit => hit.Candidate.HardMismatches.Count)
+            .ThenByDescending(hit => CandidateRank(hit.Candidate.ReasonCodes))
+            .ThenByDescending(hit => hit.SemanticScore)
+            .ThenBy(hit => hit.Candidate.DisplayName, StringComparer.OrdinalIgnoreCase)
             .Take(query.Limit)
+            .Select(hit => hit.Candidate)
             .ToArray();
     }
 
@@ -50,7 +60,8 @@ public sealed partial class CanonicalMatchingService(
     private static CanonicalCandidate BuildCandidate(
         CanonicalSearchQuery query,
         string normalizedDescription,
-        CanonicalProduct product)
+        CanonicalProduct product,
+        bool semanticMatch)
     {
         var reasons = new List<string>();
         var mismatches = new List<string>();
@@ -73,6 +84,10 @@ public sealed partial class CanonicalMatchingService(
         else if (normalizedNames.Any(name => TokenOverlap(name, normalizedDescription) >= 0.5m))
         {
             reasons.Add("LEXICAL_SHORTLIST");
+        }
+        if (semanticMatch)
+        {
+            reasons.Add("SEMANTIC_RETRIEVAL");
         }
 
         CompareAttribute(

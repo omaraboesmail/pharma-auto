@@ -9,6 +9,7 @@ namespace PharmaAuto.Connector.Infrastructure;
 
 public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
 {
+    private const long MaximumPageBytes = 20L * 1024 * 1024;
     private readonly string connectionString = new SqliteConnectionStringBuilder
     {
         DataSource = Path.GetFullPath(databasePath),
@@ -272,28 +273,65 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
             LIMIT $limit;
             """,
             limit,
-            null,
             cancellationToken);
 
-    public Task<IReadOnlyList<InvoiceJob>> ListJobsByStateAsync(
+    public async Task<long> GetJobRecoveryHighWatermarkAsync(
+        CancellationToken cancellationToken)
+    {
+        const string sql = "SELECT COALESCE(MAX(rowid), 0) FROM invoice_jobs;";
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        return Convert.ToInt64(
+            await command.ExecuteScalarAsync(cancellationToken),
+            CultureInfo.InvariantCulture);
+    }
+
+    public async Task<IReadOnlyList<DurableJobPageItem>> ListJobsByStatePageAsync(
         IReadOnlyCollection<InvoiceJobState> states,
+        long afterStoreSequence,
+        long highWatermark,
         int limit,
         CancellationToken cancellationToken)
     {
-        if (states.Count == 0)
+        if (states.Count == 0 || highWatermark <= afterStoreSequence)
         {
-            return Task.FromResult<IReadOnlyList<InvoiceJob>>([]);
+            return [];
         }
+        if (afterStoreSequence < 0 || highWatermark < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(afterStoreSequence));
+        }
+
         var parameterNames = states.Select((_, index) => $"$state_{index}").ToArray();
         var sql = $$"""
-            SELECT job_id, device_id, state, expected_page_count, uploaded_page_count,
+            SELECT rowid, job_id, device_id, state, expected_page_count, uploaded_page_count,
                    current_revision_id, failure_code, created_at, updated_at
             FROM invoice_jobs
-            WHERE state IN ({{string.Join(",", parameterNames)}})
-            ORDER BY updated_at
+            WHERE rowid > $after_store_sequence
+              AND rowid <= $high_watermark
+              AND state IN ({{string.Join(",", parameterNames)}})
+            ORDER BY rowid
             LIMIT $limit;
             """;
-        return ReadJobsAsync(sql, limit, states, cancellationToken);
+        var jobs = new List<DurableJobPageItem>();
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.AddWithValue("$after_store_sequence", afterStoreSequence);
+        command.Parameters.AddWithValue("$high_watermark", highWatermark);
+        command.Parameters.AddWithValue("$limit", Math.Clamp(limit, 1, 1000));
+        var index = 0;
+        foreach (var state in states)
+        {
+            command.Parameters.AddWithValue($"$state_{index++}", State(state));
+        }
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            jobs.Add(new DurableJobPageItem(reader.GetInt64(0), ReadJob(reader, 1)));
+        }
+        return jobs;
     }
 
     public async Task<bool> TransitionJobAsync(
@@ -327,31 +365,98 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
         }) == 1;
     }
 
-    public Task SaveChunkAsync(UploadChunk chunk, CancellationToken cancellationToken) =>
-        ExecuteNoResultAsync(
-            """
+    public async Task<UploadChunkSaveResult> SaveChunkAsync(
+        UploadChunk chunk,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await OpenAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        await using var transaction = connection.BeginTransaction(deferred: false);
+
+        var rejection = await GetChunkUploadRejectionAsync(
+            connection,
+            transaction,
+            chunk,
+            cancellationToken);
+        if (rejection is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return new UploadChunkSaveResult(rejection.Value, chunk);
+        }
+
+        var existing = await GetChunkAsync(
+            connection,
+            transaction,
+            chunk.JobId,
+            chunk.Page,
+            chunk.ChunkIndex,
+            cancellationToken);
+        if (existing is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return new UploadChunkSaveResult(
+                SameChunkRequest(existing, chunk)
+                    ? UploadChunkSaveDisposition.Replay
+                    : UploadChunkSaveDisposition.Conflict,
+                existing);
+        }
+
+        var pageChunk = await GetChunkAsync(
+            connection,
+            transaction,
+            chunk.JobId,
+            chunk.Page,
+            chunkIndex: null,
+            cancellationToken);
+        if (pageChunk is not null && !SamePageMetadata(pageChunk, chunk))
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return new UploadChunkSaveResult(
+                UploadChunkSaveDisposition.Conflict,
+                pageChunk);
+        }
+
+        await using (var pageSize = connection.CreateCommand())
+        {
+            pageSize.Transaction = transaction;
+            pageSize.CommandText = """
+                SELECT COALESCE(SUM(length), 0)
+                FROM upload_chunks
+                WHERE job_id = $job_id AND page = $page;
+                """;
+            pageSize.Parameters.AddWithValue("$job_id", chunk.JobId.ToString("D"));
+            pageSize.Parameters.AddWithValue("$page", chunk.Page);
+            var persistedBytes = Convert.ToInt64(
+                await pageSize.ExecuteScalarAsync(cancellationToken),
+                CultureInfo.InvariantCulture);
+            if (chunk.Length > MaximumPageBytes ||
+                persistedBytes > MaximumPageBytes - chunk.Length)
+            {
+                await transaction.CommitAsync(cancellationToken);
+                return new UploadChunkSaveResult(
+                    UploadChunkSaveDisposition.PageSizeExceeded,
+                    chunk);
+            }
+        }
+
+        await using var insert = connection.CreateCommand();
+        insert.Transaction = transaction;
+        insert.CommandText = """
             INSERT INTO upload_chunks(
                 job_id, page, chunk_index, chunk_count, chunk_sha256, page_sha256,
                 mime_type, object_reference, length, uploaded_at)
             VALUES(
                 $job_id, $page, $chunk_index, $chunk_count, $chunk_sha256, $page_sha256,
-                $mime_type, $object_reference, $length, $uploaded_at)
-            ON CONFLICT(job_id, page, chunk_index) DO NOTHING;
-            """,
-            cancellationToken,
-            command =>
-            {
-                command.Parameters.AddWithValue("$job_id", chunk.JobId.ToString("D"));
-                command.Parameters.AddWithValue("$page", chunk.Page);
-                command.Parameters.AddWithValue("$chunk_index", chunk.ChunkIndex);
-                command.Parameters.AddWithValue("$chunk_count", chunk.ChunkCount);
-                command.Parameters.AddWithValue("$chunk_sha256", chunk.ChunkSha256);
-                command.Parameters.AddWithValue("$page_sha256", chunk.PageSha256);
-                command.Parameters.AddWithValue("$mime_type", chunk.MimeType);
-                command.Parameters.AddWithValue("$object_reference", chunk.ObjectReference);
-                command.Parameters.AddWithValue("$length", chunk.Length);
-                command.Parameters.AddWithValue("$uploaded_at", Format(chunk.UploadedAt));
-            });
+                $mime_type, $object_reference, $length, $uploaded_at);
+            """;
+        AddChunkParameters(insert, chunk);
+        if (await insert.ExecuteNonQueryAsync(cancellationToken) != 1)
+        {
+            throw new InvalidOperationException("Upload chunk was not persisted.");
+        }
+        await transaction.CommitAsync(cancellationToken);
+        return new UploadChunkSaveResult(UploadChunkSaveDisposition.Stored, chunk);
+    }
 
     public async Task<IReadOnlyList<UploadChunk>> GetChunksAsync(
         Guid jobId,
@@ -374,17 +479,7 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
-            chunks.Add(new UploadChunk(
-                Guid.Parse(reader.GetString(0)),
-                reader.GetInt32(1),
-                reader.GetInt32(2),
-                reader.GetInt32(3),
-                reader.GetString(4),
-                reader.GetString(5),
-                reader.GetString(6),
-                reader.GetString(7),
-                reader.GetInt64(8),
-                ParseDate(reader.GetString(9))));
+            chunks.Add(ReadChunk(reader));
         }
         return chunks;
     }
@@ -399,42 +494,128 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
                 command.Parameters.AddWithValue("$page", page);
             });
 
-    public async Task SavePageAsync(DocumentPage page, CancellationToken cancellationToken)
+    public async Task<DocumentPage> FinalizePageUploadAsync(
+        DocumentPage page,
+        CancellationToken cancellationToken)
     {
         await using var connection = await OpenAsync(cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-        await using var command = connection.CreateCommand();
-        command.Transaction = (SqliteTransaction)transaction;
-        command.CommandText = """
-            INSERT INTO document_pages(
-                job_id, page, mime_type, sha256, object_reference, length, uploaded_at)
-            VALUES(
-                $job_id, $page, $mime_type, $sha256, $object_reference, $length, $uploaded_at)
-            ON CONFLICT(job_id, page) DO UPDATE SET
-                object_reference = excluded.object_reference,
-                uploaded_at = excluded.uploaded_at
-            WHERE document_pages.sha256 = excluded.sha256
-              AND document_pages.mime_type = excluded.mime_type;
-            """;
-        AddPageParameters(command, page);
-        if (await command.ExecuteNonQueryAsync(cancellationToken) == 0)
+        cancellationToken.ThrowIfCancellationRequested();
+        await using var transaction = connection.BeginTransaction(deferred: false);
+        string jobState;
+        int expectedPageCount;
+        await using (var readJob = connection.CreateCommand())
+        {
+            readJob.Transaction = transaction;
+            readJob.CommandText = """
+                SELECT state, expected_page_count
+                FROM invoice_jobs
+                WHERE job_id = $job_id;
+                """;
+            readJob.Parameters.AddWithValue("$job_id", page.JobId.ToString("D"));
+            await using var reader = await readJob.ExecuteReaderAsync(cancellationToken);
+            if (!await reader.ReadAsync(cancellationToken))
+            {
+                throw new InvalidOperationException("Invoice job does not exist.");
+            }
+            jobState = reader.GetString(0);
+            expectedPageCount = reader.GetInt32(1);
+        }
+        if (page.Page < 1 || page.Page > expectedPageCount)
+        {
+            throw new InvalidOperationException("Upload page is outside the invoice job range.");
+        }
+
+        var persistedPage = await GetPageAsync(
+            connection,
+            transaction,
+            page.JobId,
+            page.Page,
+            cancellationToken);
+        if (persistedPage is null)
+        {
+            if (!string.Equals(
+                    jobState,
+                    State(InvoiceJobState.Captured),
+                    StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    "A new page cannot be saved after invoice capture is closed.");
+            }
+            await using var insertPage = connection.CreateCommand();
+            insertPage.Transaction = transaction;
+            insertPage.CommandText = """
+                INSERT INTO document_pages(
+                    job_id, page, mime_type, sha256, object_reference, length, uploaded_at)
+                VALUES(
+                    $job_id, $page, $mime_type, $sha256, $object_reference, $length, $uploaded_at);
+                """;
+            AddPageParameters(insertPage, page);
+            if (await insertPage.ExecuteNonQueryAsync(cancellationToken) != 1)
+            {
+                throw new InvalidOperationException("Upload page was not persisted.");
+            }
+            persistedPage = page;
+        }
+        else if (!SamePageContent(persistedPage, page))
         {
             throw new InvalidOperationException("Page number was replayed with different content.");
         }
-        await using var update = connection.CreateCommand();
-        update.Transaction = (SqliteTransaction)transaction;
-        update.CommandText = """
-            UPDATE invoice_jobs
-            SET uploaded_page_count = (
-                    SELECT COUNT(*) FROM document_pages WHERE job_id = $job_id
-                ),
-                updated_at = $uploaded_at
-            WHERE job_id = $job_id;
-            """;
-        update.Parameters.AddWithValue("$job_id", page.JobId.ToString("D"));
-        update.Parameters.AddWithValue("$uploaded_at", Format(page.UploadedAt));
-        await update.ExecuteNonQueryAsync(cancellationToken);
+
+        await using (var deleteChunks = connection.CreateCommand())
+        {
+            deleteChunks.Transaction = transaction;
+            deleteChunks.CommandText =
+                "DELETE FROM upload_chunks WHERE job_id = $job_id AND page = $page;";
+            deleteChunks.Parameters.AddWithValue("$job_id", page.JobId.ToString("D"));
+            deleteChunks.Parameters.AddWithValue("$page", page.Page);
+            await deleteChunks.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        if (string.Equals(
+                jobState,
+                State(InvoiceJobState.Captured),
+                StringComparison.Ordinal))
+        {
+            int uploadedPageCount;
+            await using (var countPages = connection.CreateCommand())
+            {
+                countPages.Transaction = transaction;
+                countPages.CommandText =
+                    "SELECT COUNT(*) FROM document_pages WHERE job_id = $job_id;";
+                countPages.Parameters.AddWithValue("$job_id", page.JobId.ToString("D"));
+                uploadedPageCount = Convert.ToInt32(
+                    await countPages.ExecuteScalarAsync(cancellationToken),
+                    CultureInfo.InvariantCulture);
+            }
+            var nextState = uploadedPageCount == expectedPageCount
+                ? InvoiceJobState.LocallyValidated
+                : InvoiceJobState.Captured;
+            InvoiceJobTransitions.EnsureAllowed(InvoiceJobState.Captured, nextState);
+            await using var updateJob = connection.CreateCommand();
+            updateJob.Transaction = transaction;
+            updateJob.CommandText = """
+                UPDATE invoice_jobs
+                SET state = $next_state,
+                    uploaded_page_count = $uploaded_page_count,
+                    failure_code = NULL,
+                    updated_at = $uploaded_at
+                WHERE job_id = $job_id AND state = $captured_state;
+                """;
+            updateJob.Parameters.AddWithValue("$next_state", State(nextState));
+            updateJob.Parameters.AddWithValue("$uploaded_page_count", uploadedPageCount);
+            updateJob.Parameters.AddWithValue("$uploaded_at", Format(page.UploadedAt));
+            updateJob.Parameters.AddWithValue("$job_id", page.JobId.ToString("D"));
+            updateJob.Parameters.AddWithValue(
+                "$captured_state",
+                State(InvoiceJobState.Captured));
+            if (await updateJob.ExecuteNonQueryAsync(cancellationToken) != 1)
+            {
+                throw new InvalidOperationException(
+                    "Invoice job changed while its page was being finalized.");
+            }
+        }
         await transaction.CommitAsync(cancellationToken);
+        return persistedPage;
     }
 
     public async Task<IReadOnlyList<DocumentPage>> GetPagesAsync(
@@ -455,32 +636,84 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
-            pages.Add(new DocumentPage(
-                Guid.Parse(reader.GetString(0)),
-                reader.GetInt32(1),
-                reader.GetString(2),
-                reader.GetString(3),
-                reader.GetString(4),
-                reader.GetInt64(5),
-                ParseDate(reader.GetString(6))));
+            pages.Add(ReadPage(reader));
         }
         return pages;
     }
 
-    public Task SaveRevisionAsync(
+    public async Task<bool> SaveRevisionAndTransitionJobAsync(
         InvoiceRevisionRecord revision,
-        CancellationToken cancellationToken) =>
-        ExecuteNoResultAsync(
-            """
-            INSERT INTO invoice_revisions(
-                revision_id, job_id, revision_number, status, json, created_by_device_id,
-                created_at, confirmed_at)
-            VALUES(
-                $revision_id, $job_id, $revision_number, $status, $json,
-                $created_by_device_id, $created_at, $confirmed_at);
-            """,
-            cancellationToken,
-            command => AddRevisionParameters(command, revision));
+        InvoiceJobState expectedJobState,
+        InvoiceJobState nextJobState,
+        Guid? expectedCurrentRevisionId,
+        DateTimeOffset changedAt,
+        CancellationToken cancellationToken)
+    {
+        InvoiceJobTransitions.EnsureAllowed(expectedJobState, nextJobState);
+        if (!string.Equals(revision.Status, "AWAITING_USER_REVIEW", StringComparison.Ordinal) ||
+            revision.ConfirmedAt is not null ||
+            revision.RevisionNumber < 1)
+        {
+            throw new ArgumentException(
+                "A published review revision must be unconfirmed and awaiting user review.",
+                nameof(revision));
+        }
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        await using (var updateJob = connection.CreateCommand())
+        {
+            updateJob.Transaction = (SqliteTransaction)transaction;
+            updateJob.CommandText = """
+                UPDATE invoice_jobs
+                SET state = $next,
+                    failure_code = NULL,
+                    current_revision_id = $revision_id,
+                    updated_at = $changed_at
+                WHERE job_id = $job_id
+                  AND device_id = $created_by_device_id
+                  AND state = $expected
+                  AND (
+                      ($expected_revision_id IS NULL AND current_revision_id IS NULL)
+                      OR current_revision_id = $expected_revision_id
+                  );
+                """;
+            updateJob.Parameters.AddWithValue("$next", State(nextJobState));
+            updateJob.Parameters.AddWithValue("$revision_id", revision.RevisionId.ToString("D"));
+            updateJob.Parameters.AddWithValue("$changed_at", Format(changedAt));
+            updateJob.Parameters.AddWithValue("$job_id", revision.JobId.ToString("D"));
+            updateJob.Parameters.AddWithValue(
+                "$created_by_device_id",
+                revision.CreatedByDeviceId.ToString("D"));
+            updateJob.Parameters.AddWithValue("$expected", State(expectedJobState));
+            updateJob.Parameters.AddWithValue(
+                "$expected_revision_id",
+                expectedCurrentRevisionId?.ToString("D") ?? (object)DBNull.Value);
+            if (await updateJob.ExecuteNonQueryAsync(cancellationToken) != 1)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return false;
+            }
+        }
+
+        await using (var insertRevision = connection.CreateCommand())
+        {
+            insertRevision.Transaction = (SqliteTransaction)transaction;
+            insertRevision.CommandText = """
+                INSERT INTO invoice_revisions(
+                    revision_id, job_id, revision_number, status, json, created_by_device_id,
+                    created_at, confirmed_at)
+                VALUES(
+                    $revision_id, $job_id, $revision_number, $status, $json,
+                    $created_by_device_id, $created_at, $confirmed_at);
+                """;
+            AddRevisionParameters(insertRevision, revision);
+            await insertRevision.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+        return true;
+    }
 
     public async Task<InvoiceRevisionRecord?> GetRevisionAsync(
         Guid revisionId,
@@ -500,26 +733,138 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
         return await reader.ReadAsync(cancellationToken) ? ReadRevision(reader) : null;
     }
 
-    public async Task<bool> ConfirmRevisionAsync(
+    public async Task<bool> ConfirmRevisionAndTransitionJobAsync(
         Guid revisionId,
+        Guid jobId,
         Guid deviceId,
         DateTimeOffset confirmedAt,
+        AuditRecord audit,
         CancellationToken cancellationToken)
     {
-        const string sql = """
-            UPDATE invoice_revisions
-            SET status = 'CONFIRMED', confirmed_at = $confirmed_at
-            WHERE revision_id = $revision_id
-              AND created_by_device_id = $device_id
-              AND status = 'AWAITING_USER_REVIEW'
-              AND confirmed_at IS NULL;
-            """;
-        return await ExecuteAsync(sql, cancellationToken, command =>
+        if (audit.CorrelationId != jobId ||
+            !string.Equals(audit.ActorType, "DEVICE", StringComparison.Ordinal) ||
+            !string.Equals(
+                audit.ActorReference,
+                deviceId.ToString("D"),
+                StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(
+                audit.Action,
+                "REVISION_CONFIRMED_READ_ONLY",
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                audit.TargetReference,
+                revisionId.ToString("D"),
+                StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(audit.Result, "SUCCESS_NO_GENIUS_WRITE", StringComparison.Ordinal) ||
+            audit.OccurredAt != confirmedAt)
         {
-            command.Parameters.AddWithValue("$confirmed_at", Format(confirmedAt));
-            command.Parameters.AddWithValue("$revision_id", revisionId.ToString("D"));
-            command.Parameters.AddWithValue("$device_id", deviceId.ToString("D"));
-        }) == 1;
+            throw new ArgumentException("Confirmation audit identity does not match the revision.", nameof(audit));
+        }
+
+        await using var connection = await OpenAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        await using (var idempotencyCheck = connection.CreateCommand())
+        {
+            idempotencyCheck.Transaction = (SqliteTransaction)transaction;
+            idempotencyCheck.CommandText = """
+                SELECT COUNT(*)
+                FROM invoice_jobs AS job
+                JOIN invoice_revisions AS revision
+                  ON revision.revision_id = job.current_revision_id
+                WHERE job.job_id = $job_id
+                  AND job.device_id = $device_id
+                  AND job.state = 'CONFIRMED'
+                  AND revision.revision_id = $revision_id
+                  AND revision.job_id = job.job_id
+                  AND revision.created_by_device_id = $device_id
+                  AND revision.status = 'CONFIRMED'
+                  AND revision.confirmed_at IS NOT NULL
+                  AND (
+                      SELECT COUNT(*)
+                      FROM audit_events AS audit
+                      WHERE audit.actor_type = 'DEVICE'
+                        AND audit.actor_reference = $device_id
+                        AND audit.action = 'REVISION_CONFIRMED_READ_ONLY'
+                        AND audit.target_reference = $revision_id
+                        AND audit.result = 'SUCCESS_NO_GENIUS_WRITE'
+                        AND audit.correlation_id = $job_id
+                  ) = 1;
+                """;
+            idempotencyCheck.Parameters.AddWithValue("$job_id", jobId.ToString("D"));
+            idempotencyCheck.Parameters.AddWithValue("$device_id", deviceId.ToString("D"));
+            idempotencyCheck.Parameters.AddWithValue("$revision_id", revisionId.ToString("D"));
+            if (Convert.ToInt64(await idempotencyCheck.ExecuteScalarAsync(cancellationToken)) == 1)
+            {
+                await transaction.CommitAsync(cancellationToken);
+                return true;
+            }
+        }
+
+        await using (var updateJob = connection.CreateCommand())
+        {
+            updateJob.Transaction = (SqliteTransaction)transaction;
+            updateJob.CommandText = """
+                UPDATE invoice_jobs
+                SET state = 'CONFIRMED',
+                    failure_code = NULL,
+                    updated_at = $confirmed_at
+                WHERE job_id = $job_id
+                  AND device_id = $device_id
+                  AND state = 'AWAITINGUSERREVIEW'
+                  AND current_revision_id = $revision_id;
+                """;
+            updateJob.Parameters.AddWithValue("$confirmed_at", Format(confirmedAt));
+            updateJob.Parameters.AddWithValue("$job_id", jobId.ToString("D"));
+            updateJob.Parameters.AddWithValue("$device_id", deviceId.ToString("D"));
+            updateJob.Parameters.AddWithValue("$revision_id", revisionId.ToString("D"));
+            if (await updateJob.ExecuteNonQueryAsync(cancellationToken) != 1)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return false;
+            }
+        }
+
+        await using (var updateRevision = connection.CreateCommand())
+        {
+            updateRevision.Transaction = (SqliteTransaction)transaction;
+            updateRevision.CommandText = """
+                UPDATE invoice_revisions
+                SET status = 'CONFIRMED', confirmed_at = $confirmed_at
+                WHERE revision_id = $revision_id
+                  AND job_id = $job_id
+                  AND created_by_device_id = $device_id
+                  AND status = 'AWAITING_USER_REVIEW'
+                  AND confirmed_at IS NULL;
+                """;
+            updateRevision.Parameters.AddWithValue("$confirmed_at", Format(confirmedAt));
+            updateRevision.Parameters.AddWithValue("$revision_id", revisionId.ToString("D"));
+            updateRevision.Parameters.AddWithValue("$job_id", jobId.ToString("D"));
+            updateRevision.Parameters.AddWithValue("$device_id", deviceId.ToString("D"));
+            if (await updateRevision.ExecuteNonQueryAsync(cancellationToken) != 1)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return false;
+            }
+        }
+
+        await using (var insertAudit = connection.CreateCommand())
+        {
+            insertAudit.Transaction = (SqliteTransaction)transaction;
+            insertAudit.CommandText = """
+                INSERT INTO audit_events(
+                    event_id, actor_type, actor_reference, action, target_reference, result,
+                    correlation_id, occurred_at)
+                VALUES(
+                    $event_id, $actor_type, $actor_reference, $action, $target_reference, $result,
+                    $correlation_id, $occurred_at);
+                """;
+            AddAuditParameters(insertAudit, audit);
+            await insertAudit.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+        return true;
     }
 
     public async Task ReplaceCatalogAsync(
@@ -794,17 +1139,7 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
                 $correlation_id, $occurred_at);
             """,
             cancellationToken,
-            command =>
-            {
-                command.Parameters.AddWithValue("$event_id", record.EventId.ToString("D"));
-                command.Parameters.AddWithValue("$actor_type", record.ActorType);
-                command.Parameters.AddWithValue("$actor_reference", record.ActorReference);
-                command.Parameters.AddWithValue("$action", record.Action);
-                command.Parameters.AddWithValue("$target_reference", record.TargetReference);
-                command.Parameters.AddWithValue("$result", record.Result);
-                command.Parameters.AddWithValue("$correlation_id", record.CorrelationId.ToString("D"));
-                command.Parameters.AddWithValue("$occurred_at", Format(record.OccurredAt));
-            });
+            command => AddAuditParameters(command, record));
 
     private async Task InsertCatalogItemAsync(
         SqliteConnection connection,
@@ -929,7 +1264,6 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
     private async Task<IReadOnlyList<InvoiceJob>> ReadJobsAsync(
         string sql,
         int limit,
-        IReadOnlyCollection<InvoiceJobState>? states,
         CancellationToken cancellationToken)
     {
         var jobs = new List<InvoiceJob>();
@@ -937,14 +1271,6 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
         await using var command = connection.CreateCommand();
         command.CommandText = sql;
         command.Parameters.AddWithValue("$limit", Math.Clamp(limit, 1, 1000));
-        if (states is not null)
-        {
-            var index = 0;
-            foreach (var state in states)
-            {
-                command.Parameters.AddWithValue($"$state_{index++}", State(state));
-            }
-        }
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
@@ -991,16 +1317,163 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
         reader.IsDBNull(4) ? null : ParseDate(reader.GetString(4)),
         reader.IsDBNull(5) ? null : ParseDate(reader.GetString(5)));
 
-    private static InvoiceJob ReadJob(SqliteDataReader reader) => new(
+    private static InvoiceJob ReadJob(SqliteDataReader reader, int offset = 0) => new(
+        Guid.Parse(reader.GetString(offset)),
+        Guid.Parse(reader.GetString(offset + 1)),
+        ParseState(reader.GetString(offset + 2)),
+        reader.GetInt32(offset + 3),
+        reader.GetInt32(offset + 4),
+        reader.IsDBNull(offset + 5) ? null : Guid.Parse(reader.GetString(offset + 5)),
+        reader.IsDBNull(offset + 6) ? null : reader.GetString(offset + 6),
+        ParseDate(reader.GetString(offset + 7)),
+        ParseDate(reader.GetString(offset + 8)));
+
+    private static UploadChunk ReadChunk(SqliteDataReader reader) => new(
         Guid.Parse(reader.GetString(0)),
-        Guid.Parse(reader.GetString(1)),
-        ParseState(reader.GetString(2)),
+        reader.GetInt32(1),
+        reader.GetInt32(2),
         reader.GetInt32(3),
-        reader.GetInt32(4),
-        reader.IsDBNull(5) ? null : Guid.Parse(reader.GetString(5)),
-        reader.IsDBNull(6) ? null : reader.GetString(6),
-        ParseDate(reader.GetString(7)),
-        ParseDate(reader.GetString(8)));
+        reader.GetString(4),
+        reader.GetString(5),
+        reader.GetString(6),
+        reader.GetString(7),
+        reader.GetInt64(8),
+        ParseDate(reader.GetString(9)));
+
+    private static DocumentPage ReadPage(SqliteDataReader reader) => new(
+        Guid.Parse(reader.GetString(0)),
+        reader.GetInt32(1),
+        reader.GetString(2),
+        reader.GetString(3),
+        reader.GetString(4),
+        reader.GetInt64(5),
+        ParseDate(reader.GetString(6)));
+
+    private static async Task<DocumentPage?> GetPageAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        Guid jobId,
+        int page,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            SELECT job_id, page, mime_type, sha256, object_reference, length, uploaded_at
+            FROM document_pages
+            WHERE job_id = $job_id AND page = $page
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("$job_id", jobId.ToString("D"));
+        command.Parameters.AddWithValue("$page", page);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        return await reader.ReadAsync(cancellationToken) ? ReadPage(reader) : null;
+    }
+
+    private static async Task<UploadChunk?> GetChunkAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        Guid jobId,
+        int page,
+        int? chunkIndex,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = chunkIndex is null
+            ? """
+                SELECT job_id, page, chunk_index, chunk_count, chunk_sha256, page_sha256,
+                       mime_type, object_reference, length, uploaded_at
+                FROM upload_chunks
+                WHERE job_id = $job_id AND page = $page
+                ORDER BY chunk_index
+                LIMIT 1;
+                """
+            : """
+                SELECT job_id, page, chunk_index, chunk_count, chunk_sha256, page_sha256,
+                       mime_type, object_reference, length, uploaded_at
+                FROM upload_chunks
+                WHERE job_id = $job_id AND page = $page AND chunk_index = $chunk_index
+                LIMIT 1;
+                """;
+        command.Parameters.AddWithValue("$job_id", jobId.ToString("D"));
+        command.Parameters.AddWithValue("$page", page);
+        if (chunkIndex is not null)
+        {
+            command.Parameters.AddWithValue("$chunk_index", chunkIndex.Value);
+        }
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        return await reader.ReadAsync(cancellationToken) ? ReadChunk(reader) : null;
+    }
+
+    private static async Task<UploadChunkSaveDisposition?> GetChunkUploadRejectionAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        UploadChunk chunk,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            SELECT job.state,
+                   job.expected_page_count,
+                   completed_page.sha256,
+                   completed_page.mime_type
+            FROM invoice_jobs AS job
+            LEFT JOIN document_pages AS completed_page
+              ON completed_page.job_id = job.job_id
+             AND completed_page.page = $page
+            WHERE job.job_id = $job_id;
+            """;
+        command.Parameters.AddWithValue("$job_id", chunk.JobId.ToString("D"));
+        command.Parameters.AddWithValue("$page", chunk.Page);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return UploadChunkSaveDisposition.JobNotCaptured;
+        }
+        if (!reader.IsDBNull(2))
+        {
+            return string.Equals(
+                    reader.GetString(2),
+                    chunk.PageSha256,
+                    StringComparison.Ordinal) &&
+                string.Equals(
+                    reader.GetString(3),
+                    chunk.MimeType,
+                    StringComparison.Ordinal)
+                ? UploadChunkSaveDisposition.PageAlreadyComplete
+                : UploadChunkSaveDisposition.PageConflict;
+        }
+        if (!string.Equals(
+                reader.GetString(0),
+                State(InvoiceJobState.Captured),
+                StringComparison.Ordinal))
+        {
+            return UploadChunkSaveDisposition.JobNotCaptured;
+        }
+        if (chunk.Page < 1 || chunk.Page > reader.GetInt32(1))
+        {
+            throw new InvalidOperationException("Upload page is outside the invoice job range.");
+        }
+        return null;
+    }
+
+    private static bool SameChunkRequest(UploadChunk existing, UploadChunk candidate) =>
+        existing.ChunkCount == candidate.ChunkCount &&
+        string.Equals(existing.ChunkSha256, candidate.ChunkSha256, StringComparison.Ordinal) &&
+        SamePageMetadata(existing, candidate) &&
+        existing.Length == candidate.Length;
+
+    private static bool SamePageMetadata(UploadChunk existing, UploadChunk candidate) =>
+        existing.ChunkCount == candidate.ChunkCount &&
+        string.Equals(existing.PageSha256, candidate.PageSha256, StringComparison.Ordinal) &&
+        string.Equals(existing.MimeType, candidate.MimeType, StringComparison.Ordinal);
+
+    private static bool SamePageContent(DocumentPage existing, DocumentPage candidate) =>
+        string.Equals(existing.Sha256, candidate.Sha256, StringComparison.Ordinal) &&
+        string.Equals(existing.MimeType, candidate.MimeType, StringComparison.Ordinal) &&
+        existing.Length == candidate.Length;
 
     private static InvoiceRevisionRecord ReadRevision(SqliteDataReader reader) => new(
         Guid.Parse(reader.GetString(0)),
@@ -1063,6 +1536,20 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
         command.Parameters.AddWithValue("$uploaded_at", Format(page.UploadedAt));
     }
 
+    private static void AddChunkParameters(SqliteCommand command, UploadChunk chunk)
+    {
+        command.Parameters.AddWithValue("$job_id", chunk.JobId.ToString("D"));
+        command.Parameters.AddWithValue("$page", chunk.Page);
+        command.Parameters.AddWithValue("$chunk_index", chunk.ChunkIndex);
+        command.Parameters.AddWithValue("$chunk_count", chunk.ChunkCount);
+        command.Parameters.AddWithValue("$chunk_sha256", chunk.ChunkSha256);
+        command.Parameters.AddWithValue("$page_sha256", chunk.PageSha256);
+        command.Parameters.AddWithValue("$mime_type", chunk.MimeType);
+        command.Parameters.AddWithValue("$object_reference", chunk.ObjectReference);
+        command.Parameters.AddWithValue("$length", chunk.Length);
+        command.Parameters.AddWithValue("$uploaded_at", Format(chunk.UploadedAt));
+    }
+
     private static void AddRevisionParameters(SqliteCommand command, InvoiceRevisionRecord revision)
     {
         command.Parameters.AddWithValue("$revision_id", revision.RevisionId.ToString("D"));
@@ -1077,6 +1564,18 @@ public sealed class SqliteSidecarStore(string databasePath) : ISidecarStore
         command.Parameters.AddWithValue(
             "$confirmed_at",
             revision.ConfirmedAt is null ? DBNull.Value : Format(revision.ConfirmedAt.Value));
+    }
+
+    private static void AddAuditParameters(SqliteCommand command, AuditRecord record)
+    {
+        command.Parameters.AddWithValue("$event_id", record.EventId.ToString("D"));
+        command.Parameters.AddWithValue("$actor_type", record.ActorType);
+        command.Parameters.AddWithValue("$actor_reference", record.ActorReference);
+        command.Parameters.AddWithValue("$action", record.Action);
+        command.Parameters.AddWithValue("$target_reference", record.TargetReference);
+        command.Parameters.AddWithValue("$result", record.Result);
+        command.Parameters.AddWithValue("$correlation_id", record.CorrelationId.ToString("D"));
+        command.Parameters.AddWithValue("$occurred_at", Format(record.OccurredAt));
     }
 
     private static void AddIdentifier(List<(string Kind, string Value)> list, string kind, string? value)

@@ -34,9 +34,9 @@ if (!development && string.Equals(ocrProviderName, "Fixture", StringComparison.O
     throw new InvalidOperationException("Synthetic OCR fixture replay is forbidden outside Development.");
 }
 
-var seed = LoadSeed(builder.Environment.ContentRootPath);
 if (string.Equals(storageProvider, "Memory", StringComparison.OrdinalIgnoreCase))
 {
+    var seed = LoadSeed(builder.Environment.ContentRootPath);
     builder.Services.AddSingleton<ISaasStore>(new InMemorySaasStore(seed));
 }
 else if (string.Equals(storageProvider, "Postgres", StringComparison.OrdinalIgnoreCase))
@@ -272,6 +272,14 @@ app.MapPost(
                 statusCode: StatusCodes.Status403Forbidden,
                 type: "https://pharma-auto.invalid/problems/entitlement");
         }
+        catch (InvalidOperationException exception)
+        {
+            return Results.Problem(
+                title: "OCR job conflict",
+                detail: exception.Message,
+                statusCode: StatusCodes.Status409Conflict,
+                type: "https://pharma-auto.invalid/problems/ocr-job-conflict");
+        }
         catch (OcrProviderException exception)
         {
             return Results.Problem(
@@ -355,7 +363,7 @@ static InMemorySaasSeed LoadSeed(string contentRoot)
 {
     var tenantId = Guid.Parse("721b6dde-538e-4f33-a10a-c44d7d724111");
     var connectorId = Guid.Parse("721b6dde-538e-4f33-a10a-c44d7d724222");
-    var catalogPath = Path.Combine(contentRoot, "data", "canonical-products.v1.json");
+    var catalogPath = Path.Combine(contentRoot, "Seed", "canonical-products.v1.json");
     var json = File.ReadAllText(catalogPath);
     var products = JsonSerializer.Deserialize<List<CanonicalProductSeed>>(
         json,

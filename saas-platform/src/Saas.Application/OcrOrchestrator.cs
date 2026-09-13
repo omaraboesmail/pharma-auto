@@ -9,6 +9,8 @@ public sealed class OcrOrchestrator(
     IOcrProvider provider,
     TimeProvider timeProvider)
 {
+    private static readonly TimeSpan ProcessingLease = TimeSpan.FromMinutes(15);
+
     public async Task<OcrJob> ProcessAsync(
         Guid tenantId,
         Guid connectorId,
@@ -17,90 +19,102 @@ public sealed class OcrOrchestrator(
     {
         ValidateDocument(document);
 
-        var existing = await store.GetOcrJobAsync(
-            tenantId,
-            document.JobId,
-            cancellationToken);
-        if (existing is { State: OcrJobState.Completed })
-        {
-            return existing;
-        }
-
         var now = timeProvider.GetUtcNow();
-        var reservation = await store.ReserveQuotaAsync(
+        var attempt = await store.StartOcrJobAsync(
             tenantId,
             connectorId,
             document.JobId,
-            document.Pages.Count,
-            now,
-            cancellationToken);
-
-        var job = existing ?? new OcrJob(
-            document.JobId,
-            tenantId,
-            connectorId,
             document.Pages.Count,
             document.SourceSha256,
-            OcrJobState.Reserved,
-            reservation.ReservationId,
-            null,
-            null,
-            null,
             now,
-            now);
+            now.Subtract(ProcessingLease),
+            cancellationToken);
+        if (attempt.Job.State == OcrJobState.Completed)
+        {
+            return attempt.Job;
+        }
 
-        job = job with { State = OcrJobState.Processing, UpdatedAt = now };
-        await store.SaveOcrJobAsync(job, cancellationToken);
+        var job = attempt.Job;
 
+        OcrProviderResult providerResult;
         try
         {
-            var providerResult = await provider.ExtractAsync(document, cancellationToken);
-            var completedAt = timeProvider.GetUtcNow();
-            job = job with
-            {
-                State = OcrJobState.Completed,
-                ResultJson = providerResult.Json,
-                ProviderModel = providerResult.Model,
-                FailureCode = null,
-                UpdatedAt = completedAt
-            };
-            await store.SaveOcrJobAsync(job, cancellationToken);
-            await store.SettleQuotaAsync(
-                tenantId,
-                reservation.ReservationId,
-                completedAt,
-                cancellationToken);
-            await store.AppendAuditAsync(
-                new AuditEvent(
-                    Guid.NewGuid(),
-                    tenantId,
-                    "CONNECTOR",
-                    connectorId.ToString("D"),
-                    "OCR_SETTLED",
-                    document.JobId.ToString("D"),
-                    "SUCCESS",
-                    document.JobId,
-                    completedAt),
-                cancellationToken);
-            return job;
+            providerResult = await provider.ExtractAsync(document, cancellationToken);
         }
-        catch (OcrProviderException exception)
+        catch (Exception exception)
         {
             var failedAt = timeProvider.GetUtcNow();
+            var failureCode = FailureCode(exception);
             job = job with
             {
                 State = OcrJobState.Failed,
-                FailureCode = exception.Code,
+                FailureCode = failureCode,
                 UpdatedAt = failedAt
             };
-            await store.SaveOcrJobAsync(job, cancellationToken);
-            await store.ReleaseQuotaAsync(
-                tenantId,
-                reservation.ReservationId,
-                failedAt,
-                cancellationToken);
-            throw;
+            var cleanupToken = cancellationToken.IsCancellationRequested
+                ? CancellationToken.None
+                : cancellationToken;
+            Exception? cleanupException = null;
+            try
+            {
+                _ = await store.FailOcrJobAsync(
+                    job,
+                    attempt.AttemptId,
+                    new AuditEvent(
+                        Guid.NewGuid(),
+                        tenantId,
+                        "CONNECTOR",
+                        connectorId.ToString("D"),
+                        "OCR_RELEASED",
+                        document.JobId.ToString("D"),
+                        failureCode,
+                        document.JobId,
+                        failedAt),
+                    cleanupToken);
+            }
+            catch (Exception cleanupFailure)
+            {
+                cleanupException = cleanupFailure;
+            }
+            if (exception is OperationCanceledException)
+            {
+                throw;
+            }
+            if (exception is OcrProviderException && cleanupException is null)
+            {
+                throw;
+            }
+            throw new OcrProviderException(
+                failureCode,
+                "OCR processing failed before a canonical result was committed.",
+                cleanupException is null
+                    ? exception
+                    : new AggregateException(exception, cleanupException));
         }
+
+        var completedAt = timeProvider.GetUtcNow();
+        job = job with
+        {
+            State = OcrJobState.Completed,
+            ResultJson = providerResult.Json,
+            ProviderModel = providerResult.Model,
+            FailureCode = null,
+            UpdatedAt = completedAt
+        };
+        return await store.CompleteOcrJobAsync(
+            job,
+            attempt.AttemptId,
+            new AuditEvent(
+                Guid.NewGuid(),
+                tenantId,
+                "CONNECTOR",
+                connectorId.ToString("D"),
+                "OCR_SETTLED",
+                document.JobId.ToString("D"),
+                "SUCCESS",
+                document.JobId,
+                completedAt),
+            cancellationToken);
     }
 
     public static string ComputeLogicalDocumentSha256(
@@ -136,9 +150,10 @@ public sealed class OcrOrchestrator(
                 throw new ArgumentException($"Page {page.Page} hash does not match its payload.");
             }
 
-            if (page.MimeType is not ("image/jpeg" or "image/png" or "application/pdf"))
+            if (page.MimeType is not ("image/jpeg" or "image/png"))
             {
-                throw new ArgumentException($"Page {page.Page} has an unsupported MIME type.");
+                throw new ArgumentException(
+                    $"Page {page.Page} has an unsupported MIME type. OCR transport accepts normalized JPEG or PNG pages only.");
             }
         }
 
@@ -148,4 +163,14 @@ public sealed class OcrOrchestrator(
             throw new ArgumentException("Document source hash does not match the ordered page hashes.");
         }
     }
+
+    private static string FailureCode(Exception exception) => exception switch
+    {
+        OcrProviderException providerException => providerException.Code,
+        OperationCanceledException => "OCR_CANCELLED",
+        System.Text.Json.JsonException => "OCR_SCHEMA_INVALID",
+        FormatException => "OCR_PROVIDER_FORMAT_INVALID",
+        HttpRequestException => "OCR_PROVIDER_UNAVAILABLE",
+        _ => "OCR_PROVIDER_UNEXPECTED"
+    };
 }

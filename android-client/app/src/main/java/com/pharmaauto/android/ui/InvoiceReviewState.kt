@@ -1,6 +1,7 @@
 package com.pharmaauto.android.ui
 
 import androidx.compose.runtime.Immutable
+import com.pharmaauto.android.domain.DecimalInputRules
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -16,7 +17,8 @@ enum class ReviewMessage {
     PrototypeReviewComplete,
     ReviewRemainingLine,
     InvalidCommercial,
-    InvalidExpiry
+    InvalidExpiry,
+    InvalidSplitQuantity
 }
 
 @Immutable
@@ -91,49 +93,16 @@ data class InvoiceTotals(
 object InvoiceReviewRules {
     private val OneHundred = BigDecimal("100")
 
-    fun normalizeDecimalInput(input: String): String {
-        val mapped = buildString(input.length) {
-            input.forEach { character ->
-                append(
-                    when (character) {
-                        '٠' -> '0'
-                        '١' -> '1'
-                        '٢' -> '2'
-                        '٣' -> '3'
-                        '٤' -> '4'
-                        '٥' -> '5'
-                        '٦' -> '6'
-                        '٧' -> '7'
-                        '٨' -> '8'
-                        '٩' -> '9'
-                        '٫', ',' -> '.'
-                        else -> character
-                    }
-                )
-            }
-        }
-
-        var decimalSeen = false
-        return buildString(mapped.length) {
-            mapped.forEach { character ->
-                when {
-                    character.isDigit() -> append(character)
-                    character == '.' && !decimalSeen -> {
-                        append(character)
-                        decimalSeen = true
-                    }
-                }
-            }
-        }
-    }
-
     fun decimalOrNull(value: String): BigDecimal? =
-        normalizeDecimalInput(value).takeIf(String::isNotBlank)?.toBigDecimalOrNull()
+        DecimalInputRules.decimal(value).value
+
+    fun percentageOrNull(value: String): BigDecimal? =
+        DecimalInputRules.percentage(value).value
 
     fun validate(line: InvoiceLineDraft): LineValidation {
         val purchase = decimalOrNull(line.confirmed.purchaseUnitPrice)
-        val discountOne = decimalOrNull(line.confirmed.discountOne)
-        val discountTwo = decimalOrNull(line.confirmed.discountTwo)
+        val discountOne = percentageOrNull(line.confirmed.discountOne)
+        val discountTwo = percentageOrNull(line.confirmed.discountTwo)
         val selling = decimalOrNull(line.confirmed.sellingUnitPrice)
         val required = decimalOrNull(line.sourceQuantity) ?: BigDecimal.ZERO
         val assigned = line.expiries.fold(BigDecimal.ZERO) { total, expiry ->
@@ -168,8 +137,9 @@ object InvoiceReviewRules {
         expiryIndex: Int,
         newId: String
     ): InvoiceLineDraft {
-        val selected = line.expiries[expiryIndex]
-        val quantity = decimalOrNull(selected.quantity) ?: BigDecimal.ZERO
+        val selected = line.expiries.getOrNull(expiryIndex) ?: return line
+        val quantity = decimalOrNull(selected.quantity) ?: return line
+        if (quantity <= BigDecimal.ZERO) return line
         val newQuantity = if (quantity > BigDecimal.ONE) {
             quantity.divide(BigDecimal("2"), 3, RoundingMode.HALF_UP)
                 .stripTrailingZeros()
@@ -200,8 +170,8 @@ object InvoiceReviewRules {
 
             val quantity = validation.assignedQuantity
             val purchase = decimalOrNull(line.confirmed.purchaseUnitPrice) ?: return null
-            val discountOne = decimalOrNull(line.confirmed.discountOne) ?: return null
-            val discountTwo = decimalOrNull(line.confirmed.discountTwo) ?: return null
+            val discountOne = percentageOrNull(line.confirmed.discountOne) ?: return null
+            val discountTwo = percentageOrNull(line.confirmed.discountTwo) ?: return null
             val selling = decimalOrNull(line.confirmed.sellingUnitPrice) ?: return null
             val gross = purchase.multiply(quantity)
             val afterDiscountOne = gross.multiply(

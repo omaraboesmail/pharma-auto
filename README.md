@@ -53,7 +53,7 @@
 20. [Write Assumptions and Side-Effect Owners](docs/18-write-assumptions-and-side-effect-owners.md)
 21. [Threat Model](docs/19-threat-model.md)
 22. [Phase 0 Closure](docs/20-phase-0-closure.md)
-23. [Phase 1 Closure](docs/21-phase-1-closure.md)
+23. [Phase 1 Implementation Record](docs/21-phase-1-closure.md)
 
 ## System Explainer
 
@@ -61,4 +61,4 @@
 
 ## حالة الـ repository
 
-هذه Greenfield architecture مستقلة في `C:\Projects\Pharmatech`. مجلد `Order-Automating` خارج حدود المشروع الجديد بالكامل: لا يُستخدم كـ root،ولا Android baseline،ولا مصدر runtime أوdependency. Phase 0 مكتملة وفق [Phase 0 Closure](docs/20-phase-0-closure.md)،وPhase 1 read-only vertical slice مكتملة ضمن النطاق المحلي غير المدفوع وفق [Phase 1 Closure](docs/21-phase-1-closure.md). Genius writes ما زالت غير موجودة في surface التشغيل ومغلقة خلف Golden certification للمراحل اللاحقة.
+هذه Greenfield architecture مستقلة داخل هذا المستودع. مجلد `Order-Automating` خارج حدود المشروع الجديد بالكامل: لا يُستخدم كـ root،ولا Android baseline،ولا مصدر runtime أوdependency. Phase 0 مكتملة وفق [Phase 0 Closure](docs/20-phase-0-closure.md)،وPhase 1 read-only vertical slice **implementation complete / acceptance pending** وفق [Phase 1 Implementation Record](docs/21-phase-1-closure.md). Genius writes ما زالت غير موجودة في surface التشغيل ومغلقة خلف Phase 1 acceptance،بوابات تنفيذ واختبار ADR-012/ADR-013،Golden certification وClone-only implementation للمراحل اللاحقة؛اعتماد القرارين لا يفعّل writes.
